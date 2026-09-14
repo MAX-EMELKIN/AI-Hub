@@ -1,0 +1,285 @@
+# -*- coding: utf-8 -*-
+"""
+Модуль: data/gui/service_settings_dialog.py
+Назначение: Диалоговое окно настройки параметров сервисов (ServiceSettingsDialog).
+            Включает специализированную панель настройки Gemini Family (DoH SmartDNS,
+            SOCKS5/HTTP-прокси, выбор модели по умолчанию, инструкцию веб-поиска)
+            и универсальную генерацию полей конфигурации для остальных моделей.
+Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
+"""
+
+import tkinter as tk
+from tkinter import ttk, messagebox
+
+from data.core.i18n import t
+from data.gui.theme_manager import theme
+from data.gui.dialog_helpers import attach_entry_context_menu, attach_text_context_menu
+from data.core.logger import logger
+
+DOH_PRESET_KEYS = [
+    "Comss.one (SmartDNS / РФ обход)",
+    "Control D (Uncensored)",
+    "Cloudflare (1.1.1.1)",
+    "Google (8.8.8.8)",
+    "Пользовательский URL..."
+]
+
+GEMINI_MODELS_LIST = [
+    "gemini-3.8-flash",
+    "gemini-3.7-flash",
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+    "gemini-3.1-pro-preview",
+    "gemini-3-flash-preview",
+    "gemini-2.5-flash",
+    "gemini-2.5-pro"
+]
+
+class ServiceSettingsDialog(tk.Toplevel):
+    def __init__(self, parent, service, on_saved_callback=None):
+        super().__init__(parent)
+        self.parent = parent
+        self.service = service
+        self.on_saved = on_saved_callback
+        self.entries = {}
+
+        bg_main = theme.get_color("bg_main")
+        self.title(t("params_dialog_title", f"Параметры — {service.name}", name=service.name))
+
+        self.has_search_prompt = any(
+            f.get("key") == "search_prompt"
+            for f in (self.service.get_config_fields() if hasattr(self.service, "get_config_fields") else [])
+        )
+
+        if self.service.service_id == "gemini_family":
+            self.geometry("560x650")
+        else:
+            w = 540
+            h = 510 if self.has_search_prompt else 380
+            self.geometry(f"{w}x{h}")
+
+        self.resizable(False, False)
+        self.configure(bg=bg_main)
+        self.transient(parent)
+        self.grab_set()
+
+        self._build_ui()
+        self._center_window()
+
+    def _center_window(self):
+        self.update_idletasks()
+        pw = self.parent.winfo_width() if self.parent else 600
+        ph = self.parent.winfo_height() if self.parent else 400
+        px = self.parent.winfo_rootx() if self.parent else 200
+        py = self.parent.winfo_rooty() if self.parent else 150
+
+        if self.service.service_id == "gemini_family":
+            w, h = 560, 650
+        else:
+            w = 540
+            h = 510 if self.has_search_prompt else 380
+
+        x = px + max(0, (pw - w) // 2)
+        y = py + max(0, (ph - h) // 2)
+        self.geometry(f"{w}x{h}+{x}+{y}")
+
+    def _build_ui(self):
+        bg_main = theme.get_color("bg_main")
+        bg_card = theme.get_color("bg_card")
+        fg_pri = theme.get_color("fg_primary")
+        in_bg = theme.get_color("input_bg")
+        in_fg = theme.get_color("input_fg")
+
+        pad_frame = tk.Frame(self, bg=bg_main, padx=16, pady=14)
+        pad_frame.pack(fill=tk.BOTH, expand=True)
+
+        header_str = t("params_dialog_header", f"Параметры сервиса: {self.service.name}", name=self.service.name)
+        tk.Label(pad_frame, text=header_str, font=theme.font(2, "bold"), fg=theme.get_color("accent"), bg=bg_main).pack(anchor="w", pady=(0, 10))
+
+        if self.service.service_id == "gemini_family":
+            r_api = tk.Frame(pad_frame, bg=bg_main)
+            r_api.pack(fill=tk.X, pady=3)
+            tk.Label(r_api, text="API Ключ (AIzaSy... / AQ...): *", font=theme.font(0, "bold"), fg=fg_pri, width=24, anchor="w", bg=bg_main).pack(side=tk.LEFT)
+            self.e_api_gemini = tk.Entry(r_api, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
+            self.e_api_gemini.insert(0, str(self.service.get_config_val("api_key", "")))
+            self.e_api_gemini.pack(side=tk.LEFT, fill=tk.X, expand=True)
+            attach_entry_context_menu(self.e_api_gemini)
+
+            r_mod = tk.Frame(pad_frame, bg=bg_main)
+            r_mod.pack(fill=tk.X, pady=3)
+            tk.Label(r_mod, text="Модель по умолчанию: *", font=theme.font(0, "bold"), fg=fg_pri, width=24, anchor="w", bg=bg_main).pack(side=tk.LEFT)
+            self.combo_gem_def_model = ttk.Combobox(r_mod, values=GEMINI_MODELS_LIST, state="readonly")
+            cur_m = self.service.get_config_val("model", GEMINI_MODELS_LIST[0])
+            self.combo_gem_def_model.set(cur_m if cur_m in GEMINI_MODELS_LIST else GEMINI_MODELS_LIST[0])
+            self.combo_gem_def_model.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+            conn_frame = tk.LabelFrame(pad_frame, text=" Режим соединения и обхода блокировок ", font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=10, pady=8)
+            conn_frame.pack(fill=tk.X, pady=(10, 4))
+
+            self.conn_mode_var = tk.StringVar(value=self.service.get_config_val("connection_mode", "doh"))
+
+            rb_doh = tk.Radiobutton(
+                conn_frame, text="Встроенный DoH (SmartDNS / РФ обход)",
+                variable=self.conn_mode_var, value="doh", bg=bg_card, fg=fg_pri,
+                selectcolor=in_bg, font=theme.font(0), command=self._toggle_conn_ui
+            )
+            rb_doh.pack(anchor="w")
+
+            self.doh_subframe = tk.Frame(conn_frame, bg=bg_card)
+            self.doh_subframe.pack(fill=tk.X, padx=20, pady=3)
+
+            doh_top = tk.Frame(self.doh_subframe, bg=bg_card)
+            doh_top.pack(fill=tk.X)
+            tk.Label(doh_top, text="DoH-сервер:", bg=bg_card, fg=fg_pri, font=theme.font(-1)).pack(side=tk.LEFT)
+
+            self.combo_doh = ttk.Combobox(doh_top, values=DOH_PRESET_KEYS, state="readonly", width=30)
+            cur_doh = self.service.get_config_val("doh_preset", DOH_PRESET_KEYS[0])
+            self.combo_doh.set(cur_doh if cur_doh in DOH_PRESET_KEYS else DOH_PRESET_KEYS[0])
+            self.combo_doh.pack(side=tk.LEFT, padx=6)
+            self.combo_doh.bind("<<ComboboxSelected>>", self._toggle_doh_custom_ui)
+
+            self.doh_custom_frame = tk.Frame(self.doh_subframe, bg=bg_card)
+            tk.Label(self.doh_custom_frame, text="Свой DoH URL:", bg=bg_card, fg=fg_pri, font=theme.font(-1)).pack(side=tk.LEFT)
+            self.e_doh_custom = tk.Entry(self.doh_custom_frame, font=theme.font(-1), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
+            self.e_doh_custom.insert(0, self.service.get_config_val("doh_custom_url", "https://xbox-dns.ru/dns-query"))
+            self.e_doh_custom.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
+            attach_entry_context_menu(self.e_doh_custom)
+
+            rb_proxy = tk.Radiobutton(
+                conn_frame, text="SOCKS5 / HTTP Прокси",
+                variable=self.conn_mode_var, value="proxy", bg=bg_card, fg=fg_pri,
+                selectcolor=in_bg, font=theme.font(0), command=self._toggle_conn_ui
+            )
+            rb_proxy.pack(anchor="w", pady=(6, 0))
+
+            self.e_proxy = tk.Entry(conn_frame, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
+            self.e_proxy.insert(0, self.service.get_config_val("proxy", ""))
+            self.e_proxy.pack(fill=tk.X, padx=20, pady=2)
+            attach_entry_context_menu(self.e_proxy)
+
+            rb_direct = tk.Radiobutton(
+                conn_frame, text="Прямое соединение (Без обходов)",
+                variable=self.conn_mode_var, value="direct", bg=bg_card, fg=fg_pri,
+                selectcolor=in_bg, font=theme.font(0), command=self._toggle_conn_ui
+            )
+            rb_direct.pack(anchor="w", pady=(6, 0))
+
+            self._toggle_conn_ui()
+            self._toggle_doh_custom_ui()
+
+            search_frame = tk.LabelFrame(pad_frame, text=" Инструкция веб-поиска (Промпт для агента) ", font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=10, pady=6)
+            search_frame.pack(fill=tk.BOTH, expand=True, pady=(4, 4))
+
+            t_border = tk.Frame(search_frame, relief=tk.SOLID, bd=1, bg=in_bg)
+            t_border.pack(fill=tk.BOTH, expand=True)
+            self.t_search_prompt = tk.Text(t_border, font=theme.font(-1), bg=in_bg, fg=in_fg, wrap=tk.WORD, height=4, bd=0)
+            sb = tk.Scrollbar(t_border, command=self.t_search_prompt.yview)
+            self.t_search_prompt.configure(yscrollcommand=sb.set)
+            sb.pack(side=tk.RIGHT, fill=tk.Y)
+            self.t_search_prompt.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=4, pady=4)
+            self.t_search_prompt.insert("1.0", str(self.service.get_config_val("search_prompt", "")))
+            attach_text_context_menu(self.t_search_prompt)
+
+        else:
+            fields = self.service.get_config_fields()
+            for f in fields:
+                k = f["key"]
+                lbl = f["label"]
+                req = f.get("required", False)
+
+                if k == "search_prompt":
+                    row = tk.Frame(pad_frame, bg=bg_main)
+                    row.pack(fill=tk.BOTH, expand=True, pady=4)
+
+                    req_mark = " *" if req else ""
+                    tk.Label(row, text=lbl + req_mark, font=theme.font(0, "bold" if req else "normal"), fg=fg_pri, anchor="w", bg=bg_main).pack(side=tk.TOP, anchor="w", pady=(0, 2))
+
+                    t_border = tk.Frame(row, relief=tk.SOLID, bd=1, bg=in_bg)
+                    t_border.pack(fill=tk.BOTH, expand=True)
+                    entry = tk.Text(t_border, font=theme.font(-1), bg=in_bg, fg=in_fg, wrap=tk.WORD, height=4, bd=0)
+                    sb = tk.Scrollbar(t_border, command=entry.yview)
+                    entry.configure(yscrollcommand=sb.set)
+                    sb.pack(side=tk.RIGHT, fill=tk.Y)
+                    entry.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=4, pady=4)
+
+                    val = self.service.get_config_val(k)
+                    entry.insert("1.0", str(val))
+                    attach_text_context_menu(entry)
+                    self.entries[k] = entry
+                else:
+                    row = tk.Frame(pad_frame, bg=bg_main)
+                    row.pack(fill=tk.X, pady=4)
+
+                    req_mark = " *" if req else ""
+                    tk.Label(row, text=lbl + req_mark, font=theme.font(0, "bold" if req else "normal"), fg=fg_pri, width=18, anchor="w", bg=bg_main).pack(side=tk.LEFT)
+
+                    entry = tk.Entry(row, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
+                    val = self.service.get_config_val(k)
+                    entry.insert(0, str(val))
+                    entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+                    attach_entry_context_menu(entry)
+                    self.entries[k] = entry
+
+        help_box = tk.Label(
+            pad_frame, text=t("params_dialog_note", "* Все данные сохраняются в файл api_keys.ini в папке data/."),
+            font=theme.font(-1, "italic"), fg=theme.get_color("fg_muted"), bg=bg_main, justify="left"
+        )
+        help_box.pack(anchor="w", pady=(10, 0))
+
+        btn_row = tk.Frame(pad_frame, bg=bg_main)
+        btn_row.pack(fill=tk.X, side=tk.BOTTOM, pady=(10, 0))
+
+        tk.Button(btn_row, text=t("btn_cancel", "Отмена"), font=theme.font(0), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, padx=12, command=self.destroy).pack(side=tk.RIGHT, padx=(6, 0))
+        tk.Button(
+            btn_row, text=t("params_btn_save", "Сохранить и запомнить"), font=theme.font(0, "bold"),
+            relief=tk.FLAT, bg=theme.get_color("accent"), fg=theme.get_color("accent_text"),
+            cursor="hand2", padx=14, command=self._on_save
+        ).pack(side=tk.RIGHT)
+
+    def _toggle_conn_ui(self):
+        mode = self.conn_mode_var.get()
+        if mode == "doh":
+            self.combo_doh.config(state="readonly")
+            self.e_proxy.config(state="disabled")
+            self._toggle_doh_custom_ui()
+        elif mode == "proxy":
+            self.combo_doh.config(state="disabled")
+            self.e_proxy.config(state="normal")
+            self.doh_custom_frame.pack_forget()
+        else:
+            self.combo_doh.config(state="disabled")
+            self.e_proxy.config(state="disabled")
+            self.doh_custom_frame.pack_forget()
+
+    def _toggle_doh_custom_ui(self, event=None):
+        if self.conn_mode_var.get() == "doh" and self.combo_doh.get() == "Пользовательский URL...":
+            self.doh_custom_frame.pack(fill="x", pady=(4, 0))
+        else:
+            self.doh_custom_frame.pack_forget()
+
+    def _on_save(self):
+        if self.service.service_id == "gemini_family":
+            self.service.set_config_val("api_key", self.e_api_gemini.get().strip())
+            self.service.set_config_val("model", self.combo_gem_def_model.get().strip())
+            self.service.set_config_val("connection_mode", self.conn_mode_var.get())
+            self.service.set_config_val("doh_preset", self.combo_doh.get().strip())
+            self.service.set_config_val("doh_custom_url", self.e_doh_custom.get().strip())
+            self.service.set_config_val("proxy", self.e_proxy.get().strip())
+            self.service.set_config_val("search_prompt", self.t_search_prompt.get("1.0", tk.END).strip())
+        else:
+            for k, entry in self.entries.items():
+                if isinstance(entry, tk.Text):
+                    val = entry.get("1.0", tk.END).strip()
+                else:
+                    val = entry.get().strip()
+                self.service.set_config_val(k, val)
+
+        logger.system(f"Параметры сервиса '{self.service.name}' обновлены пользователем")
+
+        if self.on_saved:
+            self.on_saved()
+
+        success_msg = t("params_saved_msg", f"Параметры сервиса '{self.service.name}' успешно обновлены!", name=self.service.name)
+        messagebox.showinfo("OK", success_msg, parent=self)
+        self.destroy()

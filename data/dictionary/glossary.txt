@@ -1,0 +1,16 @@
+# Пользовательский словарь терминов (Глоссарий)
+
+Lockpick = Отмычка
+Lockpicks = Отмычки
+Nuka-Cola = Ядер-Кола
+Pip-Boy = Пип-бой
+Pip-Boys = Пип-бои
+power armor = Усиленная броня
+RadAway = Антирадин
+Stealthboy = Стелс-бой
+Stealthboys = Стелс-бои
+Stimpack = Стимулятор
+Stimpacks = Стимуляторы
+Stimpak = Стимулятор
+Sweetroll = Сладкий рулет
+Sweetrolls = Сладкие рулеты

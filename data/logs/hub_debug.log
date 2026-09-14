@@ -1,0 +1,387 @@
+--- QTranslate AI Hub Log Started: 2026-09-13 19:52:40 ---
+
+[2026-09-13 19:52:40] [SYSTEM] 
+Старт приложения QTranslate AI Hub
+
+[2026-09-13 19:52:40] [SYSTEM] 
+HTTP-сервер запущен на 127.0.0.1:8080
+
+[2026-09-13 19:52:40] [SYSTEM] 
+Главное окно GUI инициализировано
+
+[2026-09-13 19:52:40] [SYSTEM] 
+Приложение свернуто в трей
+
+[2026-09-13 19:53:34] [SYSTEM] 
+Главное окно: сервис NVIDIA Nemotron 3.5 (OpenRouter) (openrouter_nemotron_3_5) удален пользователем
+
+[2026-09-13 19:53:43] [SYSTEM] 
+Главное окно: сервис nvidia-3-super-120b (nvidia_3_super_120b) удален пользователем
+
+[2026-09-13 19:54:02] [SYSTEM] 
+Главное окно: сервис thinkingmachines/inkling-small (thinkingmachines_inkling_small) удален пользователем
+
+[2026-09-13 19:54:28] [SYSTEM] 
+Главное окно: сервис llama-3.3-70b (llama_3_3_70b) удален пользователем
+
+[2026-09-13 19:54:42] [SYSTEM] 
+Главное окно: сервис llama-3.3-70b OpenRouter (llama_3_3_70b_openrouter) удален пользователем
+
+[2026-09-13 19:54:54] [SYSTEM] 
+Главное окно: сервис DeepSeek V4 Pro (Boltch Free) (boltch_deepseek_v4_pro) удален пользователем
+
+[2026-09-13 19:55:03] [SYSTEM] 
+Главное окно: сервис deepseek-r1-distill-qwen-32b (deepseek_r1_distill_qwen_32b) удален пользователем
+
+[2026-09-13 19:55:18] [SYSTEM] 
+Главное окно: сервис nemotron-3-ultra Boltch (nemotron_3_ultra_boltch) удален пользователем
+
+[2026-09-13 19:55:48] [BROWSER_CDP] 
+Запуск Supermium Portable на порту 9222
+
+[2026-09-13 19:55:49] [BROWSER_CDP] 
+Браузер готов к работе через CDP
+
+[2026-09-13 19:55:49] [BROWSER_CDP] 
+Окно браузера выведено по центру экрана
+
+[2026-09-13 19:55:50] [BROWSER_CDP] 
+Вкладки ChatGPT и Google успешно прогреты в фоне
+
+[2026-09-13 19:56:35] [BROWSER_CDP] 
+Запуск Supermium Portable на порту 9222
+
+[2026-09-13 19:56:35] [BROWSER_CDP] 
+Браузер готов к работе через CDP
+
+[2026-09-13 19:56:35] [BROWSER_CDP] 
+Окно браузера выведено по центру экрана
+
+[2026-09-13 19:56:36] [BROWSER_CDP] 
+Вкладки ChatGPT и Google успешно прогреты в фоне
+
+[2026-09-13 20:01:30] [SYSTEM] 
+Мастер создания сервиса: создан сервис 'google/gemma-4-31b-it' (ID: google_gemma_4_31b_it, QT_ID: 711)
+
+[2026-09-13 20:02:11] [QTRANSLATE] 
+Маршрут: /google_gemma_4_31b_it
+Направление: auto -> ru
+Текст (1066 симв.): Compatibility with Automatron, Far Harbor and Nuka World. Bring the crime spree to elsewhere other than the Commonwealth...
+
+[2026-09-13 20:05:51] [SYSTEM] 
+Параметры сервиса 'google/gemma-4-31b-it' обновлены пользователем
+
+[2026-09-13 20:06:20] [QTRANSLATE] 
+Маршрут: /google_gemma_4_31b_it
+Направление: auto -> ru
+Текст (730 симв.): Miss Weldy is an Automatron-compatible companion with over 2000 lines. I'm reluctant to tell you that she resembles a Mr...
+
+[2026-09-13 20:06:20] [GLOSSARY] [google/gemma-4-31b-it]
+Найдено терминов в тексте: 1
+  * 'armor' -> 'Усиленная броня'
+
+[2026-09-13 20:06:20] [API_PAYLOAD] [google/gemma-4-31b-it]
+Endpoint: https://openrouter.ai/api/v1/chat/completions
+Model: google/gemma-4-31b-it:free
+Headers:
+{
+  "Content-Type": "application/json; charset=utf-8",
+  "Authorization": "Bearer sk-or-***ee29",
+  "HTTP-Referer": "https://github.com/max-emelkin/qtranslate-ai-hub",
+  "X-Title": "QTranslate AI Hub",
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+}
+Payload:
+{
+  "model": "google/gemma-4-31b-it:free",
+  "messages": [
+    {
+      "role": "system",
+      "content": "Сделай профессиональный перевод на русский язык с точной передачей стиля оригинала.\nПРАВИЛА:\n1. Стиль и мимикрия: точно воспроизводи стиль, регистр и тональность источника.\n2. Терминология: устоявшиеся официальные термины пиши на целевом языке, уникальные бренды — в оригинале.\n\nОБЯЗАТЕЛЬНЫЕ ТРЕБОВАНИЯ:\n1. Переведи входной текст на русский язык в точном соответствии со стилем.\n2. Выводи СТРОГО чистый готовый перевод БЕЗ вводных слов, пояснений и кавычек.\n3. СТРОГО СОХРАНЯЙ все переносы строк, структуру списков и абзацев оригинала! Категорически запрещено объединять отдельные строки и пункты в один сплошной абзац.\n4. Сохраняй все теги разметки, переменные и технические маркеры без изменений.\n\nКРИТИЧЕСКОЕ ПРАВИЛО ГЛОССАРИЯ (ВЫСШИЙ ПРИОРИТЕТ НАД ДЕФОЛТНЫМИ ЗНАНИЯМИ):\nВ исходном тексте для терминов указаны обязательные подсказки в формате [[__GLOSS:Базовый_Перевод__]].\n1. СТРОГИЙ ПРИОРИТЕТ: Ты ОБЯЗАН переводить термин ТОЛЬКО так, как указано в подсказке [[__GLOSS:...__]], даже если в твоей памяти есть другой общепринятый перевод! Категорически запрещено заменять подсказку своим привычным переводом.\n2. ОБЯЗАТЕЛЬНОЕ СКЛОНЕНИЕ И СОГЛАСОВАНИЕ (ИЗМЕНЕНИЕ ОКОНЧАНИЙ):\n   Подсказка в [[__GLOSS:...__]] дана в начальной словарной форме (именительный падеж).\n   Ты ОБЯЗАН САМОСТОЯТЕЛЬНО изменить падеж, род, число и окончания этого перевода под грамматику предложения!\n   Пример принципа: если в тексте 'he found a magic apple [[__GLOSS:Золотое яблоко__]]', то глагол 'нашел' требует винительного падежа, поэтому перевод ДОЛЖЕН БЫТЬ 'он нашел золотое яблоко', а для 'he has no magic apple [[__GLOSS:Золотое яблоко__]]' -> 'у него нет золотого яблока'.\n3. ОЧИСТКА: Служебные маркеры [[__GLOSS:...__]] в финальный перевод НЕ ВЫВОДИ — удаляй их полностью!"
+    },
+    {
+      "role": "user",
+      "content": "Miss Weldy is an Automatron-compatible companion with over 2000 lines. I'm reluctant to tell you that she resembles a Mr. Handy, because she would have your head for such a comparison. Rarely, if ever seen on land, Miss Weldys are General Atomics Utility Robots meant for primary use on Oil Rigs and large tanker ships. So it's only a surprise when you encounter her trying to sell you a power armor [[__GLOSS:Усиленная броня__]] to you, while it's owner's back is literally turned. Miss Weldy is a companion which encourages immoral, if not despicable behaviours. Doing so, will no doubt lead to a very profitable, if infamous partnership as you travel through the Commonwealth together - that is, if she doesn't sell you to the Gunners from behind your back."
+    }
+  ],
+  "max_tokens": 4096,
+  "temperature": 0.2,
+  "reasoning": {
+    "max_tokens": 0,
+    "exclude": true
+  }
+}
+
+[2026-09-13 20:06:21] [API_RAW_RESPONSE] [google/gemma-4-31b-it]
+Status: HTTP 429 | Time: 0.86с
+Raw Response Body:
+{
+  "error": {
+    "message": "Provider returned error",
+    "code": 429,
+    "metadata": {
+      "raw": "google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations",
+      "provider_name": "Google AI Studio",
+      "is_byok": false,
+      "provider_error_code": "429",
+      "limit_source": "upstream_provider_shared_pool",
+      "remedy_hint": "Retry shortly, add your own provider key (https://openrouter.ai/settings/integrations), or route to another provider with provider routing: https://openrouter.ai/docs/features/provider-routing"
+    }
+  },
+  "user_id": "user_3JETjZC0omjPsmHpKwdyMLU3tQU"
+}
+
+[2026-09-13 20:06:21] [API_SUMMARY] [google/gemma-4-31b-it]
+Модель: google/gemma-4-31b-it:free | Время: 0.86с | Статус: HTTP 429
+
+[2026-09-13 20:06:46] [QTRANSLATE] 
+Маршрут: /google_gemma_4_31b_it
+Направление: auto -> ru
+Текст (729 симв.): Miss Weldy is an Automatron-compatible companion with over 2000 lines. I'm reluctant to tell you that she resembles a Mr...
+
+[2026-09-13 20:06:46] [GLOSSARY] [google/gemma-4-31b-it]
+Найдено терминов в тексте: 1
+  * 'armor' -> 'Усиленная броня'
+
+[2026-09-13 20:06:46] [API_PAYLOAD] [google/gemma-4-31b-it]
+Endpoint: https://openrouter.ai/api/v1/chat/completions
+Model: google/gemma-4-31b-it:free
+Headers:
+{
+  "Content-Type": "application/json; charset=utf-8",
+  "Authorization": "Bearer sk-or-***ee29",
+  "HTTP-Referer": "https://github.com/max-emelkin/qtranslate-ai-hub",
+  "X-Title": "QTranslate AI Hub",
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+}
+Payload:
+{
+  "model": "google/gemma-4-31b-it:free",
+  "messages": [
+    {
+      "role": "system",
+      "content": "Сделай профессиональный перевод на русский язык с точной передачей стиля оригинала.\nПРАВИЛА:\n1. Стиль и мимикрия: точно воспроизводи стиль, регистр и тональность источника.\n2. Терминология: устоявшиеся официальные термины пиши на целевом языке, уникальные бренды — в оригинале.\n\nОБЯЗАТЕЛЬНЫЕ ТРЕБОВАНИЯ:\n1. Переведи входной текст на русский язык в точном соответствии со стилем.\n2. Выводи СТРОГО чистый готовый перевод БЕЗ вводных слов, пояснений и кавычек.\n3. СТРОГО СОХРАНЯЙ все переносы строк, структуру списков и абзацев оригинала! Категорически запрещено объединять отдельные строки и пункты в один сплошной абзац.\n4. Сохраняй все теги разметки, переменные и технические маркеры без изменений.\n\nКРИТИЧЕСКОЕ ПРАВИЛО ГЛОССАРИЯ (ВЫСШИЙ ПРИОРИТЕТ НАД ДЕФОЛТНЫМИ ЗНАНИЯМИ):\nВ исходном тексте для терминов указаны обязательные подсказки в формате [[__GLOSS:Базовый_Перевод__]].\n1. СТРОГИЙ ПРИОРИТЕТ: Ты ОБЯЗАН переводить термин ТОЛЬКО так, как указано в подсказке [[__GLOSS:...__]], даже если в твоей памяти есть другой общепринятый перевод! Категорически запрещено заменять подсказку своим привычным переводом.\n2. ОБЯЗАТЕЛЬНОЕ СКЛОНЕНИЕ И СОГЛАСОВАНИЕ (ИЗМЕНЕНИЕ ОКОНЧАНИЙ):\n   Подсказка в [[__GLOSS:...__]] дана в начальной словарной форме (именительный падеж).\n   Ты ОБЯЗАН САМОСТОЯТЕЛЬНО изменить падеж, род, число и окончания этого перевода под грамматику предложения!\n   Пример принципа: если в тексте 'he found a magic apple [[__GLOSS:Золотое яблоко__]]', то глагол 'нашел' требует винительного падежа, поэтому перевод ДОЛЖЕН БЫТЬ 'он нашел золотое яблоко', а для 'he has no magic apple [[__GLOSS:Золотое яблоко__]]' -> 'у него нет золотого яблока'.\n3. ОЧИСТКА: Служебные маркеры [[__GLOSS:...__]] в финальный перевод НЕ ВЫВОДИ — удаляй их полностью!"
+    },
+    {
+      "role": "user",
+      "content": "Miss Weldy is an Automatron-compatible companion with over 2000 lines. I'm reluctant to tell you that she resembles a Mr. Handy, because she would have your head for such a comparison. Rarely, if ever seen on land, Miss Weldys are General Atomics Utility Robots meant for primary use on Oil Rigs and large tanker ships. So it's only a surprise when you encounter her trying to sell you a power armor [[__GLOSS:Усиленная броня__]] to you, while it's owner's back is literally turned. Miss Weldy is a companion which encourages immoral, if not despicable behaviours. Doing so, will no doubt lead to a very profitable, if infamous partnership as you travel through the Commonwealth together - that is, if she doesn't sell you to the Gunners from behind your back"
+    }
+  ],
+  "max_tokens": 4096,
+  "temperature": 0.2,
+  "reasoning": {
+    "max_tokens": 0,
+    "exclude": true
+  }
+}
+
+[2026-09-13 20:06:46] [API_RAW_RESPONSE] [google/gemma-4-31b-it]
+Status: HTTP 429 | Time: 0.52с
+Raw Response Body:
+{
+  "error": {
+    "message": "Provider returned error",
+    "code": 429,
+    "metadata": {
+      "raw": "google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations",
+      "provider_name": "Google AI Studio",
+      "is_byok": false,
+      "provider_error_code": "429",
+      "limit_source": "upstream_provider_shared_pool",
+      "remedy_hint": "Retry shortly, add your own provider key (https://openrouter.ai/settings/integrations), or route to another provider with provider routing: https://openrouter.ai/docs/features/provider-routing"
+    }
+  },
+  "user_id": "user_3JETjZC0omjPsmHpKwdyMLU3tQU"
+}
+
+[2026-09-13 20:06:46] [API_SUMMARY] [google/gemma-4-31b-it]
+Модель: google/gemma-4-31b-it:free | Время: 0.52с | Статус: HTTP 429
+
+[2026-09-13 20:13:39] [SYSTEM] 
+Мастер создания сервиса: создан сервис 'nemotron-3-super-120b' (ID: nemotron_3_super_120b, QT_ID: 715)
+
+[2026-09-13 20:14:13] [SYSTEM] 
+Параметры сервиса 'nemotron-3-super-120b' обновлены пользователем
+
+[2026-09-13 20:14:43] [QTRANSLATE] 
+Маршрут: /nemotron_3_super_120b
+Направление: auto -> ru
+Текст (729 симв.): Miss Weldy is an Automatron-compatible companion with over 2000 lines. I'm reluctant to tell you that she resembles a Mr...
+
+[2026-09-13 20:14:43] [GLOSSARY] [nemotron-3-super-120b]
+Найдено терминов в тексте: 1
+  * 'armor' -> 'Усиленная броня'
+
+[2026-09-13 20:14:43] [API_PAYLOAD] [nemotron-3-super-120b]
+Endpoint: https://openrouter.ai/api/v1/chat/completions
+Model: nvidia/nemotron-3-super-120b-a12b:free
+Headers:
+{
+  "Content-Type": "application/json; charset=utf-8",
+  "Authorization": "Bearer sk-or-***ee29",
+  "HTTP-Referer": "https://github.com/max-emelkin/qtranslate-ai-hub",
+  "X-Title": "QTranslate AI Hub",
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+}
+Payload:
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b:free",
+  "messages": [
+    {
+      "role": "system",
+      "content": "Сделай профессиональный перевод на русский язык с точной передачей стиля оригинала.\nПРАВИЛА:\n1. Стиль и мимикрия: точно воспроизводи стиль, регистр и тональность источника.\n2. Терминология: устоявшиеся официальные термины пиши на целевом языке, уникальные бренды — в оригинале.\n\nОБЯЗАТЕЛЬНЫЕ ТРЕБОВАНИЯ:\n1. Переведи входной текст на русский язык в точном соответствии со стилем.\n2. Выводи СТРОГО чистый готовый перевод БЕЗ вводных слов, пояснений и кавычек.\n3. СТРОГО СОХРАНЯЙ все переносы строк, структуру списков и абзацев оригинала! Категорически запрещено объединять отдельные строки и пункты в один сплошной абзац.\n4. Сохраняй все теги разметки, переменные и технические маркеры без изменений.\n\nКРИТИЧЕСКОЕ ПРАВИЛО ГЛОССАРИЯ (ВЫСШИЙ ПРИОРИТЕТ НАД ДЕФОЛТНЫМИ ЗНАНИЯМИ):\nВ исходном тексте для терминов указаны обязательные подсказки в формате [[__GLOSS:Базовый_Перевод__]].\n1. СТРОГИЙ ПРИОРИТЕТ: Ты ОБЯЗАН переводить термин ТОЛЬКО так, как указано в подсказке [[__GLOSS:...__]], даже если в твоей памяти есть другой общепринятый перевод! Категорически запрещено заменять подсказку своим привычным переводом.\n2. ОБЯЗАТЕЛЬНОЕ СКЛОНЕНИЕ И СОГЛАСОВАНИЕ (ИЗМЕНЕНИЕ ОКОНЧАНИЙ):\n   Подсказка в [[__GLOSS:...__]] дана в начальной словарной форме (именительный падеж).\n   Ты ОБЯЗАН САМОСТОЯТЕЛЬНО изменить падеж, род, число и окончания этого перевода под грамматику предложения!\n   Пример принципа: если в тексте 'he found a magic apple [[__GLOSS:Золотое яблоко__]]', то глагол 'нашел' требует винительного падежа, поэтому перевод ДОЛЖЕН БЫТЬ 'он нашел золотое яблоко', а для 'he has no magic apple [[__GLOSS:Золотое яблоко__]]' -> 'у него нет золотого яблока'.\n3. ОЧИСТКА: Служебные маркеры [[__GLOSS:...__]] в финальный перевод НЕ ВЫВОДИ — удаляй их полностью!"
+    },
+    {
+      "role": "user",
+      "content": "Miss Weldy is an Automatron-compatible companion with over 2000 lines. I'm reluctant to tell you that she resembles a Mr. Handy, because she would have your head for such a comparison. Rarely, if ever seen on land, Miss Weldys are General Atomics Utility Robots meant for primary use on Oil Rigs and large tanker ships. So it's only a surprise when you encounter her trying to sell you a power armor [[__GLOSS:Усиленная броня__]] to you, while it's owner's back is literally turned. Miss Weldy is a companion which encourages immoral, if not despicable behaviours. Doing so, will no doubt lead to a very profitable, if infamous partnership as you travel through the Commonwealth together - that is, if she doesn't sell you to the Gunners from behind your back"
+    }
+  ],
+  "max_tokens": 4096,
+  "temperature": 0.2,
+  "reasoning": {
+    "max_tokens": 0,
+    "exclude": true
+  }
+}
+
+[2026-09-13 20:15:22] [QTRANSLATE] 
+Маршрут: /nemotron_3_super_120b
+Направление: auto -> ru
+Текст (70 симв.): Miss Weldy is an Automatron-compatible companion with over 2000 lines....
+
+[2026-09-13 20:15:22] [API_PAYLOAD] [nemotron-3-super-120b]
+Endpoint: https://openrouter.ai/api/v1/chat/completions
+Model: nvidia/nemotron-3-super-120b-a12b:free
+Headers:
+{
+  "Content-Type": "application/json; charset=utf-8",
+  "Authorization": "Bearer sk-or-***ee29",
+  "HTTP-Referer": "https://github.com/max-emelkin/qtranslate-ai-hub",
+  "X-Title": "QTranslate AI Hub",
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+}
+Payload:
+{
+  "model": "nvidia/nemotron-3-super-120b-a12b:free",
+  "messages": [
+    {
+      "role": "system",
+      "content": "Сделай профессиональный перевод на русский язык с точной передачей стиля оригинала.\nПРАВИЛА:\n1. Стиль и мимикрия: точно воспроизводи стиль, регистр и тональность источника.\n2. Терминология: устоявшиеся официальные термины пиши на целевом языке, уникальные бренды — в оригинале.\n\nОБЯЗАТЕЛЬНЫЕ ТРЕБОВАНИЯ:\n1. Переведи входной текст на русский язык в точном соответствии со стилем.\n2. Выводи СТРОГО чистый готовый перевод БЕЗ вводных слов, пояснений и кавычек.\n3. СТРОГО СОХРАНЯЙ все переносы строк, структуру списков и абзацев оригинала! Категорически запрещено объединять отдельные строки и пункты в один сплошной абзац.\n4. Сохраняй все теги разметки, переменные и технические маркеры без изменений."
+    },
+    {
+      "role": "user",
+      "content": "Miss Weldy is an Automatron-compatible companion with over 2000 lines."
+    }
+  ],
+  "max_tokens": 4096,
+  "temperature": 0.2,
+  "reasoning": {
+    "max_tokens": 0,
+    "exclude": true
+  }
+}
+
+[2026-09-13 20:15:36] [API_RAW_RESPONSE] [nemotron-3-super-120b]
+Status: HTTP 200 | Time: 52.63с
+Raw Response Body:
+{
+  "id": "gen-1789320000-2G4E3LXVlXTcEhC7p14U",
+  "object": "chat.completion",
+  "created": 1789320000,
+  "model": "nvidia/nemotron-3-super-120b-a12b:free",
+  "provider": "Nvidia",
+  "system_fingerprint": null,
+  "service_tier": null,
+  "choices": [
+    {
+      "index": 0,
+      "logprobs": null,
+      "finish_reason": "stop",
+      "native_finish_reason": "stop",
+      "message": {
+        "role": "assistant",
+        "content": "Мисс Уэлди — компаньон, совместимый с Automatron, с более чем 2000 строками. Мне неловко сказать вам, что она похожа на мистера Handy, потому что она бы оторвала вам голову за такое сравнение. Редко, если вообще когда-либо видимая на суше, мисс Уэлди — это утилитарные роботы General Atomics, предназначенные в первую очередь для использования на нефтяных вышках и больших танкерах. Так что неудивительно, когда вы встречаете её, пытающейся продать вам усиленную броню вам, пока его спина буквально повернута. Мисс Уэлди — компаньон, который поощряет аморальное, если не презренное поведение. Это без сомнения приведёт к очень прибыльному, если позорное партнёрство, пока вы вместе путешествуете по Содружеству — то есть, если она не продаст вас Ганнерам у вас за спиной.",
+        "refusal": null
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 921,
+    "completion_tokens": 2441,
+    "total_tokens": 3362,
+    "cost": 0,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 2639,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  }
+}
+
+[2026-09-13 20:15:36] [API_SUMMARY] [nemotron-3-super-120b]
+Модель: nvidia/nemotron-3-super-120b-a12b:free | Время: 52.63с | Статус: HTTP 200
+
+[2026-09-13 20:15:44] [API_RAW_RESPONSE] [nemotron-3-super-120b]
+Status: HTTP 200 | Time: 22.26с
+Raw Response Body:
+{
+  "id": "gen-1789320052-BDc3HUciXTt8xy8dQ54J",
+  "object": "chat.completion",
+  "created": 1789320052,
+  "model": "nvidia/nemotron-3-super-120b-a12b:free",
+  "provider": "Nvidia",
+  "system_fingerprint": null,
+  "service_tier": null,
+  "choices": [
+    {
+      "index": 0,
+      "logprobs": null,
+      "finish_reason": "stop",
+      "native_finish_reason": "stop",
+      "message": {
+        "role": "assistant",
+        "content": "Мисс Уэлди — это компаньон, совместимый с Automatron, с более чем 2000 строками диалога.",
+        "refusal": null
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 286,
+    "completion_tokens": 39,
+    "total_tokens": 325,
+    "cost": 0,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0,
+      "upstream_inference_prompt_cost": 0,
+      "upstream_inference_completions_cost": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  }
+}
+
+[2026-09-13 20:15:44] [API_SUMMARY] [nemotron-3-super-120b]
+Модель: nvidia/nemotron-3-super-120b-a12b:free | Время: 22.26с | Статус: HTTP 200
+
