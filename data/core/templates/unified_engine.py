@@ -1,39 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-Модуль: data/core/templates/openai_compatible.py
-Назначение: Универсальный шаблон генератора сервисов для прямого подключения
-            к любым OpenAI-совместимым API (DeepSeek, Qwen DashScope, Groq, Mistral,
-            локальным серверам LM Studio / Ollama и др.).
-            Включает бронебойный сетевой движок (SOCKS5, DoH, де-чанкинг, обход WinError 10054).
+Модуль: data/core/templates/unified_engine.py
+Назначение: Единый универсальный шаблон генерации сервисов Хаба.
+            Генерирует автономный Python-плагин, адаптирующийся под любые платформы
+            (Cerebras, SiliconFlow, Mistral, Pollinations, OpenRouter, Boltch, DashScope,
+            DeepSeek, Groq, локальные LM Studio / Ollama и др.).
+            Включает поддержку SOCKS5 (RFC 1928), DoH SmartDNS, декодер HTTP-чанков,
+            настраиваемые политики размышлений (Thinking Policy) и путей ответа (JSON Path).
 Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
 """
 
-PROVIDER_KEY = "openai_compatible"
-PROVIDER_NAME = "OpenAI-совместимый API (DeepSeek, Qwen, Groq и др.)"
-DEFAULT_MODEL = "deepseek-flash"
-DEFAULT_ENDPOINT = "https://api.deepseek.com/chat/completions"
-
-def setup_config(api_config, slug, model_str):
-    existing_key = (
-        api_config.get_val("deepseek_v4_1_flash", "api_key", "") or
-        api_config.get_val("qwen_turbo", "api_key", "")
-    )
-    api_config.set_val(slug, "api_key", existing_key)
-    api_config.set_val(slug, "model", model_str or DEFAULT_MODEL)
-    api_config.set_val(slug, "endpoint", DEFAULT_ENDPOINT)
-    api_config.set_val(slug, "connection_mode", "direct")
-    api_config.set_val(slug, "proxy", "213.165.38.49:1080")
-    api_config.set_val(slug, "doh_preset", "Comss.one (SmartDNS / РФ обход)")
-    api_config.set_val(slug, "temperature", "0.2")
-    api_config.set_val(slug, "top_p", "0.3")
-    api_config.set_val(slug, "max_tokens", "4096")
-    api_config.set_val(slug, "enable_thinking", "0")
-    api_config.set_val(slug, "enable_glossary", "1")
-
-PYTHON_TEMPLATE = """# -*- coding: utf-8 -*-
+UNIFIED_PYTHON_TEMPLATE = """# -*- coding: utf-8 -*-
 \"\"\"
 Модуль: data/services/{SERVICE_ID_SLUG}/service.py
-Назначение: Плагин {SERVICE_NAME} via универсальный OpenAI-совместимый API.
+Назначение: Плагин {SERVICE_NAME} на базе Единого универсального движка Хаба.
+            Провайдер: {PROVIDER_KEY} | Модель: {MODEL_ID}
 \"\"\"
 
 import os
@@ -50,9 +31,10 @@ import urllib.error
 import threading
 
 from data.services.base_service import BaseService
+from data.core.api_config import api_config
 from data.core.logger import logger
 
-UNIVERSAL_DOH_PRESETS = {
+UNIFIED_DOH_PRESETS = {
     "Comss.one (SmartDNS / РФ обход)": {
         "url": "https://dns.comss.one/dns-query",
         "host": "dns.comss.one",
@@ -75,13 +57,13 @@ UNIVERSAL_DOH_PRESETS = {
     }
 }
 
-_dns_cache = {}
-_dns_lock = threading.Lock()
+_doh_dns_cache = {}
+_doh_dns_lock = threading.Lock()
 
 def resolve_doh(hostname, doh_url):
-    with _dns_lock:
-        if hostname in _dns_cache:
-            return _dns_cache[hostname]
+    with _doh_dns_lock:
+        if hostname in _doh_dns_cache:
+            return _doh_dns_cache[hostname]
 
     try:
         url = f"{doh_url}?name={hostname}&type=A"
@@ -94,8 +76,8 @@ def resolve_doh(hostname, doh_url):
             for ans in data.get("Answer", []):
                 if ans.get("type") == 1:
                     ip = ans.get("data")
-                    with _dns_lock:
-                        _dns_cache[hostname] = ip
+                    with _doh_dns_lock:
+                        _doh_dns_cache[hostname] = ip
                     return ip
     except Exception:
         pass
@@ -106,7 +88,7 @@ def _recv_all(sock, n):
     while len(data) < n:
         packet = sock.recv(n - len(data))
         if not packet:
-            raise ConnectionError("Соединение закрыто сервером.")
+            raise ConnectionError("Соединение разорвано удаленной стороной.")
         data.extend(packet)
     return bytes(data)
 
@@ -119,7 +101,7 @@ def create_socks5_socket(proxy_host, proxy_port, dest_host, dest_port, timeout=3
     resp = _recv_all(s, 2)
     if resp[0] != 5 or resp[1] != 0:
         s.close()
-        raise ConnectionError("SOCKS5 прокси отклонил соединение.")
+        raise ConnectionError("SOCKS5 прокси отклонил соединение без пароля.")
 
     dest_bytes = dest_host.encode("utf-8")
     req = b"\\x05\\x01\\x00\\x03" + bytes([len(dest_bytes)]) + dest_bytes + struct.pack("!H", dest_port)
@@ -155,21 +137,30 @@ def dechunk_http_body(raw_bytes):
     pos = 0
     decoded = bytearray()
     length = len(raw_bytes)
+
     while pos < length:
         crlf_idx = raw_bytes.find(b"\\r\\n", pos)
-        if crlf_idx == -1: break
+        if crlf_idx == -1:
+            break
         chunk_header = raw_bytes[pos:crlf_idx].strip()
         if not chunk_header:
             pos = crlf_idx + 2
             continue
+
         hex_len = chunk_header.split(b";")[0].strip()
-        try: chunk_size = int(hex_len, 16)
-        except ValueError: return raw_bytes
-        if chunk_size == 0: break
+        try:
+            chunk_size = int(hex_len, 16)
+        except ValueError:
+            return raw_bytes
+
+        if chunk_size == 0:
+            break
+
         data_start = crlf_idx + 2
         data_end = data_start + chunk_size
         decoded.extend(raw_bytes[data_start:data_end])
         pos = data_end + 2
+
     return bytes(decoded) if decoded else raw_bytes
 
 def extract_clean_json_body(raw_str):
@@ -179,8 +170,22 @@ def extract_clean_json_body(raw_str):
         return raw_str[start:end + 1]
     return raw_str
 
+def _get_nested_value(data_obj, path_str):
+    if not path_str or not data_obj:
+        return None
+    keys = path_str.split('.')
+    val = data_obj
+    for k in keys:
+        if isinstance(val, dict) and k in val:
+            val = val[k]
+        elif isinstance(val, list) and k.isdigit() and int(k) < len(val):
+            val = val[int(k)]
+        else:
+            return None
+    return val
 
-class CustomService(BaseService):
+
+class UnifiedService(BaseService):
     def __init__(self):
         super().__init__(
             service_id="{SERVICE_ID_SLUG}",
@@ -188,32 +193,45 @@ class CustomService(BaseService):
             route_name="/{SERVICE_ID_SLUG}",
             icon_name="Service.png"
         )
+        self.provider_key = "{PROVIDER_KEY}"
+        self.auth_header_type = "{AUTH_HEADER_TYPE}"
+        self.thinking_policy = "{THINKING_POLICY}"
+        self.response_path = "{RESPONSE_PATH}"
+        self.extra_headers_json = '{EXTRA_HEADERS_JSON}'
 
     def get_config_fields(self):
-        return [
-            {"key": "api_key", "label": "API Ключ:", "required": True},
+        fields = []
+        if self.auth_header_type != "none":
+            fields.append({"key": "api_key", "label": "API Ключ:", "required": True})
+        fields.extend([
             {"key": "model", "label": "Модель:", "required": True},
             {"key": "endpoint", "label": "Эндпоинт (URL):", "required": True},
             {"key": "connection_mode", "label": "Режим сети (direct/proxy/doh):", "required": True},
             {"key": "proxy", "label": "Адрес SOCKS5 (хост:порт):", "required": False},
             {"key": "doh_preset", "label": "DoH Пресет:", "required": False}
-        ]
+        ])
+        return fields
 
     def is_ready(self):
-        ep = self.get_config_val("endpoint", "").strip()
+        if self.auth_header_type != "none":
+            api_key = self.get_config_val("api_key", "").strip()
+            if not api_key:
+                return False, f"Укажите API Key для {self.name} в параметрах"
+        ep = self.get_config_val("endpoint", "{ENDPOINT}").strip()
         if not ep:
             return False, "Укажите URL эндпоинта в параметрах"
-        return True, "Сервис {SERVICE_NAME} настроен и готов к работе"
+        return True, f"Сервис {self.name} настроен и готов к работе"
 
     def _execute_request_raw(self, url, payload_bytes, headers, timeout=60.0):
         conn_mode = self.get_config_val("connection_mode", "direct").lower().strip()
-        proxy_val = self.get_config_val("proxy", "213.165.38.49:1080").strip()
+        proxy_val = self.get_config_val("proxy", "127.0.0.1:10808").strip()
 
         parsed = urllib.parse.urlparse(url)
-        dest_host = parsed.hostname or "api.deepseek.com"
+        dest_host = parsed.hostname or "localhost"
         dest_port = parsed.port or (443 if parsed.scheme == "https" else 80)
         path = (parsed.path or "/") + (("?" + parsed.query) if parsed.query else "")
 
+        # 1. Режим SOCKS5 прокси
         if conn_mode == "proxy":
             p_host, p_port = parse_proxy_string(proxy_val)
             raw_sock = create_socks5_socket(p_host, p_port, dest_host, dest_port, timeout=timeout)
@@ -241,10 +259,10 @@ class CustomService(BaseService):
             while True:
                 try:
                     chunk = sock.recv(4096)
-                    if not chunk: break
+                    if not chunk:
+                        break
                     response_bytes.extend(chunk)
                 except ConnectionResetError:
-                    # Игнорируем [WinError 10054], если мы уже получаем данные
                     break
             sock.close()
 
@@ -264,36 +282,42 @@ class CustomService(BaseService):
 
             return status_code, raw_str
 
+        # 2. Режим DoH SmartDNS
         elif conn_mode == "doh":
             preset_name = self.get_config_val("doh_preset", "Comss.one (SmartDNS / РФ обход)")
-            doh_url = UNIVERSAL_DOH_PRESETS.get(preset_name, {}).get("url") or "https://dns.comss.one/dns-query"
+            doh_url = UNIFIED_DOH_PRESETS.get(preset_name, {}).get("url") or "https://dns.comss.one/dns-query"
             ip = resolve_doh(dest_host, doh_url)
 
             req = urllib.request.Request(url, data=payload_bytes, headers=headers)
             try:
                 with urllib.request.urlopen(req, timeout=timeout) as resp:
-                    return resp.status, resp.read().decode("utf-8", errors="replace")
+                    raw_bytes = resp.read()
+                    return resp.status, raw_bytes.decode("utf-8", errors="replace")
             except urllib.error.HTTPError as he:
-                return he.code, he.read().decode("utf-8", errors="replace")
+                err_str = he.read().decode("utf-8", errors="replace")
+                return he.code, err_str
 
+        # 3. Прямое соединение
         else:
             req = urllib.request.Request(url, data=payload_bytes, headers=headers)
             try:
                 with urllib.request.urlopen(req, timeout=timeout) as resp:
-                    return resp.status, resp.read().decode("utf-8", errors="replace")
+                    raw_bytes = resp.read()
+                    return resp.status, raw_bytes.decode("utf-8", errors="replace")
             except urllib.error.HTTPError as he:
-                return he.code, he.read().decode("utf-8", errors="replace")
+                err_str = he.read().decode("utf-8", errors="replace")
+                return he.code, err_str
 
     def translate(self, text, src_lang="auto", trg_lang="ru", preset=None):
         ok, reason = self.is_ready()
         if not ok:
             return f"[{self.name}]: {reason}"
 
-        raw_api_key = self.get_config_val("api_key")
+        raw_api_key = self.get_config_val("api_key", "")
         api_key = re.sub(r'^(?:Key|Token|Bearer)\\s+', '', str(raw_api_key), flags=re.IGNORECASE).strip()
 
         model = self.get_config_val("model", "{MODEL_ID}")
-        endpoint = self.get_config_val("endpoint", "https://api.deepseek.com/chat/completions")
+        endpoint = self.get_config_val("endpoint", "{ENDPOINT}")
 
         clean_input = text.strip() if text else ""
         if not clean_input:
@@ -331,23 +355,39 @@ class CustomService(BaseService):
             "top_p": top_p_val
         }
 
-        # Универсальное отключение размышлений для совместимости с различными китайскими и открытыми моделями
-        if "deepseek" in endpoint.lower():
+        # Адаптация политики размышлений (Thinking Policy)
+        policy = self.thinking_policy.lower().strip()
+        if policy == "disabled_type":
             payload["thinking"] = {"type": "enabled" if enable_think else "disabled"}
-        elif "aliyuncs.com" in endpoint.lower() or "qwen" in model.lower():
+        elif policy == "exclude_reasoning":
+            payload["reasoning"] = {"max_tokens": 4096 if enable_think else 0, "exclude": not enable_think}
+        elif policy == "reasoning_effort_low":
+            payload["reasoning_effort"] = "high" if enable_think else "low"
+            payload["include_reasoning"] = enable_think
+        elif policy == "enable_thinking_false":
             payload["enable_thinking"] = enable_think
-        else:
-            if not enable_think:
-                # Универсальный fallback для OpenRouter/Ollama и др.
-                payload["include_reasoning"] = False
-                payload["reasoning"] = {"max_tokens": 0, "exclude": True}
 
         headers = {
             "Content-Type": "application/json; charset=utf-8",
-            "Authorization": f"Bearer {api_key}",
-            "Accept": "*/*",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         }
+
+        # Адаптация заголовков авторизации
+        auth_type = self.auth_header_type.strip()
+        if auth_type == "Bearer" and api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+        elif auth_type == "x-api-key" and api_key:
+            headers["x-api-key"] = api_key
+        elif auth_type == "x-goog-api-key" and api_key:
+            headers["x-goog-api-key"] = api_key
+
+        # Подключение дополнительных заголовков (например, для OpenRouter)
+        if self.extra_headers_json:
+            try:
+                extra = json.loads(self.extra_headers_json)
+                headers.update(extra)
+            except Exception:
+                pass
 
         logger.api_payload(self.name, model, endpoint, headers, payload)
         t_call = time.time()
@@ -361,38 +401,55 @@ class CustomService(BaseService):
             logger.api_summary(self.name, model, elapsed, status_code)
 
             clean_json = extract_clean_json_body(raw_str)
-            
+
             if status_code >= 400:
                 try:
                     err_data = json.loads(clean_json)
                     err_msg = err_data.get("error", {}).get("message", raw_str[:200])
                 except Exception:
                     err_msg = raw_str[:200]
-                return f"[API HTTP {status_code}]: {err_msg}"
+                return f"[{self.name} HTTP {status_code}]: {err_msg}"
 
             data = json.loads(clean_json)
 
             if data.get("error"):
                 err_msg = data["error"].get("message", str(data["error"]))
-                return f"[API Error: {err_msg}]"
+                return f"[{self.name} Error: {err_msg}]"
 
-            if not data.get("choices") or len(data["choices"]) == 0:
+            # Извлечение текста по указанному JSON Path
+            path_to_use = self.response_path or "choices.0.message.content"
+            extracted_val = _get_nested_value(data, path_to_use)
+
+            # Fallback к стандартным форматам, если кастомный путь не сработал
+            if extracted_val is None:
+                if data.get("choices") and len(data["choices"]) > 0:
+                    c = data["choices"][0]
+                    extracted_val = c.get("message", {}).get("content") or c.get("text")
+                elif data.get("result"):
+                    extracted_val = data["result"].get("response")
+
+            if not extracted_val:
                 return f"[{self.name}: Пустой ответ сервера]"
 
-            msg = data["choices"][0].get("message", {})
-            content = msg.get("content", "")
-
-            content = re.sub(r'<think>[\\s\\S]*?</think>', '', str(content), flags=re.IGNORECASE)
+            content = str(extracted_val)
+            content = re.sub(r'<think>[\\s\\S]*?</think>', '', content, flags=re.IGNORECASE)
             final = self.clean_response(content)
 
             elapsed_total = round(time.time() - t0, 2)
-            print(f"[{self.name} готов за {elapsed_total}с]: {final[:70]}...")
+            print(f"[{self.name} ({model}) готов за {elapsed_total}с]: {final[:70]}...")
             return final if final else clean_input
 
         except Exception as e:
             elapsed = time.time() - t_call
             logger.api_summary(self.name, model, elapsed, 0, note=f"Exception: {e}")
-            return f"Ошибка API: {e}"
+            return f"Ошибка {self.name}: {e}"
 
-service = CustomService()
+service = UnifiedService()
+
+try:
+    from data.core.server import register_service_route
+    register_service_route("{SERVICE_ID_SLUG}", service.translate)
+    register_service_route("/{SERVICE_ID_SLUG}", service.translate)
+except Exception:
+    pass
 """

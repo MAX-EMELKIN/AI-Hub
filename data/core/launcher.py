@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 """
 Модуль: data/core/launcher.py
-Назначение: Проверка и автозапуск QTranslate.exe, очистка зависших процессов.
-Совместимость: Python 3.8+ / Windows 7, 8, 10, 11
+Назначение: Проверка, автозапуск и автоматический перезапуск QTranslate.exe
+            для мгновенного подхвата новых JS-кнопок без ручных действий.
+Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
 """
 
 import os
 import sys
+import time
 import subprocess
 import ctypes
 from ctypes import wintypes
+from data.core.logger import logger
 
 def get_base_dir():
     if getattr(sys, 'frozen', False):
@@ -17,7 +20,6 @@ def get_base_dir():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     return os.path.abspath(os.path.join(current_dir, "..", ".."))
 
-# Структуры WinAPI для быстрого сканирования процессов через Toolhelp32
 TH32CS_SNAPPROCESS = 0x00000002
 
 class PROCESSENTRY32(ctypes.Structure):
@@ -35,17 +37,17 @@ class PROCESSENTRY32(ctypes.Structure):
     ]
 
 def is_process_running(exe_name):
-    """Сверхбыстрая проверка работы процесса через системный WinAPI (без создания дочерних консолей)."""
+    """Сверхбыстрая проверка работы процесса через системный WinAPI без мигания консолей."""
     exe_name_lower = exe_name.lower().encode('utf-8')
     kernel32 = ctypes.windll.kernel32
     snapshot = kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
-    
+
     if snapshot == -1:
         return False
 
     entry = PROCESSENTRY32()
     entry.dwSize = ctypes.sizeof(PROCESSENTRY32)
-    
+
     try:
         if kernel32.Process32First(snapshot, ctypes.byref(entry)):
             while True:
@@ -58,7 +60,7 @@ def is_process_running(exe_name):
         pass
     finally:
         kernel32.CloseHandle(snapshot)
-        
+
     return False
 
 def find_qtranslate_exe():
@@ -75,25 +77,47 @@ def find_qtranslate_exe():
     return None
 
 def launch_qtranslate():
-    """Запускает QTranslate.exe в фоновом режиме."""
+    """Запускает QTranslate.exe в фоновом независимом режиме."""
     exe_path = find_qtranslate_exe()
     if not exe_path:
+        logger.system("Launcher: QTranslate.exe не найден в папке приложения.")
         print("[Launcher]: QTranslate.exe не найден в папке приложения.")
         return False
 
     try:
         work_dir = os.path.dirname(exe_path)
-        # Запуск отдельным независимым процессом
         subprocess.Popen(
             [exe_path],
             cwd=work_dir,
             creationflags=getattr(subprocess, 'DETACHED_PROCESS', 0x00000008) | getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0x00000200)
         )
+        logger.system(f"Launcher: Успешно запущен QTranslate: {exe_path}")
         print(f"[Launcher]: Успешно запущен QTranslate: {exe_path}")
         return True
     except Exception as e:
+        logger.system(f"Launcher Ошибка запуска QTranslate.exe: {e}")
         print(f"[Launcher Error]: Не удалось запустить QTranslate.exe: {e}")
         return False
+
+def kill_qtranslate():
+    """Принудительно останавливает процесс QTranslate.exe."""
+    try:
+        subprocess.run(
+            ["taskkill", "/F", "/IM", "QTranslate.exe"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False
+        )
+        logger.system("Launcher: Процесс QTranslate.exe завершен")
+    except Exception:
+        pass
+
+def restart_qtranslate():
+    """Автоматически перезапускает QTranslate для моментального подхвата новых кнопок."""
+    logger.system("Launcher: Выполняется автоматический перезапуск QTranslate...")
+    kill_qtranslate()
+    time.sleep(0.4)
+    return launch_qtranslate()
 
 def check_and_autostart_qtranslate():
     """Проверяет настройки config.ini и стартует QTranslate при необходимости."""
@@ -113,7 +137,7 @@ def check_and_autostart_qtranslate():
         print("[Launcher]: QTranslate.exe уже работает.")
 
 def kill_stale_processes(names=None):
-    """Снимает зависшие процессы перед запуском (например, старые копии Chrome/Python)."""
+    """Снимает зависшие процессы перед запуском."""
     if names is None:
         names = ["chrome.exe", "msedge.exe", "GoogleAI_Bridge.exe"]
     for name in names:

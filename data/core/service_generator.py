@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 Модуль: data/core/service_generator.py
-Назначение: Облегченный модульный координатор генератора сервисов.
-            Динамически подхватывает шаблоны из data/core/templates/ (Boltch, OpenRouter,
-            Cloudflare, OpenAI-совместимые API) и автоматически генерирует Python-плагин
-            в data/services/, JS-кнопку в Services/ и конфигурацию.
+Назначение: Динамический координатор генерации сервисов Хаба.
+            Полностью очищен от жестко зашитых словарей провайдеров.
+            Автоматически сканирует папку data/core/templates/*.py, считывает
+            конфигурацию агрегаторов, генерирует Python-плагины на базе unified_engine,
+            JS-кнопки для QTranslate, пресеты, привязывает к models.ini/providers.ini,
+            автоматически перезапускает QTranslate.exe и обеспечивает честный тестовый пинг.
 Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
 """
 
@@ -13,17 +15,23 @@ import sys
 import re
 import shutil
 import json
+import time
 import importlib
-import configparser
 
 from data.core.templates.common_js import JS_SERVICE_TEMPLATE
+from data.core.templates.unified_engine import UNIFIED_PYTHON_TEMPLATE
+from data.core.api_config import api_config
+from data.core.launcher import restart_qtranslate
+from data.core.logger import logger
 
 __all__ = [
     "slugify",
     "get_next_available_qt_id",
-    "get_available_providers",
-    "create_service_from_template",
+    "get_known_providers",
+    "get_provider_spec",
+    "create_unified_service",
     "delete_service_completely",
+    "test_ping_service",
 ]
 
 def get_base_dir():
@@ -59,103 +67,146 @@ def get_next_available_qt_id():
         candidate += 1
     return candidate
 
-def get_available_providers():
+def get_known_providers():
     """
-    Сканирует папку data/core/templates/ и возвращает список доступных провайдеров.
-    Формат: [("boltch", "Boltch.cloud (Free Pool)", "free:kimi-k2.6"), ...]
+    Динамически сканирует папку data/core/templates/*.py и возвращает список провайдеров.
+    Ни один провайдер не зашит жестко в код генератора.
+    Формат: [("siliconflow", "SiliconFlow (Free Tier)"), ("openrouter", "OpenRouter.ai"), ...]
     """
-    providers = []
     base_dir = get_base_dir()
     tpl_dir = os.path.join(base_dir, "data", "core", "templates")
-    if not os.path.exists(tpl_dir):
-        return [
-            ("boltch", "Boltch.cloud (Free Pool)", "free:kimi-k2.6"),
-            ("openrouter", "OpenRouter.ai (Free & Paid)", "nvidia/nemotron-3.5-lightning:free"),
-            ("cloudflare", "Cloudflare Workers AI", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"),
-            ("openai_compatible", "OpenAI-совместимый API (DeepSeek, Qwen и др.)", "deepseek-flash")
-        ]
+    providers = []
 
-    for item in os.listdir(tpl_dir):
-        if item.endswith(".py") and not item.startswith("__") and item != "common_js.py":
-            mod_name = item[:-3]
-            try:
-                mod = importlib.import_module(f"data.core.templates.{mod_name}")
-                p_key = getattr(mod, "PROVIDER_KEY", mod_name)
-                p_name = getattr(mod, "PROVIDER_NAME", mod_name.capitalize())
-                p_model = getattr(mod, "DEFAULT_MODEL", "")
-                providers.append((p_key, p_name, p_model))
-            except Exception:
-                pass
+    if os.path.exists(tpl_dir):
+        ignore_files = {"common_js.py", "unified_engine.py", "__init__.py"}
+        for item in sorted(os.listdir(tpl_dir)):
+            if item.endswith(".py") and item not in ignore_files:
+                mod_name = item[:-3]
+                try:
+                    mod = importlib.import_module(f"data.core.templates.{mod_name}")
+                    p_key = getattr(mod, "PROVIDER_KEY", mod_name)
+                    p_name = getattr(mod, "PROVIDER_NAME", mod_name.capitalize())
+                    providers.append((p_key, p_name))
+                except Exception as e:
+                    logger.system(f"Генератор: сбой импорта шаблона '{item}': {e}")
 
-    if not providers:
-        providers = [
-            ("boltch", "Boltch.cloud (Free Pool)", "free:kimi-k2.6"),
-            ("openrouter", "OpenRouter.ai (Free & Paid)", "nvidia/nemotron-3.5-lightning:free"),
-            ("cloudflare", "Cloudflare Workers AI", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"),
-            ("openai_compatible", "OpenAI-совместимый API (DeepSeek, Qwen и др.)", "deepseek-flash")
-        ]
+    has_custom = any(k == "custom" for k, _ in providers)
+    if not has_custom:
+        providers.append(("custom", "Пользовательский шаблон (С нуля...)"))
 
     return providers
 
-def _get_template_module(provider_key):
-    try:
-        return importlib.import_module(f"data.core.templates.{provider_key}")
-    except Exception:
-        try:
-            return importlib.import_module("data.core.templates.openai_compatible")
-        except Exception:
-            return None
+def get_provider_spec(provider_key):
+    """
+    Считывает полные метаданные конкретного агрегатора из его модульного файла templates/<provider_key>.py.
+    """
+    if provider_key == "custom":
+        return {
+            "name": "Пользовательский шаблон (С нуля...)",
+            "endpoint": "https://api.example.com/v1/chat/completions",
+            "default_model": "custom-model",
+            "auth_header_type": "Bearer",
+            "thinking_policy": "none",
+            "response_path": "choices.0.message.content",
+            "connection_mode": "direct",
+            "proxy": "127.0.0.1:10808",
+            "extra_headers": {}
+        }
 
-def create_service_from_template(provider="boltch", name="My Model", service_id=None, model_id=None, qt_id=None):
+    try:
+        mod = importlib.import_module(f"data.core.templates.{provider_key}")
+        return {
+            "name": getattr(mod, "PROVIDER_NAME", provider_key.capitalize()),
+            "endpoint": getattr(mod, "DEFAULT_ENDPOINT", "https://api.example.com/v1/chat/completions"),
+            "default_model": getattr(mod, "DEFAULT_MODEL", "model-id"),
+            "auth_header_type": getattr(mod, "AUTH_HEADER_TYPE", "Bearer"),
+            "thinking_policy": getattr(mod, "THINKING_POLICY", "none"),
+            "response_path": getattr(mod, "RESPONSE_PATH", "choices.0.message.content"),
+            "connection_mode": getattr(mod, "CONNECTION_MODE", "direct"),
+            "proxy": getattr(mod, "DEFAULT_PROXY", "127.0.0.1:10808"),
+            "extra_headers": getattr(mod, "EXTRA_HEADERS", {})
+        }
+    except Exception as e:
+        logger.system(f"Генератор: сбой чтения параметров шаблона '{provider_key}': {e}")
+        return get_provider_spec("custom")
+
+def create_unified_service(
+    provider_key, service_name, service_slug="", model_id="",
+    endpoint="", qt_id=None, auth_header_type="Bearer",
+    thinking_policy="none", response_path="choices.0.message.content",
+    extra_headers_json="{}", api_key="", connection_mode="direct",
+    proxy="", doh_preset="Comss.one (SmartDNS / РФ обход)"
+):
+    """
+    Создает сервис на базе универсального движка:
+    1. Python-плагин в data/services/<slug>/service.py
+    2. JS-скрипт кнопки в Services/<Имя>/service.js
+    3. Регистрирует в providers.ini и models.ini
+    4. Создает дефолтный пресет
+    5. Перезагружает сервисы и автоматически перезапускает QTranslate.exe
+    """
     base_dir = get_base_dir()
-    slug = slugify(service_id or name)
+    slug = slugify(service_slug or service_name)
     if not slug:
-        slug = "custom_model"
+        slug = "custom_service"
 
     target_qt_id = int(qt_id) if qt_id else get_next_available_qt_id()
-    tpl_mod = _get_template_module(provider)
 
-    default_model_str = getattr(tpl_mod, "DEFAULT_MODEL", "deepseek-flash") if tpl_mod else "deepseek-flash"
-    model_str = model_id or default_model_str
-
-    py_template = getattr(tpl_mod, "PYTHON_TEMPLATE", "") if tpl_mod else ""
-    if not py_template:
-        from data.core.templates.openai_compatible import PYTHON_TEMPLATE as py_template
+    # 1. Генерация Python-плагина
+    py_code = (
+        UNIFIED_PYTHON_TEMPLATE
+        .replace("{SERVICE_NAME}", service_name)
+        .replace("{SERVICE_ID_SLUG}", slug)
+        .replace("{MODEL_ID}", model_id)
+        .replace("{ENDPOINT}", endpoint)
+        .replace("{PROVIDER_KEY}", provider_key)
+        .replace("{AUTH_HEADER_TYPE}", auth_header_type)
+        .replace("{THINKING_POLICY}", thinking_policy)
+        .replace("{RESPONSE_PATH}", response_path)
+        .replace("{EXTRA_HEADERS_JSON}", extra_headers_json)
+    )
 
     py_dir = os.path.join(base_dir, "data", "services", slug)
     os.makedirs(py_dir, exist_ok=True)
     py_file = os.path.join(py_dir, "service.py")
-
-    code = (py_template
-            .replace("{SERVICE_NAME}", name)
-            .replace("{SERVICE_ID_SLUG}", slug)
-            .replace("{MODEL_ID}", model_str)
-            .replace("{QT_ID}", str(target_qt_id)))
-
     with open(py_file, "w", encoding="utf-8") as f:
-        f.write(code)
+        f.write(py_code)
 
-    js_folder_name = re.sub(r'[^a-zA-Z0-9_\- ]', '', name).strip() or slug
+    # 2. Генерация JS-скрипта кнопки QTranslate
+    js_folder_name = re.sub(r'[^a-zA-Z0-9_\- ]', '', service_name).strip() or slug
     js_dir = os.path.join(base_dir, "Services", js_folder_name)
     os.makedirs(js_dir, exist_ok=True)
     js_file = os.path.join(js_dir, "service.js")
 
-    js_code = (JS_SERVICE_TEMPLATE
-               .replace("{SERVICE_NAME}", name)
-               .replace("{SERVICE_ID_SLUG}", slug)
-               .replace("{QT_ID}", str(target_qt_id)))
-
+    js_code = (
+        JS_SERVICE_TEMPLATE
+        .replace("{SERVICE_NAME}", service_name)
+        .replace("{SERVICE_ID_SLUG}", slug)
+        .replace("{QT_ID}", str(target_qt_id))
+    )
     with open(js_file, "w", encoding="utf-8") as f:
         f.write(js_code)
 
-    from data.core.api_config import api_config
-    if tpl_mod and hasattr(tpl_mod, "setup_config"):
-        tpl_mod.setup_config(api_config, slug, model_str)
-    else:
-        api_config.set_val(slug, "model", model_str)
-        api_config.set_val(slug, "temperature", "0.2")
-        api_config.set_val(slug, "max_tokens", "4096")
+    # 3. Регистрация в providers.ini и models.ini
+    if api_key:
+        api_config.set_provider_val(provider_key, "api_key", api_key)
+    if connection_mode:
+        api_config.set_provider_val(provider_key, "connection_mode", connection_mode)
+    if proxy:
+        api_config.set_provider_val(provider_key, "proxy", proxy)
+    if doh_preset:
+        api_config.set_provider_val(provider_key, "doh_preset", doh_preset)
 
+    api_config.set_val(slug, "provider", provider_key)
+    api_config.set_val(slug, "model", model_id)
+    api_config.set_val(slug, "endpoint", endpoint)
+    api_config.set_val(slug, "temperature", "0.2")
+    api_config.set_val(slug, "top_p", "0.3")
+    api_config.set_val(slug, "max_tokens", "4096")
+    api_config.set_val(slug, "enable_thinking", "0")
+    api_config.set_val(slug, "enable_glossary", "1")
+
+    # 4. Пресет по умолчанию
     preset_dir = os.path.join(base_dir, "data", "presets", slug)
     os.makedirs(preset_dir, exist_ok=True)
     def_preset = os.path.join(preset_dir, "default.txt")
@@ -168,12 +219,44 @@ def create_service_from_template(provider="boltch", name="My Model", service_id=
                 "2. Терминология: устоявшиеся официальные термины пиши на целевом языке, уникальные бренды — в оригинале."
             )
 
+    # 5. Перезагрузка реестра сервисов в памяти Хаба
     from data.services.base_service import load_all_services
     load_all_services()
 
-    return True, slug, js_file, py_file
+    # 6. Автоматический перезапуск QTranslate.exe
+    restart_qtranslate()
+
+    logger.system(f"Генератор: создан единый сервис '{service_name}' ({slug}) [QT_ID: {target_qt_id}]")
+    return True, slug, py_file, js_file
+
+def test_ping_service(service_slug, text=None, src="en", trg="ru"):
+    """
+    Тестовый пинг созданного сервиса в обход QTranslate с замером времени ответа.
+    Фраза по умолчанию специально содержит перенос строки и более 40 символов,
+    чтобы исключить перехват микро-ускорителем и гарантированно проверить реальный сервер модели.
+    """
+    from data.services.base_service import LOADED_SERVICES
+
+    srv = LOADED_SERVICES.get(service_slug)
+    if not srv:
+        return False, f"Сервис '{service_slug}' не найден среди загруженных плагинов.", 0.0
+
+    if not text:
+        text = "Connection test:\nVerifying remote model response, API status and network latency."
+
+    t0 = time.time()
+    try:
+        res = srv.translate(text, src_lang=src, trg_lang=trg)
+        elapsed = round(time.time() - t0, 2)
+        if res and not str(res).startswith("Ошибка") and not str(res).startswith("[") and not "HTTP " in str(res):
+            return True, str(res), elapsed
+        return False, str(res), elapsed
+    except Exception as e:
+        elapsed = round(time.time() - t0, 2)
+        return False, f"Исключение при вызове: {e}", elapsed
 
 def delete_service_completely(service_id, service_name):
+    """Полное удаление сервиса с диска и из реестров."""
     base_dir = get_base_dir()
     slug = slugify(service_id)
 
@@ -194,13 +277,15 @@ def delete_service_completely(service_id, service_name):
     if os.path.exists(preset_dir):
         shutil.rmtree(preset_dir, ignore_errors=True)
 
-    from data.core.api_config import api_config
-    if api_config.config.has_section(slug):
-        api_config.config.remove_section(slug)
-        api_config.save()
+    if api_config.models.has_section(slug):
+        api_config.models.remove_section(slug)
+        api_config.save_models()
 
     from data.services.base_service import LOADED_SERVICES, load_all_services
     if slug in LOADED_SERVICES:
         del LOADED_SERVICES[slug]
     load_all_services()
+
+    restart_qtranslate()
+    logger.system(f"Генератор: сервис '{service_name}' ({slug}) полностью удален")
     return True

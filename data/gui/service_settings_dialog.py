@@ -2,12 +2,13 @@
 """
 Модуль: data/gui/service_settings_dialog.py
 Назначение: Диалоговое окно настройки параметров сервисов (ServiceSettingsDialog).
-            Включает специализированную панель настройки Gemini Family (DoH SmartDNS,
-            SOCKS5/HTTP-прокси, выбор модели по умолчанию, инструкцию веб-поиска)
-            и универсальную генерацию полей конфигурации для остальных моделей.
+            Включает специализированную панель настройки Gemini, универсальную генерацию 
+            конфигов для OpenAI/Cloudflare/Boltch и новую функцию [Тест API] для проверки
+            соединения прямо из окна настроек с выводом сырого ответа сервера.
 Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
 """
 
+import threading
 import tkinter as tk
 from tkinter import ttk, messagebox
 
@@ -35,6 +36,60 @@ GEMINI_MODELS_LIST = [
     "gemini-2.5-flash",
     "gemini-2.5-pro"
 ]
+
+class TestResultDialog(tk.Toplevel):
+    """Окно вывода результатов тестирования API."""
+    def __init__(self, parent, result_text):
+        super().__init__(parent)
+        self.parent = parent
+        
+        bg_main = theme.get_color("bg_main")
+        fg_pri = theme.get_color("fg_primary")
+        in_bg = theme.get_color("input_bg")
+        in_fg = theme.get_color("input_fg")
+
+        self.title("Результат тестирования API")
+        self.geometry("540x380")
+        self.minsize(400, 300)
+        self.configure(bg=bg_main)
+        self.transient(parent)
+        self.grab_set()
+
+        self.update_idletasks()
+        pw = self.parent.winfo_width() if self.parent else 600
+        ph = self.parent.winfo_height() if self.parent else 400
+        px = self.parent.winfo_rootx() if self.parent else 200
+        py = self.parent.winfo_rooty() if self.parent else 150
+        x = px + max(0, (pw - 540) // 2)
+        y = py + max(0, (ph - 380) // 2)
+        self.geometry(f"+{x}+{y}")
+
+        pad = tk.Frame(self, bg=bg_main, padx=12, pady=12)
+        pad.pack(fill=tk.BOTH, expand=True)
+
+        tk.Label(
+            pad, text="Ответ от сервера:", 
+            font=theme.font(1, "bold"), fg=theme.get_color("accent"), bg=bg_main
+        ).pack(anchor="w", pady=(0, 6))
+
+        t_border = tk.Frame(pad, relief=tk.SOLID, bd=1, bg=in_bg)
+        t_border.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+
+        text_area = tk.Text(t_border, font=theme.font(0), bg=in_bg, fg=in_fg, wrap=tk.WORD, bd=0, padx=6, pady=6)
+        sb = tk.Scrollbar(t_border, command=text_area.yview)
+        text_area.configure(yscrollcommand=sb.set)
+        sb.pack(side=tk.RIGHT, fill=tk.Y)
+        text_area.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        text_area.insert("1.0", result_text)
+        attach_text_context_menu(text_area)
+
+        tk.Button(
+            pad, text="Закрыть", font=theme.font(0, "bold"), relief=tk.FLAT,
+            bg=theme.get_color("btn_bg"), fg=fg_pri, cursor="hand2", padx=16, pady=4,
+            command=self.destroy
+        ).pack(anchor="e")
+
 
 class ServiceSettingsDialog(tk.Toplevel):
     def __init__(self, parent, service, on_saved_callback=None):
@@ -222,7 +277,7 @@ class ServiceSettingsDialog(tk.Toplevel):
                     self.entries[k] = entry
 
         help_box = tk.Label(
-            pad_frame, text=t("params_dialog_note", "* Все данные сохраняются в файл api_keys.ini в папке data/."),
+            pad_frame, text=t("params_dialog_note", "* Все данные сохраняются в файл models.ini и providers.ini."),
             font=theme.font(-1, "italic"), fg=theme.get_color("fg_muted"), bg=bg_main, justify="left"
         )
         help_box.pack(anchor="w", pady=(10, 0))
@@ -230,11 +285,18 @@ class ServiceSettingsDialog(tk.Toplevel):
         btn_row = tk.Frame(pad_frame, bg=bg_main)
         btn_row.pack(fill=tk.X, side=tk.BOTTOM, pady=(10, 0))
 
+        self.btn_test = tk.Button(
+            btn_row, text="Тест API", font=theme.font(0, "bold"), relief=tk.FLAT,
+            bg=theme.get_color("help_btn_bg"), fg=theme.get_color("help_btn_fg"),
+            cursor="hand2", padx=12, command=self._on_test_api
+        )
+        self.btn_test.pack(side=tk.LEFT)
+
         tk.Button(btn_row, text=t("btn_cancel", "Отмена"), font=theme.font(0), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, padx=12, command=self.destroy).pack(side=tk.RIGHT, padx=(6, 0))
         tk.Button(
             btn_row, text=t("params_btn_save", "Сохранить и запомнить"), font=theme.font(0, "bold"),
             relief=tk.FLAT, bg=theme.get_color("accent"), fg=theme.get_color("accent_text"),
-            cursor="hand2", padx=14, command=self._on_save
+            cursor="hand2", padx=14, command=lambda: self._on_save(close_window=True)
         ).pack(side=tk.RIGHT)
 
     def _toggle_conn_ui(self):
@@ -258,7 +320,8 @@ class ServiceSettingsDialog(tk.Toplevel):
         else:
             self.doh_custom_frame.pack_forget()
 
-    def _on_save(self):
+    def _save_data(self):
+        """Только сохранение в память/ini, без закрытия окна."""
         if self.service.service_id == "gemini_family":
             self.service.set_config_val("api_key", self.e_api_gemini.get().strip())
             self.service.set_config_val("model", self.combo_gem_def_model.get().strip())
@@ -277,9 +340,37 @@ class ServiceSettingsDialog(tk.Toplevel):
 
         logger.system(f"Параметры сервиса '{self.service.name}' обновлены пользователем")
 
+    def _on_save(self, close_window=True):
+        self._save_data()
+        
         if self.on_saved:
             self.on_saved()
 
-        success_msg = t("params_saved_msg", f"Параметры сервиса '{self.service.name}' успешно обновлены!", name=self.service.name)
-        messagebox.showinfo("OK", success_msg, parent=self)
-        self.destroy()
+        if close_window:
+            success_msg = t("params_saved_msg", f"Параметры сервиса '{self.service.name}' успешно обновлены!", name=self.service.name)
+            messagebox.showinfo("OK", success_msg, parent=self)
+            self.destroy()
+
+    def _on_test_api(self):
+        """Выполняет тестовый пинг модели (перевод 'Hello World') после сохранения."""
+        self._save_data()
+        if self.on_saved:
+            self.on_saved()
+
+        self.btn_test.config(state="disabled", text="Тестирование...")
+
+        def _worker():
+            test_text = "Connection established successfully! System is ready to use."
+            try:
+                res = self.service.translate(test_text, src_lang="en", trg_lang="ru")
+            except Exception as e:
+                res = f"Внутренняя ошибка тестирования (ошибка плагина):\n{e}"
+
+            def _on_done():
+                if self.winfo_exists():
+                    self.btn_test.config(state="normal", text="Тест API")
+                    TestResultDialog(self, res)
+
+            self.after(0, _on_done)
+
+        threading.Thread(target=_worker, daemon=True).start()

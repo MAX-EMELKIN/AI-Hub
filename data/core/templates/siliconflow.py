@@ -1,0 +1,34 @@
+# -*- coding: utf-8 -*-
+"""
+Модуль: data/core/templates/siliconflow.py
+Назначение: Модульный шаблон провайдера SiliconFlow для Единого движка Хаба.
+            Использует международный эндпоинт api.siliconflow.com для предотвращения ошибок 401,
+            задает в качестве базовой гарантированно бесплатную модель Qwen/Qwen2.5-7B-Instruct
+            для исключения ошибок 402 (Insufficient Balance).
+Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
+"""
+
+PROVIDER_KEY = "siliconflow"
+PROVIDER_NAME = "SiliconFlow (Free Tier)"
+DEFAULT_ENDPOINT = "https://api.siliconflow.com/v1/chat/completions"
+DEFAULT_MODEL = "Qwen/Qwen2.5-7B-Instruct"
+AUTH_HEADER_TYPE = "Bearer"
+THINKING_POLICY = "none"
+RESPONSE_PATH = "choices.0.message.content"
+CONNECTION_MODE = "direct"
+DEFAULT_PROXY = "127.0.0.1:10808"
+EXTRA_HEADERS = {}
+
+def setup_config(api_config, slug, model_str):
+    existing_key = api_config.get_provider_val(PROVIDER_KEY, "api_key", "")
+    api_config.set_provider_val(PROVIDER_KEY, "api_key", existing_key)
+    api_config.set_provider_val(PROVIDER_KEY, "connection_mode", CONNECTION_MODE)
+    api_config.set_provider_val(PROVIDER_KEY, "proxy", DEFAULT_PROXY)
+    api_config.set_val(slug, "provider", PROVIDER_KEY)
+    api_config.set_val(slug, "model", model_str or DEFAULT_MODEL)
+    api_config.set_val(slug, "endpoint", DEFAULT_ENDPOINT)
+    api_config.set_val(slug, "temperature", "0.2")
+    api_config.set_val(slug, "top_p", "0.3")
+    api_config.set_val(slug, "max_tokens", "4096")
+    api_config.set_val(slug, "enable_thinking", "0")
+    api_config.set_val(slug, "enable_glossary", "1")

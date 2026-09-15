@@ -2,9 +2,9 @@
 """
 Модуль: data/gui/dialogs.py
 Назначение: Компактный фасадный модуль графических диалогов Хаба.
-            Реэкспортирует классы и виджеты из модульных файлов (dialog_helpers,
-            wizard_dialog, ocr_dialog, preset_dialog, service_settings_dialog),
-            обеспечивая 100% обратную совместимость со всеми модулями проекта.
+            Реэкспортирует классы и виджеты из независимых модульных файлов (dialog_helpers,
+            wizard_dialog, ocr_dialog, preset_dialog, service_settings_dialog).
+            Обеспечивает 100% обратную совместимость со всеми остальными модулями проекта.
 Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
 """
 
