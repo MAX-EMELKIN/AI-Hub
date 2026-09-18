@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/core/templates/pollinations.py
-Назначение: Модульный шаблон провайдера Pollinations AI для Единого движка Хаба.
-            Поддерживает анонимный бесплатный режим без обязательного ключа,
-            детерминированный сид и универсальную маршрутизацию запросов.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/core/templates/pollinations.py
 PROVIDER_KEY = "pollinations"
 PROVIDER_NAME = "Pollinations AI (Free / Anon)"
 DEFAULT_ENDPOINT = "https://text.pollinations.ai/openai/chat/completions"

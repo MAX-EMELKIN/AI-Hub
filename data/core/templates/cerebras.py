@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/core/templates/cerebras.py
-Назначение: Модульный шаблон провайдера Cerebras Inference для Единого движка Хаба.
-            Сверхскоростной аппаратный инференс (чипы CS-3, 1800-2000 токенов/сек),
-            поддерживает модели Llama 3.1 8B/70B, Llama 3.3 70B со стандартной авторизацией Bearer.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/core/templates/cerebras.py
 PROVIDER_KEY = "cerebras"
 PROVIDER_NAME = "Cerebras Inference (Ultra Fast)"
 DEFAULT_ENDPOINT = "https://api.cerebras.ai/v1/chat/completions"

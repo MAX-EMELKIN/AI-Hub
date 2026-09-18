@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/core/templates/boltch.py
-Назначение: Модульный шаблон генератора сервисов для агрегатора Boltch.cloud.
-            Генерирует плагин с поддержкой моделей бесплатного пула (free:...),
-            нативным декодером HTTP-чанков, защитой от обрыва SOCKS5-соединения
-            (WinError 10054), DoH SmartDNS и интеграцией с logger.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/core/templates/boltch.py
 PROVIDER_KEY = "boltch"
 PROVIDER_NAME = "Boltch.cloud (Free Pool)"
 DEFAULT_MODEL = "free:kimi-k2.6"
@@ -178,7 +170,6 @@ def extract_clean_json_body(raw_str):
     if start != -1 and end != -1 and end > start:
         return raw_str[start:end + 1]
     return raw_str
-
 
 class CustomService(BaseService):
     def __init__(self):

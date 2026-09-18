@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/services/google_ai/service.py
-Назначение: Плагин Google AI Mode с безопасным DOM-парсером (без зависания V8/Blink),
-                защитой от бесконечных таймаутов, автоматическим fallback-переводом
-                и интеграцией с модулем logger.
-Совместимость: Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64)
-"""
-
+# data/services/google_ai/service.py
 import time
 import re
 import json

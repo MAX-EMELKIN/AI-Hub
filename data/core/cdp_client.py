@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/core/cdp_client.py
-Назначение: Мульти-вкладочный CDP-мост Supermium с защитой от засыпания (Disable Occlusion),
-            безопасной WinAPI-типизацией для Windows 7 32-bit (x86 / x64),
-            исправлением ошибки 405 (PUT /json/new), фоновым прогревом вкладок,
-            SWP_ASYNCWINDOWPOS и интеграцией с модулем logger.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/core/cdp_client.py
 import os
 import sys
 import time
@@ -40,7 +32,6 @@ GWL_EXSTYLE = -20
 WS_EX_TOOLWINDOW = 0x00000080
 WS_EX_APPWINDOW = 0x00040000
 
-# Безопасное разделение WinAPI для Windows 7 32-bit (x86) и 64-bit (x64)
 if ctypes.sizeof(ctypes.c_void_p) == 8:
     GetWindowLong = user32.GetWindowLongPtrW
     SetWindowLong = user32.SetWindowLongPtrW
@@ -192,7 +183,6 @@ class FastWebSocketClient:
             pass
 
 class CDPBrowserManager:
-    """Универсальный координатор Supermium/Chromium с фоновым прогревом вкладок и логированием."""
 
     def __init__(self):
         self.base_dir = get_base_dir()
@@ -296,7 +286,6 @@ class CDPBrowserManager:
             logger.browser_event(f"Ошибка скрытия окна: {e}")
 
     def _create_tab_safe(self, url):
-        """Создание вкладки с поддержкой PUT и GET."""
         cdp_port = self._get_cdp_port()
         encoded_url = urllib.parse.quote(url, safe=':/?=')
         endpoint = f"http://127.0.0.1:{cdp_port}/json/new?{encoded_url}"
@@ -322,7 +311,6 @@ class CDPBrowserManager:
         return None
 
     def _prewarm_tabs(self):
-        """Фоновый прогрев: открывает ChatGPT и Google сразу при запуске Хаба."""
         time.sleep(1.0)
         try:
             self.get_tab_client("chatgpt")

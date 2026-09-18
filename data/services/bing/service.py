@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/services/bing/service.py
-Назначение: Подлинный Bing Translator с нарезкой по 850 символов (обход лимита /ttranslatev3),
-            сессией CookieJar, автоматическим сбором токенов и интеграцией с модулем logger.
-Совместимость: Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64)
-"""
-
+# data/services/bing/service.py
 import json
 import time
 import re

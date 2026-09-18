@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/gui/main_window.py
-Назначение: Главное окно AI Hub с кнопкой-тумблером браузера, вызовом чата с ИИ,
-            защитой геометрии, темами, чистыми надписями Windows 7 (без квадратиков)
-            и интеграцией с модулем logger.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/gui/main_window.py
 import os
 import sys
 import tkinter as tk
@@ -18,7 +11,7 @@ from data.services.base_service import LOADED_SERVICES
 from data.gui.service_card import ServiceCard
 from data.gui.theme_manager import theme
 from data.gui.dialogs import (
-    PresetEditorDialog, ServiceSettingsDialog, 
+    PresetEditorDialog, ServiceSettingsDialog,
     OCRSettingsDialog, ToolTip, AddServiceWizardDialog
 )
 from data.gui.tool_windows import BatchWindow, GlossaryWindow, SettingsWindow, ChatWindow
@@ -206,7 +199,6 @@ class MainWindow(tk.Tk):
         )
         bottom_toolbar.pack(fill=tk.X, side=tk.BOTTOM)
 
-        # 1. Браузер
         self.browser_icon_photo = self._extract_chrome_icon(target_size=18)
         btn_browser_opts = {
             "text": " " + t("btn_browser", "Браузер"),
@@ -229,7 +221,6 @@ class MainWindow(tk.Tk):
         self.btn_browser.pack(side=tk.LEFT, padx=2)
         ToolTip(self.btn_browser, t("tip_browser", "Открыть окно браузера"))
 
-        # 2. OCR Блок
         ocr_frame = tk.Frame(bottom_toolbar, bg=bg_tool)
         ocr_frame.pack(side=tk.LEFT, padx=2)
 
@@ -249,7 +240,6 @@ class MainWindow(tk.Tk):
         btn_ocr_settings.pack(side=tk.LEFT, padx=(1, 0))
         ToolTip(btn_ocr_settings, t("tip_ocr_settings", "Настройка OCR"))
 
-        # 3. Чат, Словарь, Пакетный перевод, Настройки
         btn_chat = tk.Button(
             bottom_toolbar, text=t("btn_chat", "Чат с ИИ"), font=theme.font(-1, "bold"),
             relief=tk.FLAT, bg=theme.get_color("help_btn_bg"), fg=theme.get_color("help_btn_fg"),

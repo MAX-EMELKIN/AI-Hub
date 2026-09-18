@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/core/templates/cloudflare.py
-Назначение: Модульный шаблон генератора сервисов для Cloudflare Workers AI.
-            Генерирует плагин с поддержкой моделей каталога Cloudflare (@cf/...),
-            авторизацией через Account ID / API Token, нативным декодером HTTP-чанков,
-            защитой от обрыва SOCKS5-соединения (WinError 10054), DoH и логгером.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/core/templates/cloudflare.py
 PROVIDER_KEY = "cloudflare"
 PROVIDER_NAME = "Cloudflare Workers AI"
 DEFAULT_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
@@ -16,7 +8,7 @@ DEFAULT_ENDPOINT = "https://api.cloudflare.com/client/v4/accounts/{account_id}/a
 def setup_config(api_config, slug, model_str):
     existing_acc = api_config.get_val("openai_120b", "account_id", "")
     existing_tok = api_config.get_val("openai_120b", "api_token", "")
-    
+
     api_config.set_val(slug, "account_id", existing_acc)
     api_config.set_val(slug, "api_token", existing_tok)
     api_config.set_val(slug, "model", model_str or DEFAULT_MODEL)
@@ -178,7 +170,6 @@ def extract_clean_json_body(raw_str):
         return raw_str[start:end + 1]
     return raw_str
 
-
 class CustomService(BaseService):
     def __init__(self):
         super().__init__(
@@ -292,7 +283,7 @@ class CustomService(BaseService):
 
         account_id = self.get_config_val("account_id").strip()
         api_token = re.sub(r'^(?:Key|Token|Bearer)\\s+', '', self.get_config_val("api_token"), flags=re.IGNORECASE).strip()
-        
+
         model = self.get_config_val("model", "{MODEL_ID}")
         endpoint_template = self.get_config_val("endpoint", "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}")
 

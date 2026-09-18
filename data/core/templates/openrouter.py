@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/core/templates/openrouter.py
-Назначение: Модульный шаблон генератора сервисов для агрегатора OpenRouter.ai.
-            Генерирует плагин с поддержкой SOCKS5-прокси (RFC 1928), DoH SmartDNS,
-            нативным декодером HTTP-чанков (chunked transfer encoding),
-            подавлением задержек рассуждений (reasoning.max_tokens: 0) и логгером.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/core/templates/openrouter.py
 PROVIDER_KEY = "openrouter"
 PROVIDER_NAME = "OpenRouter.ai (Free & Paid)"
 DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b:free"
@@ -196,7 +188,6 @@ def extract_clean_json_body(raw_str):
     if start != -1 and end != -1 and end > start:
         return raw_str[start:end + 1]
     return raw_str
-
 
 class CustomService(BaseService):
     def __init__(self):

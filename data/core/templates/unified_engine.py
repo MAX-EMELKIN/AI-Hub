@@ -1,15 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/core/templates/unified_engine.py
-Назначение: Единый универсальный шаблон генерации сервисов Хаба.
-            Генерирует автономный Python-плагин, адаптирующийся под любые платформы
-            (Cerebras, SiliconFlow, Mistral, Pollinations, OpenRouter, Boltch, DashScope,
-            DeepSeek, Groq, локальные LM Studio / Ollama и др.).
-            Включает поддержку SOCKS5 (RFC 1928), DoH SmartDNS, декодер HTTP-чанков,
-            настраиваемые политики размышлений (Thinking Policy) и путей ответа (JSON Path).
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/core/templates/unified_engine.py
 UNIFIED_PYTHON_TEMPLATE = """# -*- coding: utf-8 -*-
 \"\"\"
 Модуль: data/services/{SERVICE_ID_SLUG}/service.py
@@ -183,7 +173,6 @@ def _get_nested_value(data_obj, path_str):
         else:
             return None
     return val
-
 
 class UnifiedService(BaseService):
     def __init__(self):

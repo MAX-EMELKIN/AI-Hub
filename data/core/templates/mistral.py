@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/core/templates/mistral.py
-Назначение: Модульный шаблон провайдера Mistral AI для Единого движка Хаба.
-            Поддерживает европейские модели Mistral Small, Codestral, Mistral Large
-            через официальный эндпоинт api.mistral.ai со стандартной авторизацией Bearer.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/core/templates/mistral.py
 PROVIDER_KEY = "mistral"
 PROVIDER_NAME = "Mistral AI"
 DEFAULT_ENDPOINT = "https://api.mistral.ai/v1/chat/completions"

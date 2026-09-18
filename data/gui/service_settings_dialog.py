@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/gui/service_settings_dialog.py
-Назначение: Диалоговое окно настройки параметров сервисов (ServiceSettingsDialog).
-            Включает специализированную панель настройки Gemini, универсальную генерацию 
-            конфигов для OpenAI/Cloudflare/Boltch и новую функцию [Тест API] для проверки
-            соединения прямо из окна настроек с выводом сырого ответа сервера.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/gui/service_settings_dialog.py
 import threading
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -38,11 +30,10 @@ GEMINI_MODELS_LIST = [
 ]
 
 class TestResultDialog(tk.Toplevel):
-    """Окно вывода результатов тестирования API."""
     def __init__(self, parent, result_text):
         super().__init__(parent)
         self.parent = parent
-        
+
         bg_main = theme.get_color("bg_main")
         fg_pri = theme.get_color("fg_primary")
         in_bg = theme.get_color("input_bg")
@@ -68,7 +59,7 @@ class TestResultDialog(tk.Toplevel):
         pad.pack(fill=tk.BOTH, expand=True)
 
         tk.Label(
-            pad, text="Ответ от сервера:", 
+            pad, text="Ответ от сервера:",
             font=theme.font(1, "bold"), fg=theme.get_color("accent"), bg=bg_main
         ).pack(anchor="w", pady=(0, 6))
 
@@ -89,7 +80,6 @@ class TestResultDialog(tk.Toplevel):
             bg=theme.get_color("btn_bg"), fg=fg_pri, cursor="hand2", padx=16, pady=4,
             command=self.destroy
         ).pack(anchor="e")
-
 
 class ServiceSettingsDialog(tk.Toplevel):
     def __init__(self, parent, service, on_saved_callback=None):
@@ -321,7 +311,6 @@ class ServiceSettingsDialog(tk.Toplevel):
             self.doh_custom_frame.pack_forget()
 
     def _save_data(self):
-        """Только сохранение в память/ini, без закрытия окна."""
         if self.service.service_id == "gemini_family":
             self.service.set_config_val("api_key", self.e_api_gemini.get().strip())
             self.service.set_config_val("model", self.combo_gem_def_model.get().strip())
@@ -342,7 +331,7 @@ class ServiceSettingsDialog(tk.Toplevel):
 
     def _on_save(self, close_window=True):
         self._save_data()
-        
+
         if self.on_saved:
             self.on_saved()
 
@@ -352,7 +341,6 @@ class ServiceSettingsDialog(tk.Toplevel):
             self.destroy()
 
     def _on_test_api(self):
-        """Выполняет тестовый пинг модели (перевод 'Hello World') после сохранения."""
         self._save_data()
         if self.on_saved:
             self.on_saved()

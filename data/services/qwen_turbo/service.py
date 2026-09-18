@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/services/qwen_turbo/service.py
-Назначение: Официальный сервис Qwen Turbo (Alibaba DashScope).
-            Сверхскоростная модель с генерацией 80-100+ токенов в секунду,
-            отдельным бесплатным пакетом 1M токенов и интеграцией с logger.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/services/qwen_turbo/service.py
 import json
 import time
 import re

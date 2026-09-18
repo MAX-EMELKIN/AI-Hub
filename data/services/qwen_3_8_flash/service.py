@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/services/qwen_3_8_flash/service.py
-Назначение: Официальный сервис Qwen 3.8 Flash (Alibaba DashScope).
-            Использует точный идентификатор qwen_3_8_flash, прямое управление enable_thinking
-            на верхнем уровне JSON для отключения задержек (1-2 сек) и полную интеграцию с logger.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/services/qwen_3_8_flash/service.py
 import json
 import time
 import re

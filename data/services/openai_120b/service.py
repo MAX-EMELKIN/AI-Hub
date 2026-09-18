@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/services/openai_120b/service.py
-Назначение: Плагин OpenAI GPT-OSS 120B via Cloudflare Workers AI с инлайн-подсказками глоссария,
-            полной интеграцией с модулем логирования и защитой от сетевых сбоев.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/services/openai_120b/service.py
 import json
 import time
 import re

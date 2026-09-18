@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/core/templates/openai_compatible.py
-Назначение: Универсальный шаблон генератора сервисов для прямого подключения
-            к любым OpenAI-совместимым API (DeepSeek, Qwen DashScope, Groq, Mistral,
-            локальным серверам LM Studio / Ollama и др.).
-            Включает бронебойный сетевой движок (SOCKS5, DoH, де-чанкинг, обход WinError 10054).
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/core/templates/openai_compatible.py
 PROVIDER_KEY = "openai_compatible"
 PROVIDER_NAME = "OpenAI-совместимый API (DeepSeek, Qwen, Groq и др.)"
 DEFAULT_MODEL = "deepseek-flash"
@@ -178,7 +170,6 @@ def extract_clean_json_body(raw_str):
     if start != -1 and end != -1 and end > start:
         return raw_str[start:end + 1]
     return raw_str
-
 
 class CustomService(BaseService):
     def __init__(self):
@@ -361,7 +352,7 @@ class CustomService(BaseService):
             logger.api_summary(self.name, model, elapsed, status_code)
 
             clean_json = extract_clean_json_body(raw_str)
-            
+
             if status_code >= 400:
                 try:
                     err_data = json.loads(clean_json)

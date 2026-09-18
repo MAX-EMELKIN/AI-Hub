@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/services/yandex/service.py
-Назначение: Яндекс Переводчик с постоянной YU-сессией и srv=android,
-            интегрированный с модулем логирования (logger) для отладки.
-Совместимость: Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/services/yandex/service.py
 import json
 import time
 import uuid
@@ -40,7 +34,7 @@ class YandexService(BaseService):
         req_uuid = uuid.uuid4().hex
 
         url = f"https://translate.yandex.net/api/v1/tr.json/translate?uuid={req_uuid}&srv=android&lang={lang_pair}&reason=auto&format=text&yu=2210680511641235828"
-        
+
         post_data = {"text": text}
         data_payload = urllib.parse.urlencode(post_data).encode("utf-8")
 
@@ -76,7 +70,7 @@ class YandexService(BaseService):
             err_body = he.read().decode("utf-8", errors="ignore")
             logger.api_raw_response(self.name, he.code, elapsed, err_body)
             logger.api_summary(self.name, "Yandex API (Android)", elapsed, he.code, note=f"HTTP Error {he.code}")
-            
+
             fast = self.fetch_fast_word(text, src=src_lang, trg=trg_lang)
             if fast: return fast
             return f"Ошибка Yandex: HTTP {he.code}"

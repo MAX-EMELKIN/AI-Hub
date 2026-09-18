@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/core/templates/common_js.py
-Назначение: Базовый унифицированный JScript-шаблон для кнопок QTranslate (Services/<Name>/service.js).
-            Обеспечивает автоподъем Хаба через WScript/ActiveX, быструю проверку OPTIONS 127.0.0.1:8080
-            и маршрутизацию запросов к локальному серверу Хаба.
-Совместимость: Pure Python 3.8+ / JScript ES3 (IE9- / Windows 7, 8, 10, 11)
-"""
-
+# data/core/templates/common_js.py
 JS_SERVICE_TEMPLATE = """// =============================================================================
 // Сервис: {SERVICE_NAME} (Автономный мост к AI Hub)
 // ID: {QT_ID}

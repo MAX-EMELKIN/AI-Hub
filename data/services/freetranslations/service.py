@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/services/freetranslations/service.py
-Назначение: FreeTranslations через Google PA translateHtml со 100% сохранением
-            структуры абзацев и полной интеграцией с модулем отладки (logger).
-Совместимость: Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/services/freetranslations/service.py
 import json
 import time
 import re
@@ -77,15 +71,15 @@ class FreeTranslationsService(BaseService):
             err_body = he.read().decode("utf-8", errors="ignore")
             logger.api_raw_response(self.name, he.code, elapsed, err_body)
             logger.api_summary(self.name, "Google PA API", elapsed, he.code, note=f"HTTP Error {he.code}")
-            
+
             fast = self.fetch_fast_word(text, src=src_lang, trg=trg_lang)
             if fast: return fast
             return f"Ошибка FreeTranslations: HTTP {he.code}"
-            
+
         except Exception as e:
             elapsed = time.time() - t0
             logger.api_summary(self.name, "Google PA API", elapsed, 0, note=f"Ошибка: {e}")
-            
+
             fast = self.fetch_fast_word(text, src=src_lang, trg=trg_lang)
             if fast: return fast
             print(f"[❌ FreeTranslations Error]: {e}")

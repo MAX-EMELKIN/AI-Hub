@@ -1,14 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/gui/service_card.py
-Назначение: Графическая карточка сервиса с мультиязычным интерфейсом, параметрами,
-            поддержкой мульти-модельного режима Gemini (выбор модели, размышлений, пинг,
-            поиск в Google / Grounding и чтение сайтов по ссылкам),
-            агентным поиском в сети для моделей OrcaRouter, адаптацией списков,
-            чистыми надписями Windows 7 (без квадратиков) и логированием действий.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/gui/service_card.py
 import os
 import json
 import threading
@@ -238,7 +229,6 @@ class ServiceCard(tk.Frame):
         in_bg = theme.get_color("input_bg")
         in_fg = theme.get_color("input_fg")
 
-        # Режим для семейства Gemini
         if self.service_id == "gemini_family":
             gemini_bar = tk.Frame(self.top_frame, bg=bg_card)
             gemini_bar.pack(side=tk.RIGHT, padx=(0, 4))
@@ -295,7 +285,6 @@ class ServiceCard(tk.Frame):
             )
             chk_glossary.pack(side=tk.LEFT, padx=(0, 1))
 
-        # Режим для моделей OrcaRouter и других LLM
         else:
             has_params = getattr(self.service, "supports_hyperparameters", True)
             has_glossary = getattr(self.service, "supports_glossary", True) and getattr(self.service, "is_ai_service", True)

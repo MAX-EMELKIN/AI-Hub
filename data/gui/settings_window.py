@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/gui/settings_window.py
-Назначение: Окно настроек программы с полной мультиязычной локализацией,
-            управлением темами, горячими клавишами, OCR, TTS и подробной вкладкой
-            настройки категорий отладки и интерактивной консоли Windows.
-Совместимость: Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64)
-"""
-
+# data/gui/settings_window.py
 import os
 import time
 import tkinter as tk
@@ -66,7 +59,6 @@ class SettingsWindow(tk.Toplevel):
         nb = ttk.Notebook(pad)
         nb.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
 
-        # --- ВКЛАДКА 1: ОСНОВНЫЕ И ОФОРМЛЕНИЕ ---
         tab_gen = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
         nb.add(tab_gen, text=t("settings_tab_general", "Основные и Оформление"))
 
@@ -82,49 +74,45 @@ class SettingsWindow(tk.Toplevel):
             variable=self.var_minimized, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(0)
         ).pack(anchor="w", pady=4)
 
-        # Выбор Темы
         r_theme = tk.Frame(tab_gen, bg=bg_card)
         r_theme.pack(fill=tk.X, pady=6)
         tk.Label(r_theme, text=t("settings_lbl_theme", "Тема оформления:"), bg=bg_card, fg=fg_pri, font=theme.font(0, "bold"), width=18, anchor="w").pack(side=tk.LEFT)
-        
+
         self.theme_options = theme.get_theme_display_options()
         theme_names = [name for _, name in self.theme_options]
         self.combo_theme = ttk.Combobox(r_theme, values=theme_names, state="readonly", width=16)
-        
+
         cur_th = theme.current_theme_key
         cur_th_name = next((name for k, name in self.theme_options if k == cur_th), theme_names[0])
         self.combo_theme.set(cur_th_name)
         self.combo_theme.pack(side=tk.LEFT, padx=6)
 
-        # Выбор размера шрифта
         r_font = tk.Frame(tab_gen, bg=bg_card)
         r_font.pack(fill=tk.X, pady=6)
         tk.Label(r_font, text=t("settings_lbl_fontsize", "Размер шрифта GUI:"), bg=bg_card, fg=fg_pri, font=theme.font(0, "bold"), width=18, anchor="w").pack(side=tk.LEFT)
-        
+
         self.font_options = theme.get_font_display_options()
         font_names = [name for _, name in self.font_options]
         self.combo_font = ttk.Combobox(r_font, values=font_names, state="readonly", width=18)
-        
+
         cur_fs = theme.current_font_scale
         cur_fs_name = next((name for k, name in self.font_options if k == cur_fs), font_names[1])
         self.combo_font.set(cur_fs_name)
         self.combo_font.pack(side=tk.LEFT, padx=6)
 
-        # Язык интерфейса
         r_lang = tk.Frame(tab_gen, bg=bg_card)
         r_lang.pack(fill=tk.X, pady=6)
         tk.Label(r_lang, text=t("settings_lbl_lang", "Язык интерфейса:"), bg=bg_card, fg=fg_pri, font=theme.font(0), width=18, anchor="w").pack(side=tk.LEFT)
-        
+
         self.lang_options = i18n.get_available_languages()
         lang_display_names = [name for _, name in self.lang_options]
         self.combo_lang = ttk.Combobox(r_lang, values=lang_display_names, state="readonly", width=18)
-        
+
         cur_lang = config.get_str("GENERAL", "UILanguage", "auto").lower()
         cur_lang_name = next((name for k, name in self.lang_options if k == cur_lang), lang_display_names[0])
         self.combo_lang.set(cur_lang_name)
         self.combo_lang.pack(side=tk.LEFT, padx=6)
 
-        # HTTP Порт
         r_port = tk.Frame(tab_gen, bg=bg_card)
         r_port.pack(fill=tk.X, pady=6)
         tk.Label(r_port, text=t("settings_lbl_port", "HTTP Порт сервера:"), bg=bg_card, fg=fg_pri, font=theme.font(0), width=18, anchor="w").pack(side=tk.LEFT)
@@ -133,7 +121,6 @@ class SettingsWindow(tk.Toplevel):
         self.e_port.pack(side=tk.LEFT, padx=6)
         attach_entry_context_menu(self.e_port)
 
-        # --- ВКЛАДКА 2: ГОРЯЧИЕ КЛАВИШИ ---
         tab_keys = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
         nb.add(tab_keys, text=t("settings_tab_hotkeys", "Горячие клавиши"))
 
@@ -176,7 +163,6 @@ class SettingsWindow(tk.Toplevel):
             font=theme.font(-2, "italic"), fg=theme.get_color("fg_muted"), bg=bg_card
         ).pack(anchor="w", pady=(8, 0))
 
-        # --- ВКЛАДКА 3: OCR & ОЗВУЧКА ---
         tab_media = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
         nb.add(tab_media, text=t("settings_tab_media", "OCR и Озвучка"))
 
@@ -199,11 +185,9 @@ class SettingsWindow(tk.Toplevel):
             relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, command=self._test_tts
         ).pack(anchor="w")
 
-        # --- ВКЛАДКА 4: ОТЛАДКА И КОНСОЛЬ ---
         tab_logs = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
         nb.add(tab_logs, text="Отладка и Логи")
 
-        # Блок управления консолью
         f_con = tk.LabelFrame(tab_logs, text=" Вывод логов ", font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=8, pady=6)
         f_con.pack(fill=tk.X, pady=(0, 8))
 
@@ -234,7 +218,6 @@ class SettingsWindow(tk.Toplevel):
             bg=theme.get_color("btn_bg"), fg=fg_pri, command=self._open_log_folder
         ).pack(anchor="e", pady=(4, 0))
 
-        # Блок категорий логирования
         f_cats = tk.LabelFrame(tab_logs, text=" Разделы логирования ", font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=8, pady=6)
         f_cats.pack(fill=tk.BOTH, expand=True, pady=(0, 4))
 
@@ -286,7 +269,6 @@ class SettingsWindow(tk.Toplevel):
             variable=self.var_log_browser, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1)
         ).pack(anchor="w")
 
-        # Нижние кнопки
         btn_bar = tk.Frame(pad, bg=bg_main)
         btn_bar.pack(fill=tk.X)
         tk.Button(btn_bar, text=t("btn_cancel", "Отмена"), font=theme.font(0), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, padx=12, command=self.destroy).pack(side=tk.RIGHT, padx=(6, 0))
@@ -360,17 +342,14 @@ class SettingsWindow(tk.Toplevel):
         config.set_value("GENERAL", "StartMinimized", "1" if self.var_minimized.get() else "0")
         config.set_value("GENERAL", "ServerPort", self.e_port.get().strip() or "8080")
 
-        # Сохранение темы
         chosen_theme_display = self.combo_theme.get()
         chosen_theme_key = next((k for k, name in self.theme_options if name == chosen_theme_display), "light")
         theme.set_theme(chosen_theme_key)
 
-        # Сохранение масштаба шрифта
         chosen_font_display = self.combo_font.get()
         chosen_font_scale = next((k for k, name in self.font_options if name == chosen_font_display), "normal")
         theme.set_font_size(chosen_font_scale)
 
-        # Сохранение языка интерфейса
         chosen_lang_display = self.combo_lang.get()
         chosen_lang_code = next((k for k, name in self.lang_options if name == chosen_lang_display), "auto")
         i18n.set_language(chosen_lang_code)
@@ -383,7 +362,6 @@ class SettingsWindow(tk.Toplevel):
         ocr_engine.set_active_model(self.combo_ocr.get())
         config.set_value("TTS", "Speed", str(self.scale_speed.get()))
 
-        # Сохранение параметров логирования
         config.set_value("LOGGING", "showconsole", "1" if self.var_show_console.get() else "0")
         config.set_value("LOGGING", "logtofile", "1" if self.var_log_to_file.get() else "0")
         config.set_value("LOGGING", "clearonstartup", "1" if self.var_clear_on_startup.get() else "0")

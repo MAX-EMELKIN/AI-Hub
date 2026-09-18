@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/services/deepl_web/service.py
-Назначение: Плагин перевода через DeepL Web с фиксацией языковой пары через хэш,
-            очисткой поля Shadow DOM от старого кэша, аппаратным вводом и интеграцией с logger.
-Совместимость: Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64)
-"""
-
+# data/services/deepl_web/service.py
 import time
 import json
 import re
@@ -137,7 +131,7 @@ class DeepLWebService(BaseService):
                 const originalText = {json.dumps(clean_input)}.trim().toLowerCase();
 
                 function getTargetText() {{
-                    const targetHost = document.querySelector('d-textarea[name="target"]') || 
+                    const targetHost = document.querySelector('d-textarea[name="target"]') ||
                                        document.querySelector('[data-testid="translator-target-input"]');
                     if (targetHost) {{
                         let el = targetHost.shadowRoot ? targetHost.shadowRoot.querySelector('[contenteditable="true"], p, textarea') : targetHost.querySelector('[contenteditable="true"], p, textarea');
@@ -148,7 +142,7 @@ class DeepLWebService(BaseService):
                 }}
 
                 const result = getTargetText();
-                const isBusy = !!document.querySelector('[data-testid="translator-target-loading"]') || 
+                const isBusy = !!document.querySelector('[data-testid="translator-target-loading"]') ||
                                !!document.querySelector('.loading-indicator') ||
                                !!document.querySelector('[data-testid="translator-target-skeleton"]');
 

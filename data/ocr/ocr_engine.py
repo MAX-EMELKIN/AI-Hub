@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/ocr/ocr_engine.py
-Назначение: Классический надежный OCR со стоп-кадром, запуском rt_ocr.exe (MNN / PaddleOCR),
-            вызовом QTranslate по его системной клавише, чистой вставкой текста (EM_SETSEL + WM_PASTE)
-            и полной интеграцией с модулем logger.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/ocr/ocr_engine.py
 import os
 import sys
 import time
@@ -28,7 +21,6 @@ def get_base_dir():
     return os.path.abspath(os.path.join(current_dir, "..", ".."))
 
 def is_window_of_qtranslate(hwnd):
-    """Строго проверяет принадлежность окна процессу QTranslate.exe."""
     if not hwnd or not user32.IsWindow(hwnd):
         return False
     pid = wintypes.DWORD()
@@ -50,7 +42,6 @@ def is_window_of_qtranslate(hwnd):
     return False
 
 def find_qtranslate_main_and_edit_controls():
-    """Находит главное окно QTranslate и список его текстовых полей."""
     main_hwnd = None
     edits = []
 
@@ -86,7 +77,6 @@ def find_qtranslate_main_and_edit_controls():
     edits.sort(key=lambda x: x[0])
 
     return main_hwnd, [e[1] for e in edits]
-
 
 class OCREngine:
     def __init__(self):

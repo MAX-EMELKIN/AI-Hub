@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/services/deepseek_v4_flash_boltch/service.py
-Назначение: Плагин deepseek-v4-flash Boltch через агрегатор Boltch.cloud.
-"""
-
+# data/services/deepseek_v4_flash_boltch/service.py
 import os
 import sys
 import time
@@ -126,7 +122,6 @@ def parse_proxy_string(proxy_str):
         except ValueError:
             pass
     return "127.0.0.1", 10808
-
 
 class CustomService(BaseService):
     def __init__(self):

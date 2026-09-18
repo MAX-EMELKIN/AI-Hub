@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/core/templates/dashscope.py
-Назначение: Модульный шаблон провайдера Alibaba Cloud (Qwen DashScope) для Единого движка Хаба.
-            Поддерживает скоростные и флагманские модели линейки Qwen (qwen-turbo, qwen-plus,
-            qwen-max, qwen3.8-flash) через международный эндпоинт dashscope-intl.aliyuncs.com.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/core/templates/dashscope.py
 PROVIDER_KEY = "dashscope"
 PROVIDER_NAME = "Alibaba Cloud (Qwen DashScope)"
 DEFAULT_ENDPOINT = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions"

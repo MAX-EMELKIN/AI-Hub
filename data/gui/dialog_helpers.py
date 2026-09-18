@@ -1,17 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/gui/dialog_helpers.py
-Назначение: Вспомогательные элементы графического интерфейса: всплывающие подсказки (ToolTip),
-            всплывающие окна справки (HelpPopup) и нативные контекстные меню копирования/вставки.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/gui/dialog_helpers.py
 import tkinter as tk
 from data.core.i18n import t
 from data.gui.theme_manager import theme
 
 class HelpPopup(tk.Toplevel):
-    """Компактное всплывающее окно справки по клику."""
     def __init__(self, anchor_widget, text):
         super().__init__(anchor_widget)
         self.wm_overrideredirect(True)

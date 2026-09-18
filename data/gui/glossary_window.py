@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/gui/glossary_window.py
-Назначение: Окно словаря с полной мультиязычной локализацией, мульти-выделением, ИИ-обогащением и импортом.
-Совместимость: Python 3.8+ / Windows 7, 8, 10, 11
-"""
-
+# data/gui/glossary_window.py
 import os
 import time
 import json
@@ -32,7 +27,6 @@ LANG_OPTIONS = [
     ("pl", "Polski"),
     ("ru", "Русский")
 ]
-
 
 class GlossaryEnrichmentDialog(tk.Toplevel):
     def __init__(self, parent, on_enriched_callback=None):
@@ -87,19 +81,19 @@ class GlossaryEnrichmentDialog(tk.Toplevel):
         r1 = tk.Frame(opt_frame, bg=bg_card)
         r1.pack(fill=tk.X, pady=3)
         tk.Label(r1, text=t("enrich_model_lbl", "Модель ИИ для генерации:"), font=theme.font(0, "bold"), fg=fg_pri, width=22, anchor="w", bg=bg_card).pack(side=tk.LEFT)
-        
+
         self.srv_keys = [k for k in LOADED_SERVICES.keys() if k != "google_ai"]
         if not self.srv_keys:
             self.srv_keys = list(LOADED_SERVICES.keys())
         srv_display_names = [f"{LOADED_SERVICES[k].name} ({k})" for k in self.srv_keys] or ["DeepSeek Flash"]
-        
+
         self.combo_srv = ttk.Combobox(r1, values=srv_display_names, state="readonly", width=28)
         self.combo_srv.set(srv_display_names[0])
         self.combo_srv.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
         r2 = tk.Frame(opt_frame, bg=bg_card)
         r2.pack(fill=tk.X, pady=4)
-        
+
         tk.Label(r2, text=t("enrich_src_lbl", "Язык оригинала:"), font=theme.font(0, "bold"), fg=fg_pri, width=14, anchor="w", bg=bg_card).pack(side=tk.LEFT)
         self.combo_src = ttk.Combobox(r2, values=[n for _, n in LANG_OPTIONS], state="readonly", width=18)
         self.combo_src.set("English")
@@ -114,7 +108,7 @@ class GlossaryEnrichmentDialog(tk.Toplevel):
         r3.pack(fill=tk.X, pady=4)
         self.var_plurals = tk.BooleanVar(value=True)
         tk.Checkbutton(r3, text=t("enrich_chk_plurals", "Множественное число и глагольные формы"), variable=self.var_plurals, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1)).pack(side=tk.LEFT, padx=(0, 10))
-        
+
         self.var_spelling = tk.BooleanVar(value=True)
         tk.Checkbutton(r3, text=t("enrich_chk_spelling", "Варианты через дефис / слитно и UK/US написание"), variable=self.var_spelling, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1)).pack(side=tk.LEFT)
 
@@ -128,7 +122,7 @@ class GlossaryEnrichmentDialog(tk.Toplevel):
         self.lbl_status.pack(fill=tk.X)
 
         tk.Label(pad, text=t("enrich_preview_lbl", "Результаты генерации (Новые найденные формы):"), font=theme.font(0, "bold"), fg=fg_pri, bg=bg_main).pack(anchor="w", pady=(0, 2))
-        
+
         preview_frame = tk.Frame(pad, relief=tk.SOLID, bd=1, highlightbackground=border, highlightthickness=1)
         preview_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 8))
 
@@ -322,7 +316,6 @@ class GlossaryEnrichmentDialog(tk.Toplevel):
             self._cancel_flag = True
         self.destroy()
 
-
 class BatchGlossaryImportDialog(tk.Toplevel):
     def __init__(self, parent, on_imported_callback=None):
         super().__init__(parent)
@@ -367,7 +360,6 @@ class BatchGlossaryImportDialog(tk.Toplevel):
             font=theme.font(1, "bold"), fg=theme.get_color("accent"), bg=bg_main
         ).pack(anchor="w", pady=(0, 6))
 
-        # Панель быстрых действий
         act_bar = tk.Frame(pad, bg=bg_main)
         act_bar.pack(fill=tk.X, pady=(0, 6))
 
@@ -486,7 +478,7 @@ class BatchGlossaryImportDialog(tk.Toplevel):
 
         service = avail[0]
         self.btn_pre_enrich.config(state="disabled", text="⏳ ...")
-        
+
         def _worker():
             items = list(parsed.items())
             batch_size = 12
@@ -535,7 +527,7 @@ class BatchGlossaryImportDialog(tk.Toplevel):
                 formatted_lines = [f"{k} = {v}" for k, v in sorted(all_combined.items(), key=lambda x: str(x[0]).lower())]
                 self.text_area.delete("1.0", tk.END)
                 self.text_area.insert("1.0", "\n".join(formatted_lines))
-                
+
                 done_msg = t(
                     "import_pre_done_msg",
                     f"✅ Список успешно обогащён!\n\nБыло исходных терминов: {len(parsed)}\nДобавлено новых форм: +{new_added}\nВсего готово к импорту: {len(all_combined)}\n\nНажмите «💾 Импортировать в словарь» для сохранения.",
@@ -574,7 +566,6 @@ class BatchGlossaryImportDialog(tk.Toplevel):
         messagebox.showinfo("OK", success_msg, parent=self)
         self.destroy()
 
-
 class GlossaryWindow(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
@@ -606,7 +597,6 @@ class GlossaryWindow(tk.Toplevel):
         pad = tk.Frame(self, bg=bg_main, padx=12, pady=10)
         pad.pack(fill=tk.BOTH, expand=True)
 
-        # 1. Верхняя панель: Поиск + Кнопка ИИ-обогащения всей базы + Пакетный Импорт
         top_bar = tk.Frame(pad, bg=bg_main)
         top_bar.pack(fill=tk.X, pady=(0, 8))
 
@@ -635,7 +625,6 @@ class GlossaryWindow(tk.Toplevel):
         btn_batch.pack(side=tk.RIGHT, padx=6)
         ToolTip(btn_batch, t("dict_tip_batch_import", "Вставить список из буфера или загрузить файл на тысячи слов"))
 
-        # 2. Таблица Treeview
         tree_frame = tk.Frame(pad, relief=tk.SOLID, bd=1, highlightbackground=border, highlightthickness=1)
         tree_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 8))
 
@@ -652,7 +641,6 @@ class GlossaryWindow(tk.Toplevel):
         self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.tree.bind("<<TreeviewSelect>>", self._on_select_item)
 
-        # 3. Строка добавления / редактирования
         in_frame = tk.Frame(pad, bg=bg_card, padx=8, pady=6, relief=tk.SOLID, bd=1, highlightbackground=border, highlightthickness=1)
         in_frame.pack(fill=tk.X, pady=(0, 8))
 
@@ -669,7 +657,6 @@ class GlossaryWindow(tk.Toplevel):
         in_frame.columnconfigure(1, weight=1)
         in_frame.columnconfigure(3, weight=1)
 
-        # 4. Нижние кнопки
         btn_row = tk.Frame(pad, bg=bg_main)
         btn_row.pack(fill=tk.X)
 
@@ -859,7 +846,7 @@ class GlossaryWindow(tk.Toplevel):
                     preview = "\n".join(f"• {x}" for x in added_list[:12])
                     if len(added_list) > 12:
                         preview += f"\n... ({len(added_list) - 12})"
-                    
+
                     done_msg = t(
                         "dict_enrich_done_msg",
                         f"Для {total_terms} терминов создано +{new_added} новых форм:\n\n{preview}",

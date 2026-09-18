@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/gui/tray_manager.py
-Назначение: Системный трей Windows (WNDPROC) с автоматическим извлечением иконки из EXE / data/gui/,
-            чистыми пунктами меню (совместимыми с Win7), динамическим переключением языков
-            и быстрым вызовом консоли отладки.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/gui/tray_manager.py
 import os
 import sys
 import ctypes
@@ -264,7 +257,6 @@ class TrayManager:
         user32.AppendMenuW(hmenu, MF_STRING, 2, "Снимок экрана (OCR)")
         user32.AppendMenuW(hmenu, MF_STRING, 3, "Озвучить буфер (TTS)")
 
-        # Пункт управления консолью отладки
         is_con = logger.is_console_visible()
         con_str = "Скрыть консоль отладки" if is_con else "Показать консоль отладки"
         user32.AppendMenuW(hmenu, MF_STRING, 6, con_str)

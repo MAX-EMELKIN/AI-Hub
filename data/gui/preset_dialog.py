@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/gui/preset_dialog.py
-Назначение: Редактор стилей перевода и системных промптов (PresetEditorDialog).
-            Поддерживает создание, редактирование и удаление персональных пресетов,
-            вставку переменных целевого языка {TARGET_LANG} и привязку к сервису.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/gui/preset_dialog.py
 import tkinter as tk
 from tkinter import messagebox
 

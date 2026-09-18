@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/services/chatgpt_web/service.py
-Назначение: Плагин ChatGPT 4o Web с автоматическим фоновым закрытием модальных баннеров,
-            прямым аппаратным вводом, надежным считыванием ответов и интеграцией с logger.
-Совместимость: Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64)
-"""
-
+# data/services/chatgpt_web/service.py
 import time
 import json
 import re
@@ -34,10 +28,10 @@ JS_AUTO_DISMISS_POPUPS = """
     for (const btn of buttons) {
         const txt = (btn.innerText || "").trim().toLowerCase();
         if (
-            txt.includes("продолж") || 
-            txt.includes("continue") || 
-            txt.includes("stay logged out") || 
-            txt.includes("понятно") || 
+            txt.includes("продолж") ||
+            txt.includes("continue") ||
+            txt.includes("stay logged out") ||
+            txt.includes("понятно") ||
             txt.includes("got it") ||
             txt.includes("dismiss") ||
             txt.includes("принять")
@@ -160,8 +154,8 @@ class ChatGPTWebService(BaseService):
             query_json = json.dumps(query)
             js_input_text = f"""
             (() => {{
-                const input = document.querySelector('#prompt-textarea') || 
-                              document.querySelector('div[contenteditable="true"]') || 
+                const input = document.querySelector('#prompt-textarea') ||
+                              document.querySelector('div[contenteditable="true"]') ||
                               document.querySelector('textarea');
                 if (!input) return false;
 
@@ -189,8 +183,8 @@ class ChatGPTWebService(BaseService):
 
             js_trigger_send = """
             (() => {
-                const sendBtn = document.querySelector('button[data-testid="send-button"]') || 
-                                document.querySelector('button[aria-label*="Отправить"]') || 
+                const sendBtn = document.querySelector('button[data-testid="send-button"]') ||
+                                document.querySelector('button[aria-label*="Отправить"]') ||
                                 document.querySelector('button[aria-label*="Send"]');
                 if (sendBtn && !sendBtn.disabled) {
                     sendBtn.click();

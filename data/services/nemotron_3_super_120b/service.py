@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/services/nemotron_3_super_120b/service.py
-Назначение: Плагин nemotron-3-super-120b через агрегатор OpenRouter.ai.
-"""
-
+# data/services/nemotron_3_super_120b/service.py
 import os
 import sys
 import time
@@ -163,7 +159,6 @@ def extract_clean_json_body(raw_str):
     if start != -1 and end != -1 and end > start:
         return raw_str[start:end + 1]
     return raw_str
-
 
 class CustomService(BaseService):
     def __init__(self):

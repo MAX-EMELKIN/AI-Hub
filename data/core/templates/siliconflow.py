@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/core/templates/siliconflow.py
-Назначение: Модульный шаблон провайдера SiliconFlow для Единого движка Хаба.
-            Использует международный эндпоинт api.siliconflow.com для предотвращения ошибок 401,
-            задает в качестве базовой гарантированно бесплатную модель Qwen/Qwen2.5-7B-Instruct
-            для исключения ошибок 402 (Insufficient Balance).
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/core/templates/siliconflow.py
 PROVIDER_KEY = "siliconflow"
 PROVIDER_NAME = "SiliconFlow (Free Tier)"
 DEFAULT_ENDPOINT = "https://api.siliconflow.com/v1/chat/completions"

@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/gui/batch_window.py
-Назначение: Окно пакетного перевода файлов и модов со 100% мультиязычной локализацией.
-Совместимость: Python 3.8+ / Windows 7, 8, 10, 11
-"""
-
+# data/gui/batch_window.py
 import os
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
@@ -64,14 +59,13 @@ class BatchWindow(tk.Toplevel):
         r3.pack(fill=tk.X, pady=2)
 
         tk.Label(r3, text=t("batch_service", "Сервис:"), bg=bg_card, fg=fg_pri, font=theme.font(0)).pack(side=tk.LEFT)
-        
-        # Точное сопоставление имени сервиса с его ID
+
         self.srv_keys = list(LOADED_SERVICES.keys())
         self.srv_display_map = {f"{LOADED_SERVICES[k].name} ({k})": k for k in self.srv_keys}
         display_values = list(self.srv_display_map.keys()) or ["Bing Translator (bing)"]
 
         self.srv_combo = ttk.Combobox(r3, values=display_values, width=28, state="readonly")
-        
+
         default_sel = display_values[0]
         for name, k in self.srv_display_map.items():
             if k == "bing":
@@ -201,7 +195,7 @@ class BatchWindow(tk.Toplevel):
         self.btn_start.config(state="normal")
         self.btn_pause.config(state="disabled")
         self.btn_cancel.config(state="disabled")
-        
+
         done_msg = t("batch_done_msg", f"Файл успешно переведен:\n\n{out_path}", path=out_path)
         messagebox.showinfo("OK", done_msg, parent=self)
 

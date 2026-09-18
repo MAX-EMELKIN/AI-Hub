@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/gui/ocr_dialog.py
-Назначение: Диалоговое окно настройки параметров офлайн-распознавания текста (OCR)
-            и записи горячей клавиши вызова главного окна QTranslate.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/gui/ocr_dialog.py
 import os
 import time
 import tkinter as tk

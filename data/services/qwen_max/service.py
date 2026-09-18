@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/services/qwen_max/service.py
-Назначение: Официальный сервис Qwen Max (Alibaba DashScope).
-            Флагманская модель максимальной глубины понимания контекста и терминологии,
-            с отдельным бесплатным пакетом 1M токенов и интеграцией с logger.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/services/qwen_max/service.py
 import json
 import time
 import re

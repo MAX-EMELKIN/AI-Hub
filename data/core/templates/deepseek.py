@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Модуль: data/core/templates/deepseek.py
-Назначение: Модульный шаблон провайдера DeepSeek Official для Единого движка Хаба.
-            Поддерживает модели deepseek-flash и deepseek-v4-pro через официальный
-            эндпоинт api.deepseek.com с жестким отключением размышлений thinking.type: disabled.
-Совместимость: Pure Python 3.8+ / Windows 7, 8, 10, 11 (x86 / x64, 0 pip-зависимостей)
-"""
-
+# data/core/templates/deepseek.py
 PROVIDER_KEY = "deepseek"
 PROVIDER_NAME = "DeepSeek Official"
 DEFAULT_ENDPOINT = "https://api.deepseek.com/chat/completions"
