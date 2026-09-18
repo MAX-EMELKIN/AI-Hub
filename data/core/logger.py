@@ -1,14 +1,8 @@
 # -*- coding: utf-8 -*-
 # data/core/logger.py
-import os
-import sys
-import time
-import json
-import re
-import threading
-import ctypes
-from ctypes import wintypes
 
+import ctypes, json, os, re, sys, threading, time
+from ctypes import wintypes
 user32 =ctypes .windll .user32
 kernel32 =ctypes .windll .kernel32
 

@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 # data/core/api_config.py
-import os
-import sys
-import configparser
-from data .core .web_search import DEFAULT_SEARCH_PROMPT
-from data .core .logger import logger
 
+import os, sys
+import configparser
+from data.core.logger import logger
+from data.core.web_search import DEFAULT_SEARCH_PROMPT
 def get_base_dir ():
     if getattr (sys ,'frozen',False ):
         return os .path .dirname (sys .executable )

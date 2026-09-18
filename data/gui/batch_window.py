@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 # data/gui/batch_window.py
+
 import os
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
-
+from data.batch.pipeline import batch_pipeline
 from data.core.config_manager import config
 from data.core.i18n import t
-from data.services.base_service import LOADED_SERVICES
-from data.batch.pipeline import batch_pipeline
-from data.gui.theme_manager import theme
 from data.gui.dialogs import attach_entry_context_menu
-
+from data.gui.theme_manager import theme
+from data.services.base_service import LOADED_SERVICES
 class BatchWindow(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)

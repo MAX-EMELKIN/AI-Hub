@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # data/batch/chunker.py
-import os
-import re
 
+import os, re
 class TextChunker :
 
     def __init__ (self ,default_chunk_size =2500 ):

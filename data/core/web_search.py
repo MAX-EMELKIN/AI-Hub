@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 # data/core/web_search.py
-import re
-import html
-import urllib .parse
-import urllib .request
-import urllib .error
 
+import html, re
+import urllib.parse
+import urllib.request
+import urllib.error
 USER_AGENT ="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
 DEFAULT_SEARCH_PROMPT =(

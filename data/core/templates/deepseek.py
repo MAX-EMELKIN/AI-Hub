@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # data/core/templates/deepseek.py
+
 PROVIDER_KEY = "deepseek"
 PROVIDER_NAME = "DeepSeek Official"
 DEFAULT_ENDPOINT = "https://api.deepseek.com/chat/completions"

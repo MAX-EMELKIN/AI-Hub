@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # data/core/templates/boltch.py
+
 PROVIDER_KEY = "boltch"
 PROVIDER_NAME = "Boltch.cloud (Free Pool)"
 DEFAULT_MODEL = "free:kimi-k2.6"

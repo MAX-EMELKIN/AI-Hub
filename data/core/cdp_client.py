@@ -1,22 +1,13 @@
 # -*- coding: utf-8 -*-
 # data/core/cdp_client.py
-import os
-import sys
-import time
-import json
-import socket
-import struct
-import base64
-import subprocess
+
+import base64, ctypes, json, os, socket, struct, subprocess, sys, threading, time
 import atexit
-import threading
-import ctypes
-from ctypes import wintypes
 import urllib.parse
 import urllib.request
 import urllib.error
+from ctypes import wintypes
 from data.core.logger import logger
-
 user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32
 

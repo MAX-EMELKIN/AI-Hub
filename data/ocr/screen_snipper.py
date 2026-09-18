@@ -1,14 +1,9 @@
 # -*- coding: utf-8 -*-
 # data/ocr/screen_snipper.py
-import os
-import sys
-import time
-import uuid
-import struct
-import ctypes
-from ctypes import wintypes
-import tkinter as tk
 
+import ctypes, os, struct, uuid
+import tkinter as tk
+from ctypes import wintypes
 user32 =ctypes .windll .user32
 gdi32 =ctypes .windll .gdi32
 

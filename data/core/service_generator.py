@@ -1,19 +1,13 @@
 # -*- coding: utf-8 -*-
 # data/core/service_generator.py
-import os
-import sys
-import re
-import shutil
-import json
-import time
+
+import os, re, shutil, sys, time
 import importlib
-
-from data .core .templates .common_js import JS_SERVICE_TEMPLATE
-from data .core .templates .unified_engine import UNIFIED_PYTHON_TEMPLATE
-from data .core .api_config import api_config
-from data .core .launcher import restart_qtranslate
-from data .core .logger import logger
-
+from data.core.api_config import api_config
+from data.core.launcher import restart_qtranslate
+from data.core.logger import logger
+from data.core.templates.common_js import JS_SERVICE_TEMPLATE
+from data.core.templates.unified_engine import UNIFIED_PYTHON_TEMPLATE
 __all__ =[
 "slugify",
 "get_next_available_qt_id",

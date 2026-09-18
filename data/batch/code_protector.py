@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # data/batch/code_protector.py
-import re
 
+import re
 class CodeProtector :
 
     def __init__ (self ):

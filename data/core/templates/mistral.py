@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # data/core/templates/mistral.py
+
 PROVIDER_KEY = "mistral"
 PROVIDER_NAME = "Mistral AI"
 DEFAULT_ENDPOINT = "https://api.mistral.ai/v1/chat/completions"

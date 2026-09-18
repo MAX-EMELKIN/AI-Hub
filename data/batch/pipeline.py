@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
 # data/batch/pipeline.py
-import os
-import sys
-import time
-import threading
 
+import os, threading, time
 from data.batch.chunker import text_chunker
 from data.batch.code_protector import code_protector
-from data.services.base_service import LOADED_SERVICES
 from data.core.logger import logger
-
+from data.services.base_service import LOADED_SERVICES
 class BatchPipeline:
     def __init__(self):
         self._thread = None

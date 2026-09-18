@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # data/core/templates/cloudflare.py
+
 PROVIDER_KEY = "cloudflare"
 PROVIDER_NAME = "Cloudflare Workers AI"
 DEFAULT_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"

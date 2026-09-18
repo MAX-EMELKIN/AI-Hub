@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 # data/gui/theme_manager.py
-import tkinter as tk
+
 from tkinter import ttk
-
-from data .core .config_manager import config
-from data .core .i18n import t
-
+from data.core.config_manager import config
+from data.core.i18n import t
 THEMES ={
 "light":{
 "key":"theme_light",

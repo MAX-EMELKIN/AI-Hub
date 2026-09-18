@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 # data/gui/ocr_dialog.py
-import os
+
 import time
 import tkinter as tk
 from tkinter import ttk
-
 from data.core.config_manager import config
 from data.core.i18n import t
-from data.ocr.ocr_engine import ocr_engine
-from data.gui.theme_manager import theme
 from data.gui.dialog_helpers import attach_entry_context_menu
-
+from data.gui.theme_manager import theme
+from data.ocr.ocr_engine import ocr_engine
 class OCRSettingsDialog(tk.Toplevel):
     def __init__(self, parent, on_saved_callback=None):
         super().__init__(parent)

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # data/gui/dialog_helpers.py
+
 import tkinter as tk
 from data.core.i18n import t
 from data.gui.theme_manager import theme
-
 class HelpPopup(tk.Toplevel):
     def __init__(self, anchor_widget, text):
         super().__init__(anchor_widget)

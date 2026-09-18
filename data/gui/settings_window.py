@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
 # data/gui/settings_window.py
-import os
-import time
+
+import os, time
 import tkinter as tk
 from tkinter import ttk, messagebox
-
 from data.core.config_manager import config
-from data.core.i18n import t, i18n
 from data.core.hotkey_manager import hotkey_manager
+from data.core.i18n import t, i18n
+from data.core.logger import logger
+from data.gui.dialogs import attach_entry_context_menu
+from data.gui.theme_manager import theme
 from data.ocr.ocr_engine import ocr_engine
 from data.tts.tts_engine import tts_engine
-from data.gui.theme_manager import theme
-from data.gui.dialogs import attach_entry_context_menu
-from data.core.logger import logger
-
 class SettingsWindow(tk.Toplevel):
     def __init__(self, parent, on_settings_updated=None):
         super().__init__(parent)

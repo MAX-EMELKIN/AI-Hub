@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # data/core/templates/common_js.py
+
 JS_SERVICE_TEMPLATE = """// =============================================================================
 // Сервис: {SERVICE_NAME} (Автономный мост к AI Hub)
 // ID: {QT_ID}

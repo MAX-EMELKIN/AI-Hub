@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # data/gui/wizard_dialog.py
+
 import os
 import sys
 import json

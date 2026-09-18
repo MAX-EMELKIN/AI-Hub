@@ -1,23 +1,18 @@
 # -*- coding: utf-8 -*-
 # data/gui/chat_window.py
-import json
-import time
-import urllib .request
-import urllib .error
-import threading
-import re
+
+import json, re, threading, time
+import urllib.request
+import urllib.error
 import tkinter as tk
-from tkinter import ttk ,messagebox
-
-from data .core .config_manager import config
-from data .core .api_config import api_config
-from data .services .base_service import LOADED_SERVICES
-from data .core .web_search import OPENAI_WEB_TOOLS ,GEMINI_WEB_TOOLS ,execute_tool_call
-from data .gui .theme_manager import theme
-from data .gui .dialogs import attach_entry_context_menu ,attach_text_context_menu ,ToolTip
-from data .core .i18n import t
-from data .core .logger import logger
-
+from tkinter import ttk
+from data.core.api_config import api_config
+from data.core.config_manager import config
+from data.core.logger import logger
+from data.core.web_search import OPENAI_WEB_TOOLS, GEMINI_WEB_TOOLS, execute_tool_call
+from data.gui.dialogs import attach_text_context_menu, ToolTip
+from data.gui.theme_manager import theme
+from data.services.base_service import LOADED_SERVICES
 class UniversalChatClient :
 
     def __init__ (self ,service_id ):

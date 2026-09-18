@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # data/core/templates/unified_engine.py
+
 UNIFIED_PYTHON_TEMPLATE = """# -*- coding: utf-8 -*-
 \"\"\"
 Модуль: data/services/{SERVICE_ID_SLUG}/service.py

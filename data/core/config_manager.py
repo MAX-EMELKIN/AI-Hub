@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 # data/core/config_manager.py
-import os
-import sys
-import configparser
 
+import os, sys
+import configparser
 def get_base_dir ():
     if getattr (sys ,'frozen',False ):
         return os .path .dirname (sys .executable )

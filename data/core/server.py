@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 # data/core/server.py
-import os
-import sys
-import json
-import threading
-import http .server
-import socketserver
-import urllib .parse
-from data .core .logger import logger
 
+import json, os, sys, threading
+import http.server
+import socketserver
+import urllib.parse
+from data.core.logger import logger
 def get_base_dir ():
     if getattr (sys ,'frozen',False ):
         return os .path .dirname (sys .executable )

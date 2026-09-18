@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 # data/gui/service_settings_dialog.py
+
 import threading
 import tkinter as tk
 from tkinter import ttk, messagebox
-
 from data.core.i18n import t
-from data.gui.theme_manager import theme
-from data.gui.dialog_helpers import attach_entry_context_menu, attach_text_context_menu
 from data.core.logger import logger
-
+from data.gui.dialog_helpers import attach_entry_context_menu, attach_text_context_menu
+from data.gui.theme_manager import theme
 DOH_PRESET_KEYS = [
     "Comss.one (SmartDNS / РФ обход)",
     "Control D (Uncensored)",

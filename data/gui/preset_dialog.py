@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 # data/gui/preset_dialog.py
+
 import tkinter as tk
 from tkinter import messagebox
-
 from data.core.config_manager import config
 from data.core.i18n import t
-from data.presets.preset_manager import preset_manager
-from data.gui.theme_manager import theme
 from data.gui.dialog_helpers import attach_entry_context_menu, attach_text_context_menu, ToolTip
-
+from data.gui.theme_manager import theme
+from data.presets.preset_manager import preset_manager
 class PresetEditorDialog(tk.Toplevel):
     def __init__(self, parent, service_id, preset_name="default", is_new=False, on_saved_callback=None):
         super().__init__(parent)

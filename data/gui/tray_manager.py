@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
 # data/gui/tray_manager.py
-import os
-import sys
-import ctypes
-import threading
+
+import ctypes, os, threading
 from ctypes import wintypes
-
 from data.core.config_manager import config
-from data.core.i18n import t, i18n
 from data.core.hotkey_manager import hotkey_manager
+from data.core.i18n import t, i18n
 from data.core.logger import logger
-
 if ctypes.sizeof(ctypes.c_void_p) == 8:
     LRESULT = ctypes.c_int64
     WPARAM = ctypes.c_uint64

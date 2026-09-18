@@ -1,13 +1,8 @@
 # -*- coding: utf-8 -*-
 # data/core/hotkey_manager.py
-import os
-import sys
-import re
-import time
-import ctypes
-from ctypes import wintypes
-import threading
 
+import ctypes, re, threading, time
+from ctypes import wintypes
 user32 =ctypes .windll .user32
 kernel32 =ctypes .windll .kernel32
 

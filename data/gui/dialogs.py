@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # data/gui/dialogs.py
+
 from data .gui .dialog_helpers import (
 HelpPopup ,
 ToolTip ,

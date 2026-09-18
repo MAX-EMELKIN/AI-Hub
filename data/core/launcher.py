@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 # data/core/launcher.py
-import os
-import sys
-import time
-import subprocess
-import ctypes
-from ctypes import wintypes
-from data .core .logger import logger
 
+import ctypes, os, subprocess, sys, time
+from ctypes import wintypes
+from data.core.logger import logger
 def get_base_dir ():
     if getattr (sys ,'frozen',False ):
         return os .path .dirname (sys .executable )

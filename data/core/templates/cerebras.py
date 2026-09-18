@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # data/core/templates/cerebras.py
+
 PROVIDER_KEY = "cerebras"
 PROVIDER_NAME = "Cerebras Inference (Ultra Fast)"
 DEFAULT_ENDPOINT = "https://api.cerebras.ai/v1/chat/completions"

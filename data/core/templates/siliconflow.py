@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # data/core/templates/siliconflow.py
+
 PROVIDER_KEY = "siliconflow"
 PROVIDER_NAME = "SiliconFlow (Free Tier)"
 DEFAULT_ENDPOINT = "https://api.siliconflow.com/v1/chat/completions"

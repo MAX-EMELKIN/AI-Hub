@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # data/core/templates/pollinations.py
+
 PROVIDER_KEY = "pollinations"
 PROVIDER_NAME = "Pollinations AI (Free / Anon)"
 DEFAULT_ENDPOINT = "https://text.pollinations.ai/openai/chat/completions"

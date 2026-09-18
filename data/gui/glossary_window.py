@@ -1,20 +1,14 @@
 # -*- coding: utf-8 -*-
 # data/gui/glossary_window.py
-import os
-import time
-import json
-import re
-import threading
+
+import os, re, threading, time
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
-
-from data.core.config_manager import config
 from data.core.i18n import t
-from data.services.base_service import LOADED_SERVICES
 from data.dictionary.glossary_engine import glossary_engine
-from data.gui.theme_manager import theme
 from data.gui.dialogs import attach_entry_context_menu, attach_text_context_menu, ToolTip
-
+from data.gui.theme_manager import theme
+from data.services.base_service import LOADED_SERVICES
 LANG_OPTIONS = [
     ("en", "English"),
     ("de", "Deutsch"),

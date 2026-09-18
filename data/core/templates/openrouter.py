@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # data/core/templates/openrouter.py
+
 PROVIDER_KEY = "openrouter"
 PROVIDER_NAME = "OpenRouter.ai (Free & Paid)"
 DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b:free"

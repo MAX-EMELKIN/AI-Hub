@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
 # data/gui/service_card.py
-import os
-import json
-import threading
+
+import os, threading
 import tkinter as tk
 from tkinter import ttk
-
 from data.core.config_manager import config
-from data.core.api_config import api_config
 from data.core.i18n import t
-from data.presets.preset_manager import preset_manager
-from data.gui.theme_manager import theme
-from data.gui.dialogs import ToolTip
 from data.core.logger import logger
-
+from data.gui.dialogs import ToolTip
+from data.gui.theme_manager import theme
+from data.presets.preset_manager import preset_manager
 GEMINI_ALLOWED_MODELS = [
     "gemini-3.8-flash",
     "gemini-3.7-flash",

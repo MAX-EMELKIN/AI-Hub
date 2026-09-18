@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # data/core/templates/dashscope.py
+
 PROVIDER_KEY = "dashscope"
 PROVIDER_NAME = "Alibaba Cloud (Qwen DashScope)"
 DEFAULT_ENDPOINT = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions"

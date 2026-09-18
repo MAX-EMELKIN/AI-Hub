@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # data/core/templates/openai_compatible.py
+
 PROVIDER_KEY = "openai_compatible"
 PROVIDER_NAME = "OpenAI-совместимый API (DeepSeek, Qwen, Groq и др.)"
 DEFAULT_MODEL = "deepseek-flash"

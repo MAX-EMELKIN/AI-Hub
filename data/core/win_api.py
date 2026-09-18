@@ -1,12 +1,8 @@
 # -*- coding: utf-8 -*-
 # data/core/win_api.py
-import os
-import sys
-import time
-import re
-import ctypes
-from ctypes import wintypes
 
+import ctypes, re, time
+from ctypes import wintypes
 user32 =ctypes .windll .user32
 kernel32 =ctypes .windll .kernel32
 winmm =ctypes .windll .winmm
