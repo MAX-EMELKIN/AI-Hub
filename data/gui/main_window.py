@@ -165,12 +165,23 @@ class MainWindow(tk.Tk):
         ).pack(side=tk.LEFT)
 
         btn_add = tk.Button(
-            header_frame, text=t("add_service", "+ Добавить сервис из шаблона"),
+            header_frame, text=t("add_service", "Студия подключения и настройки сервисов"),
             font=theme.font(-1, "bold"), relief=tk.FLAT, bg=theme.get_color("help_btn_bg"),
             fg=theme.get_color("help_btn_fg"), cursor="hand2", padx=8, pady=2,
             command=self._on_add_custom_service
         )
         btn_add.pack(side=tk.RIGHT)
+
+        tooltip_studio = (
+            "Студия подключения и настройки сервисов (Мастер плагинов):\n"
+            "- Подключение моделей по готовым шаблонам (OpenRouter, Qwen, DeepSeek, Gemini и др.)\n"
+            "- Онлайн-запрос списка моделей, лимитов контекста и цен через API\n"
+            "- Встроенная проверка методов сервера (OPTIONS) и ручная отправка запросов\n"
+            "- Генерация плагинов QTranslate (service.js) и скриптов Хаба (service.py)\n"
+            "- Настройка генерации, рассуждений (thinking) и сетевых режимов (SOCKS5, DoH)\n"
+            "- Быстрый и полный тестовый стенд созданного сервиса"
+        )
+        ToolTip(btn_add, tooltip_studio)
 
         list_outer = tk.Frame(self, bg=bg_main, padx=8, pady=6)
         list_outer.pack(fill=tk.BOTH, expand=True)

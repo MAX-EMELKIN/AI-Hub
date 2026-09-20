@@ -3,7 +3,7 @@
 
 import os, time
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 from data.core.config_manager import config
 from data.core.hotkey_manager import hotkey_manager
 from data.core.i18n import t, i18n
@@ -12,6 +12,7 @@ from data.gui.dialogs import attach_entry_context_menu
 from data.gui.theme_manager import theme
 from data.ocr.ocr_engine import ocr_engine
 from data.tts.tts_engine import tts_engine
+
 class SettingsWindow(tk.Toplevel):
     def __init__(self, parent, on_settings_updated=None):
         super().__init__(parent)
@@ -22,8 +23,8 @@ class SettingsWindow(tk.Toplevel):
 
         bg_main = theme.get_color("bg_main")
         self.title(t("settings_title", "Настройки программы"))
-        self.geometry("660x560")
-        self.minsize(580, 480)
+        self.geometry("660x600")
+        self.minsize(580, 500)
         self.configure(bg=bg_main)
         self.transient(parent)
 
@@ -39,7 +40,7 @@ class SettingsWindow(tk.Toplevel):
         ph = self.parent.winfo_height() if self.parent else 400
         px = self.parent.winfo_rootx() if self.parent else 200
         py = self.parent.winfo_rooty() if self.parent else 150
-        w, h = 660, 560
+        w, h = 660, 600
         x = px + max(0, (pw - w) // 2)
         y = py + max(0, (ph - h) // 2)
         self.geometry(f"{w}x{h}+{x}+{y}")
@@ -118,6 +119,24 @@ class SettingsWindow(tk.Toplevel):
         self.e_port.insert(0, str(config.get_int("GENERAL", "ServerPort", 8080)))
         self.e_port.pack(side=tk.LEFT, padx=6)
         attach_entry_context_menu(self.e_port)
+
+        r_editor = tk.Frame(tab_gen, bg=bg_card)
+        r_editor.pack(fill=tk.X, pady=6)
+        tk.Label(r_editor, text=t("settings_lbl_editor", "Редактор кода:"), bg=bg_card, fg=fg_pri, font=theme.font(0), width=18, anchor="w").pack(side=tk.LEFT)
+        self.e_editor = tk.Entry(r_editor, width=28, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
+        self.e_editor.insert(0, config.get_str("GENERAL", "CodeEditor", "auto"))
+        self.e_editor.pack(side=tk.LEFT, padx=6)
+        attach_entry_context_menu(self.e_editor)
+
+        tk.Button(
+            r_editor, text=t("settings_btn_browse", "Обзор..."), font=theme.font(-1),
+            relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, command=self._browse_editor
+        ).pack(side=tk.LEFT, padx=2)
+
+        tk.Button(
+            r_editor, text=t("settings_btn_reset_editor", "Авто"), font=theme.font(-1),
+            relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, command=lambda: self._set_editor_value("auto")
+        ).pack(side=tk.LEFT, padx=2)
 
         tab_keys = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
         nb.add(tab_keys, text=t("settings_tab_hotkeys", "Горячие клавиши"))
@@ -272,6 +291,20 @@ class SettingsWindow(tk.Toplevel):
         tk.Button(btn_bar, text=t("btn_cancel", "Отмена"), font=theme.font(0), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, padx=12, command=self.destroy).pack(side=tk.RIGHT, padx=(6, 0))
         tk.Button(btn_bar, text=t("btn_save", "Сохранить"), font=theme.font(0, "bold"), relief=tk.FLAT, bg=theme.get_color("accent"), fg=theme.get_color("accent_text"), padx=16, command=self._save).pack(side=tk.RIGHT)
 
+    def _browse_editor(self):
+        chosen = filedialog.askopenfilename(
+            parent=self,
+            title=t("dlg_select_editor", "Выберите исполняемый файл редактора"),
+            filetypes=[("Executable", "*.exe"), ("All files", "*.*")]
+        )
+        if chosen:
+            self.e_editor.delete(0, tk.END)
+            self.e_editor.insert(0, os.path.normpath(chosen))
+
+    def _set_editor_value(self, val):
+        self.e_editor.delete(0, tk.END)
+        self.e_editor.insert(0, val)
+
     def _toggle_console_live(self):
         show = self.var_show_console.get()
         logger.show_console(show)
@@ -339,6 +372,7 @@ class SettingsWindow(tk.Toplevel):
         config.set_value("GENERAL", "AutoLaunchQTranslate", "1" if self.var_autolaunch.get() else "0")
         config.set_value("GENERAL", "StartMinimized", "1" if self.var_minimized.get() else "0")
         config.set_value("GENERAL", "ServerPort", self.e_port.get().strip() or "8080")
+        config.set_value("GENERAL", "CodeEditor", self.e_editor.get().strip() or "auto")
 
         chosen_theme_display = self.combo_theme.get()
         chosen_theme_key = next((k for k, name in self.theme_options if name == chosen_theme_display), "light")

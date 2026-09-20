@@ -1,4 +1,40 @@
-
+# Служебные файлы Python
 __pycache__/
 *.py[cod]
-*.class
+*$py.class
+build/
+dist/
+*.spec
+
+# Личные файлы конфигурации и API-ключи (Защита от утечки)
+data\providers.ini
+data\api_keys.ini
+*.local.ini
+
+# Файлы клиента QTranslate
+QTranslate.exe
+QTranslate.ini
+bass.dll
+*.dll
+Services/
+Resources/
+Locales/
+Plugins/
+Themes/
+AI_Hub.exe
+
+# Портативный браузер Supermium и его кэш
+browser/
+
+# Логи и временные файлы отладки
+*.log
+data/logs/*
+!data/logs/.gitkeep
+data/ocr/temp_snip.png
+data/ocr/ocr_result.txt
+available_models_list.txt
+
+# Системный мусор Windows
+Thumbs.db
+Desktop.ini
+.DS_Store
