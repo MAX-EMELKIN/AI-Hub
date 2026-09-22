@@ -21,7 +21,7 @@ class YandexService(BaseService):
         self.supports_hyperparameters = False
 
     def is_ready(self):
-        return True, "Работает через шлюз Яндекс Android (без ключей)"
+        return True, "Text Text Text Text Android (Text Text)"
 
     def translate(self, text, src_lang="auto", trg_lang="ru", preset=None):
         if not text or not text.strip():
@@ -62,7 +62,7 @@ class YandexService(BaseService):
                 res = "\n".join(raw_json["text"])
 
             final = self.clean_response(res)
-            print(f"[{self.name} готов за {elapsed:.2f}с]: {final[:70]}...")
+            print(f"[{self.name} Text Text {elapsed:.2f}Text]: {final[:70]}...")
             return final if final else text
 
         except urllib.error.HTTPError as he:
@@ -73,14 +73,14 @@ class YandexService(BaseService):
 
             fast = self.fetch_fast_word(text, src=src_lang, trg=trg_lang)
             if fast: return fast
-            return f"Ошибка Yandex: HTTP {he.code}"
+            return f"Error Yandex: HTTP {he.code}"
 
         except Exception as e:
             elapsed = time.time() - t0
-            logger.api_summary(self.name, "Yandex API (Android)", elapsed, 0, note=f"Ошибка: {e}")
+            logger.api_summary(self.name, "Yandex API (Android)", elapsed, 0, note=f"Error: {e}")
             fast = self.fetch_fast_word(text, src=src_lang, trg=trg_lang)
             if fast: return fast
             print(f"[❌ Yandex Error]: {e}")
-            return f"Ошибка Yandex: {e}"
+            return f"Error Yandex: {e}"
 
 service = YandexService()

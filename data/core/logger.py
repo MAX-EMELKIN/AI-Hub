@@ -96,7 +96,7 @@ class HubLogger :
         if ok :
             self ._console_allocated =True
             try :
-                kernel32 .SetConsoleTitleW ("QTranslate AI Hub — Консоль отладки")
+                kernel32 .SetConsoleTitleW ("QTranslate AI Hub — Text Text")
             except Exception :
                 pass
 
@@ -124,8 +124,8 @@ class HubLogger :
 
             banner =(
             "=================================================================\n"
-            "  QTranslate AI Hub — Консоль отладки и мониторинга запросов     \n"
-            f"  Время старта: {time .strftime ('%Y-%m-%d %H:%M:%S')}             \n"
+            "  QTranslate AI Hub — Text Text Text Text Text     \n"
+            f"  Text Text: {time .strftime ('%Y-%m-%d %H:%M:%S')}             \n"
             "=================================================================\n\n"
             )
 
@@ -223,7 +223,7 @@ class HubLogger :
             return
         status_str =f"HTTP {status_code }"if status_code else "OK"
         note_str =f" | {note }"if note else ""
-        body =f"Модель: {model } | Время: {elapsed_sec :.2f}с | Статус: {status_str }{note_str }"
+        body =f"Text: {model } | Text: {elapsed_sec :.2f}Text | Text: {status_str }{note_str }"
         self ._write_entry ("API_SUMMARY",service_name ,body )
 
     def api_payload (self ,service_name ,model ,endpoint ,headers ,payload ):
@@ -255,7 +255,7 @@ class HubLogger :
             formatted_body =preview
 
         body =(
-        f"Status: HTTP {status_code } | Time: {elapsed_sec :.2f}с\n"
+        f"Status: HTTP {status_code } | Time: {elapsed_sec :.2f}Text\n"
         f"Raw Response Body:\n{formatted_body }"
         )
         self ._write_entry ("API_RAW_RESPONSE",service_name ,body )
@@ -264,10 +264,10 @@ class HubLogger :
         if not self .is_enabled ("log_tools"):
             return
         body =(
-        f"Шаг цикла: {step_idx }\n"
-        f"Вызов инструмента: {tool_name }\n"
-        f"Аргументы: {json .dumps (tool_args ,ensure_ascii =False )}\n"
-        f"Результат выполнения:\n{str (tool_result )[:600 ]}"
+        f"Text Text: {step_idx }\n"
+        f"Text Text: {tool_name }\n"
+        f"Text: {json .dumps (tool_args ,ensure_ascii =False )}\n"
+        f"Text Text:\n{str (tool_result )[:600 ]}"
         )
         self ._write_entry ("AGENT_TOOL",service_name ,body )
 
@@ -275,16 +275,16 @@ class HubLogger :
         if not self .is_enabled ("log_glossary"):
             return
         lines =[f"  * '{k }' -> '{v }'"for k ,v in matched_pairs ]
-        body =f"Найдено терминов в тексте: {len (matched_pairs )}\n"+"\n".join (lines )
+        body =f"Text Text Text Text: {len (matched_pairs )}\n"+"\n".join (lines )
         self ._write_entry ("GLOSSARY",service_name ,body )
 
     def text_filtering (self ,service_name ,stage_desc ,raw_text ,cleaned_text ):
         if not self .is_enabled ("log_filtering"):
             return
         body =(
-        f"Этап: {stage_desc }\n"
-        f"Исходный текст модели:\n{str (raw_text )}\n"
-        f"После очистки фильтрами:\n{str (cleaned_text )}"
+        f"Text: {stage_desc }\n"
+        f"Text Text Text:\n{str (raw_text )}\n"
+        f"Text Text Text:\n{str (cleaned_text )}"
         )
         self ._write_entry ("FILTERING",service_name ,body )
 
@@ -292,9 +292,9 @@ class HubLogger :
         if not self .is_enabled ("log_qtranslate"):
             return
         body =(
-        f"Маршрут: {route }\n"
-        f"Направление: {src_lang } -> {trg_lang }\n"
-        f"Текст ({len (text_preview )} симв.): {text_preview [:120 ]}..."
+        f"Text: {route }\n"
+        f"Text: {src_lang } -> {trg_lang }\n"
+        f"Text ({len (text_preview )} Text.): {text_preview [:120 ]}..."
         )
         self ._write_entry ("QTRANSLATE","",body )
 

@@ -154,7 +154,7 @@ class ScreenSnipper :
         self .overlay .destroy ()
 
         if w >5 and h >5 :
-            print (f"[OCR Snipper]: Выделенная область: {w }x{h } в ({x1 }, {y1 })")
+            print (f"[OCR Snipper]: Text Text: {w }x{h } Text ({x1 }, {y1 })")
             temp_dir =os .path .join (os .path .dirname (os .path .abspath (__file__ )),"temp")
             os .makedirs (temp_dir ,exist_ok =True )
             unique_crop =os .path .join (temp_dir ,f"crop_{uuid .uuid4 ().hex [:8 ]}.bmp")

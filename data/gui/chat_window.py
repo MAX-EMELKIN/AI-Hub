@@ -42,14 +42,14 @@ class UniversalChatClient :
 
     def send_chat (self ,history ,enable_search ):
         sys_prompt =(
-        "Ты — полезный, умный и вежливый ИИ-ассистент. "
-        "Отвечай на вопросы пользователя четко, структурированно и по делу."
+        "Text"
+        "Text"
         )
         if enable_search :
             sys_prompt +=(
-            "\n\nИНСТРУМЕНТЫ ВЕБ-ПОИСКА:\n"
-            "Вам доступны инструменты поиска `search_web` (DuckDuckGo) и `fetch_webpage` (чтение ссылок). "
-            "Используйте их обязательно, если пользователь просит найти актуальную информацию или дает веб-ссылку."
+            "Text"
+            "Text"
+            "Text"
             )
 
         opener =self ._get_opener ()
@@ -100,7 +100,7 @@ class UniversalChatClient :
                     logger .api_summary (f"Chat: {self .service_id }",self .model ,elapsed ,resp .status )
 
                 if "choices"not in data or not data ["choices"]:
-                    return "[Ошибка: пустой ответ от сервера Orca]"
+                    return "Text"
 
                 msg =data ["choices"][0 ]["message"]
 
@@ -142,20 +142,20 @@ class UniversalChatClient :
                     time .sleep (0.5 )
                     continue
                 if he .code in (500 ,502 ,503 ,504 ):
-                    return f"[Сервер перегружен (HTTP {he .code })]: Провайдер временно недоступен. Попробуйте позже."
+                    return f"Text"
                 if he .code ==429 :
-                    return "[Превышен лимит запросов (HTTP 429)]: Слишком много обращений. Подождите немного."
-                return f"[Ошибка API HTTP {he .code }]: {err_body [:200 ]}"
+                    return "Text"
+                return f"Text"
             except urllib .error .URLError as ue :
                 elapsed =time .time ()-t_call
                 logger .api_summary (f"Chat: {self .service_id }",self .model ,elapsed ,0 ,note =f"URLError: {ue .reason }")
-                return f"[Сетевая ошибка OrcaRouter]: {ue .reason }"
+                return f"Text"
             except Exception as e :
                 elapsed =time .time ()-t_call
                 logger .api_summary (f"Chat: {self .service_id }",self .model ,elapsed ,0 ,note =f"Exception: {e }")
-                return f"[Ошибка OrcaRouter]: {e }"
+                return f"Text"
 
-        return "[Ошибка: превышен лимит шагов агента поиска]"
+        return "Text"
 
     def _send_gemini (self ,history ,sys_prompt ,enable_search ,opener ):
         contents =[]
@@ -201,18 +201,18 @@ class UniversalChatClient :
                 logger .api_summary (f"Chat: {self .service_id }",self .model ,elapsed ,he .code ,note =f"HTTP Error {he .code }")
 
                 if he .code in (500 ,502 ,503 ,504 ):
-                    return f"[Сервер перегружен (HTTP {he .code })]: Модель сейчас испытывает высокую нагрузку. Попробуйте позже."
+                    return f"Text"
                 if he .code ==429 :
-                    return "[Превышен лимит запросов (HTTP 429)]: Достигнута квота Gemini. Подождите немного."
-                return f"[Ошибка Gemini HTTP {he .code }]: {err_body [:200 ]}"
+                    return "Text"
+                return f"Text"
             except urllib .error .URLError as ue :
                 elapsed =time .time ()-t_call
                 logger .api_summary (f"Chat: {self .service_id }",self .model ,elapsed ,0 ,note =f"URLError: {ue .reason }")
-                return f"[Сетевая ошибка Gemini]: {ue .reason }"
+                return f"Text"
             except Exception as e :
                 elapsed =time .time ()-t_call
                 logger .api_summary (f"Chat: {self .service_id }",self .model ,elapsed ,0 ,note =f"Exception: {e }")
-                return f"[Ошибка Gemini]: {e }"
+                return f"Text"
 
             cand =data .get ("candidates",[{}])[0 ]
             parts =cand .get ("content",{}).get ("parts",[])
@@ -239,7 +239,7 @@ class UniversalChatClient :
 
             return text_res .strip ()
 
-        return "[Ошибка: превышен лимит шагов агента поиска]"
+        return "Text"
 
     def _send_cloudflare (self ,history ,sys_prompt ,opener ):
         account_id =api_config .get_val (self .service_id ,"account_id","")
@@ -277,16 +277,16 @@ class UniversalChatClient :
             logger .api_raw_response (f"Chat: {self .service_id }",he .code ,elapsed ,err_body )
             logger .api_summary (f"Chat: {self .service_id }",self .model ,elapsed ,he .code ,note =f"HTTP Error {he .code }")
             if he .code in (500 ,502 ,503 ,504 ):
-                return f"[Сервер перегружен (HTTP {he .code })]: Cloudflare недоступен."
-            return f"[Ошибка Cloudflare AI HTTP {he .code }]"
+                return f"Text"
+            return f"Text"
         except urllib .error .URLError as ue :
             elapsed =time .time ()-t_call
             logger .api_summary (f"Chat: {self .service_id }",self .model ,elapsed ,0 ,note =f"URLError: {ue .reason }")
-            return f"[Сетевая ошибка Cloudflare]: {ue .reason }"
+            return f"Text"
         except Exception as e :
             elapsed =time .time ()-t_call
             logger .api_summary (f"Chat: {self .service_id }",self .model ,elapsed ,0 ,note =f"Exception: {e }")
-            return f"[Ошибка Cloudflare AI]: {e }"
+            return f"Text"
 
 class ChatWindow (tk .Toplevel ):
 
@@ -297,7 +297,7 @@ class ChatWindow (tk .Toplevel ):
         self ._is_generating =False
 
         bg_main =theme .get_color ("bg_main")
-        self .title ("Чат с ИИ — QTranslate AI Hub")
+        self .title ("Text")
         self .configure (bg =bg_main )
 
         self ._restore_geometry ()
@@ -305,7 +305,7 @@ class ChatWindow (tk .Toplevel ):
 
         self .protocol ("WM_DELETE_WINDOW",self ._on_close )
         self .after (100 ,lambda :self .t_input .focus_set ())
-        logger .system ("Окно чата с ИИ открыто")
+        logger .system ("Text")
 
     def _restore_geometry (self ):
         x =config .get_int ("CHAT_WINDOW","PosX",-1 )
@@ -370,7 +370,7 @@ class ChatWindow (tk .Toplevel ):
         top_bar =tk .Frame (pad ,bg =bg_card ,padx =8 ,pady =6 ,relief =tk .SOLID ,bd =1 ,highlightbackground =border ,highlightthickness =1 )
         top_bar .pack (side =tk .TOP ,fill =tk .X ,pady =(0 ,8 ))
 
-        tk .Label (top_bar ,text ="Модель:",font =theme .font (0 ,"bold"),fg =fg_pri ,bg =bg_card ).pack (side =tk .LEFT ,padx =(0 ,4 ))
+        tk .Label (top_bar ,text ="Text",font =theme .font (0 ,"bold"),fg =fg_pri ,bg =bg_card ).pack (side =tk .LEFT ,padx =(0 ,4 ))
 
         self .model_map =self ._get_api_models ()
         model_names =list (self .model_map .keys ())
@@ -381,14 +381,14 @@ class ChatWindow (tk .Toplevel ):
 
         self .var_search =tk .BooleanVar (value =True )
         chk_search =tk .Checkbutton (
-        top_bar ,text ="Поиск в интернете",variable =self .var_search ,
+        top_bar ,text ="Text",variable =self .var_search ,
         bg =bg_card ,fg =fg_pri ,selectcolor =in_bg ,font =theme .font (0 ),cursor ="hand2"
         )
         chk_search .pack (side =tk .LEFT )
-        ToolTip (chk_search ,"Разрешить модели искать информацию в сети и переходить по ссылкам")
+        ToolTip (chk_search ,"Text")
 
         btn_clear =tk .Button (
-        top_bar ,text ="Очистить чат",font =theme .font (-1 ,"bold"),relief =tk .FLAT ,
+        top_bar ,text ="Text",font =theme .font (-1 ,"bold"),relief =tk .FLAT ,
         bg =theme .get_color ("help_btn_bg"),fg =theme .get_color ("help_btn_fg"),
         cursor ="hand2",padx =8 ,pady =2 ,command =self ._clear_chat
         )
@@ -398,12 +398,12 @@ class ChatWindow (tk .Toplevel ):
         input_frame .pack (side =tk .BOTTOM ,fill =tk .X ,pady =(6 ,0 ))
 
         self .btn_send =tk .Button (
-        input_frame ,text ="Отправить",font =theme .font (1 ,"bold"),relief =tk .FLAT ,
+        input_frame ,text ="Text",font =theme .font (1 ,"bold"),relief =tk .FLAT ,
         bg =theme .get_color ("accent"),fg =theme .get_color ("accent_text"),
         cursor ="hand2",padx =14 ,pady =10 ,command =self ._send_message
         )
         self .btn_send .pack (side =tk .RIGHT ,fill =tk .Y ,padx =(8 ,0 ))
-        ToolTip (self .btn_send ,"Отправить сообщение (Ctrl + Enter)")
+        ToolTip (self .btn_send ,"Text")
 
         text_border =tk .Frame (input_frame ,relief =tk .SOLID ,bd =1 ,highlightbackground =border ,highlightthickness =1 )
         text_border .pack (side =tk .LEFT ,fill =tk .BOTH ,expand =True )
@@ -434,14 +434,14 @@ class ChatWindow (tk .Toplevel ):
         self .t_chat .pack (side =tk .LEFT ,fill =tk .BOTH ,expand =True )
         attach_text_context_menu (self .t_chat )
 
-        self ._append_to_chat ("sys_text","Чат готов. Сообщения сохраняются в памяти для поддержки контекста диалога.\n")
+        self ._append_to_chat ("sys_text","Text")
 
     def _clear_chat (self ):
         self .history .clear ()
         self .t_chat .config (state ="normal")
         self .t_chat .delete ("1.0",tk .END )
         self .t_chat .config (state ="disabled")
-        self ._append_to_chat ("sys_text","История чата очищена.\n")
+        self ._append_to_chat ("sys_text","Text")
         self .t_input .focus_set ()
 
     def _append_to_chat (self ,tag ,text ,is_name =False ):
@@ -464,7 +464,7 @@ class ChatWindow (tk .Toplevel ):
         if not service_id :return
 
         self .t_input .delete ("1.0",tk .END )
-        self ._append_to_chat ("user_name","Вы",is_name =True )
+        self ._append_to_chat ("user_name","Text",is_name =True )
         self ._append_to_chat ("user_text",user_text )
 
         self .history .append ({"role":"user","content":user_text })
@@ -485,17 +485,17 @@ class ChatWindow (tk .Toplevel ):
         try :
             response =client .send_chat (self .history ,enable_search )
         except Exception as e :
-            response =f"[Системная ошибка]: {e }"
+            response =f"Text"
 
         def _on_finish ():
             self ._is_generating =False
-            self .btn_send .config (state ="normal",text ="Отправить")
+            self .btn_send .config (state ="normal",text ="Text")
             self .combo_model .config (state ="readonly")
 
-            self ._append_to_chat ("ai_name",f"ИИ ({client .model })",is_name =True )
+            self ._append_to_chat ("ai_name",f"Text",is_name =True )
             self ._append_to_chat ("ai_text",response )
 
-            if not response .startswith ("[Ошибка")and not response .startswith ("[Сервер"):
+            if not response .startswith ("Text")and not response .startswith ("Text"):
                 self .history .append ({"role":"assistant","content":response })
 
             self .t_input .focus_set ()

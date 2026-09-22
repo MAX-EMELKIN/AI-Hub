@@ -114,7 +114,7 @@ class OCREngine:
         try:
             from data.core.config_manager import config
             config.set_value("OCR", "ActiveModel", model_name.lower())
-            logger.system(f"OCR: установлена активная модель '{model_name}'")
+            logger.system(f"OCR: Text Text Text '{model_name}'")
             return True
         except Exception:
             return False
@@ -165,17 +165,17 @@ class OCREngine:
             return
 
         clean_val = text.strip()
-        if clean_val.startswith("Ошибка") or "не обнаружен" in clean_val.lower():
+        if clean_val.startswith("Error") or "Text Text" in clean_val.lower():
             return
 
         ok = put_clipboard_text(clean_val)
         if not ok:
-            logger.system("OCR Ошибка: Буфер обмена заблокирован другой программой")
-            print("[OCR Error]: Буфер обмена заблокирован системой.")
+            logger.system("OCR Error: Text Text Text Text Text")
+            print("[OCR Error]: Text Text Text Text.")
             return
 
-        logger.system(f"OCR: текст скопирован в буфер ({len(clean_val)} симв.): '{clean_val[:60]}...'")
-        print(f"[OCR Чистый текст]: \"{clean_val}\" -> Скопировано в буфер")
+        logger.system(f"OCR: Text Text Text Text ({len(clean_val)} Text.): '{clean_val[:60]}...'")
+        print(f"[OCR Text Text]: \"{clean_val}\" -> Text Text Text")
 
         try:
             from data.core.config_manager import config
@@ -183,8 +183,8 @@ class OCREngine:
         except Exception:
             summon_key = "F1"
 
-        logger.system(f"OCR: отправка клавиши вызова '{summon_key}' в QTranslate")
-        print(f"[OCR]: Отправка клавиши '{summon_key}' в QTranslate...")
+        logger.system(f"OCR: Text Text Text '{summon_key}' Text QTranslate")
+        print(f"[OCR]: Text Text '{summon_key}' Text QTranslate...")
         simulate_hardware_hotkey(summon_key)
 
         main_hwnd, edits = None, []
@@ -209,11 +209,11 @@ class OCREngine:
             user32.PostMessageW(top_edit_hwnd, WM_KEYDOWN, VK_RETURN, 0)
             user32.PostMessageW(top_edit_hwnd, WM_KEYUP, VK_RETURN, 0)
 
-            logger.system(f"OCR: текст успешно вставлен в QTranslate (HWND: {top_edit_hwnd}) и запущен перевод")
-            print("[OCR]: Текст успешно вставлен в QTranslate и переведен.")
+            logger.system(f"OCR: Text Text Text Text QTranslate (HWND: {top_edit_hwnd}) Text Text Text")
+            print("[OCR]: Text Text Text Text QTranslate Text Text.")
         else:
-            logger.system("OCR: главное окно QTranslate не ответило вовремя, текст оставлен в буфере")
-            print("[OCR]: Текст сохранен в буфере обмена Windows.")
+            logger.system("OCR: Text Text QTranslate Text Text Text, Text Text Text Text")
+            print("[OCR]: Text Text Text Text Text Windows.")
 
     def recognize_image_file(self, image_path, model_name=None):
         if not os.path.exists(image_path):
@@ -221,7 +221,7 @@ class OCREngine:
 
         exe_path = self._find_ocr_executable()
         if not exe_path:
-            err = "[OCR]: Исполняемый файл OCR не найден в data/ocr/bin/."
+            err = "[OCR]: Text Text OCR Text Text Text data/ocr/bin/."
             logger.system(err)
             return err
 
@@ -236,8 +236,8 @@ class OCREngine:
         if keys_f:
             cmd.extend(["--charset", keys_f])
 
-        logger.system(f"OCR: запуск распознавания: {' '.join(cmd)}")
-        print(f"[OCR]: Запуск команды -> {' '.join(cmd)}")
+        logger.system(f"OCR: Text Text: {' '.join(cmd)}")
+        print(f"[OCR]: Text Text -> {' '.join(cmd)}")
         t0 = time.time()
 
         try:
@@ -277,28 +277,28 @@ class OCREngine:
                 clean_lines.append(line.rstrip())
 
             result = "\n".join(clean_lines).strip()
-            logger.system(f"OCR: распознавание завершено за {elapsed:.2f}с, найдено строк: {len(clean_lines)}")
+            logger.system(f"OCR: Text Text Text {elapsed:.2f}Text, Text Text: {len(clean_lines)}")
             return result
 
         except Exception as e:
-            err = f"Ошибка запуска OCR: {e}"
+            err = f"Error Text OCR: {e}"
             logger.system(f"OCR: {err}")
             return err
 
     def snip_screen_interactive(self, parent_tk):
         from data.ocr.screen_snipper import ScreenSnipper
 
-        logger.system("OCR: запуск экранного оверлея для выделения области")
+        logger.system("OCR: Text Text Text Text Text Text")
 
         def _on_cropped(crop_bmp_path):
             def _async_ocr():
                 try:
                     text_res = self.recognize_image_file(crop_bmp_path)
-                    if text_res and not text_res.startswith("Ошибка"):
+                    if text_res and not text_res.startswith("Error"):
                         self.send_text_to_qtranslate(text_res)
                     else:
-                        logger.system("OCR: на выделенном фрагменте текст не обнаружен")
-                        print("[OCR]: Текст на выделенном фрагменте не обнаружен.")
+                        logger.system("OCR: Text Text Text Text Text Text")
+                        print("[OCR]: Text Text Text Text Text Text.")
                 finally:
                     if os.path.exists(crop_bmp_path):
                         try:

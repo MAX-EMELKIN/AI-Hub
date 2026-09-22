@@ -206,7 +206,7 @@ class CDPBrowserManager:
                     if file.lower() in ("chrome.exe", "supermium.exe"):
                         return os.path.abspath(os.path.join(root, file)), "Supermium Portable"
 
-        return None, "Не найден"
+        return None, "Text Text"
 
     def _clean_stale_profile_locks(self, profile_dir):
         if not os.path.exists(profile_dir):
@@ -274,13 +274,13 @@ class CDPBrowserManager:
                 SWP_SHOWWINDOW | SWP_FRAMECHANGED | SWP_NOZORDER | SWP_ASYNCWINDOWPOS
             )
         except Exception as e:
-            logger.browser_event(f"Ошибка скрытия окна: {e}")
+            logger.browser_event(f"Error Text Text: {e}")
 
     def _create_tab_safe(self, url):
         cdp_port = self._get_cdp_port()
         encoded_url = urllib.parse.quote(url, safe=':/?=')
         endpoint = f"http://127.0.0.1:{cdp_port}/json/new?{encoded_url}"
-        logger.browser_event(f"Создание вкладки для URL: {url}")
+        logger.browser_event(f"Text Text Text URL: {url}")
 
         try:
             req = urllib.request.Request(endpoint, method="PUT")
@@ -297,7 +297,7 @@ class CDPBrowserManager:
             with urllib.request.urlopen(req, timeout=2.0) as resp:
                 return json.loads(resp.read().decode('utf-8'))
         except Exception as e:
-            logger.browser_event(f"Ошибка создания вкладки: {e}")
+            logger.browser_event(f"Error Text Text: {e}")
 
         return None
 
@@ -306,10 +306,10 @@ class CDPBrowserManager:
         try:
             self.get_tab_client("chatgpt")
             self.get_tab_client("google")
-            logger.browser_event("Вкладки ChatGPT и Google успешно прогреты в фоне")
-            print("[CDP Browser]: Вкладки ChatGPT и Google успешно прогреты в фоне.")
+            logger.browser_event("Text ChatGPT Text Google Text Text Text Text")
+            print("[CDP Browser]: Text ChatGPT Text Google Text Text Text Text.")
         except Exception as e:
-            logger.browser_event(f"Ошибка фонового прогрева вкладок: {e}")
+            logger.browser_event(f"Error Text Text Text: {e}")
 
     def ensure_browser_running(self):
         with self._lock:
@@ -325,7 +325,7 @@ class CDPBrowserManager:
 
             browser_exe, name = self._find_browser_executable()
             if not browser_exe:
-                err = "Браузер не найден в browser/engine/!"
+                err = "Text Text Text Text browser/engine/!"
                 logger.browser_event(err)
                 raise Exception(err)
 
@@ -333,8 +333,8 @@ class CDPBrowserManager:
             os.makedirs(profile_dir, exist_ok=True)
             self._clean_stale_profile_locks(profile_dir)
 
-            logger.browser_event(f"Запуск {name} на порту {cdp_port}")
-            print(f"[CDP Browser]: Запуск {name} на порту {cdp_port}...")
+            logger.browser_event(f"Text {name} Text Text {cdp_port}")
+            print(f"[CDP Browser]: Text {name} Text Text {cdp_port}...")
 
             cmd = [
                 browser_exe,
@@ -375,14 +375,14 @@ class CDPBrowserManager:
                     req = urllib.request.urlopen(f"http://127.0.0.1:{cdp_port}/json", timeout=1)
                     tabs = json.loads(req.read().decode('utf-8'))
                     if tabs:
-                        logger.browser_event("Браузер готов к работе через CDP")
-                        print("[CDP Browser]: Браузер готов к фоновому переводу.")
+                        logger.browser_event("Text Text Text Text Text CDP")
+                        print("[CDP Browser]: Text Text Text Text Text.")
                         threading.Thread(target=self._prewarm_tabs, daemon=True).start()
                         return True
                 except Exception:
                     pass
 
-            err_msg = "Не удалось подключиться к порту CDP браузера."
+            err_msg = "Text Text Text Text Text CDP Text."
             logger.browser_event(err_msg)
             raise Exception(err_msg)
 
@@ -432,7 +432,7 @@ class CDPBrowserManager:
                 return client
 
         except Exception as e:
-            logger.browser_event(f"Ошибка получения вкладки ({service_type}): {e}")
+            logger.browser_event(f"Error Text Text ({service_type}): {e}")
 
         return None
 
@@ -458,15 +458,15 @@ class CDPBrowserManager:
                 )
                 user32.ShowWindow(hwnd, SW_RESTORE)
                 user32.SetForegroundWindow(hwnd)
-                logger.browser_event("Окно браузера выведено по центру экрана")
+                logger.browser_event("Text Text Text Text Text Text")
             except Exception as e:
-                logger.browser_event(f"Ошибка вывода окна браузера: {e}")
+                logger.browser_event(f"Error Text Text Text: {e}")
 
     def hide_browser_window(self):
         hwnds = self._find_browser_windows()
         for h in hwnds:
             self._hide_from_taskbar_and_screen(h)
-        logger.browser_event("Окно браузера скрыто за физический край экрана")
+        logger.browser_event("Text Text Text Text Text Text Text")
 
     def toggle_browser_window(self):
         self.ensure_browser_running()
@@ -481,10 +481,10 @@ class CDPBrowserManager:
 
             if rect.left < sw - 50:
                 self.hide_browser_window()
-                print("[CDP Browser]: Окно убрано за экран.")
+                print("[CDP Browser]: Text Text Text Text.")
             else:
                 self.show_browser_window()
-                print("[CDP Browser]: Окно выведено по центру экрана.")
+                print("[CDP Browser]: Text Text Text Text Text.")
         except Exception:
             pass
 
@@ -518,7 +518,7 @@ class CDPBrowserManager:
                 except Exception:
                     pass
         except Exception as e:
-            logger.browser_event(f"Сбой отправки CDP команды {method}: {e}")
+            logger.browser_event(f"Text Text CDP Text {method}: {e}")
             self._tab_clients.pop(service_type, None)
         return {}
 
@@ -531,7 +531,7 @@ class CDPBrowserManager:
         return res.get("result", {}).get("value", "")
 
     def navigate_tab(self, service_type, url):
-        logger.browser_event(f"Навигация вкладки {service_type} -> {url}")
+        logger.browser_event(f"Text Text {service_type} -> {url}")
         self.send_tab_cdp_command(service_type, "Page.navigate", {"url": url}, await_response=False)
 
     def evaluate_js(self, js_code):
@@ -563,7 +563,7 @@ class CDPBrowserManager:
 
             profile_dir = os.path.join(self.base_dir, "browser", "profile")
             self._clean_stale_profile_locks(profile_dir)
-            logger.browser_event("Браузер Supermium полностью остановлен")
+            logger.browser_event("Text Supermium Text Text")
         except Exception:
             pass
 

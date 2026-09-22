@@ -16,31 +16,31 @@ from data.gui.code_editor_dialog import CodeEditorDialog, open_file_in_smart_edi
 from data.gui.model_selector_dialog import ModelSelectorDialog
 
 WIZARD_HELP_FALLBACK = {
-    "openrouter": "OpenRouter: доступ к сотням моделей. Для бесплатных моделей используйте тег :free (например, google/gemma-4-31b-it:free). В РФ требует SOCKS5-прокси.",
-    "dashscope": "Alibaba DashScope (Qwen): международный портал qwencloud.com. Модели qwen-turbo, qwen-plus, qwen-max, qwen3.8-flash. Выделяется 1 000 000 токенов на 90 дней бесплатно.",
-    "gemini": "Google Gemini: модели gemini-2.5, gemini-3.7. Бессрочный бесплатный тариф в Google AI Studio. Поддерживается обход блокировок через DoH SmartDNS.",
-    "cloudflare": "Cloudflare Workers AI: бесплатный ежедневный лимит нейронов. Модель @cf/openai/gpt-oss-120b. Требуются Account ID и API Token.",
-    "deepseek": "DeepSeek Official: модели deepseek-chat и deepseek-reasoner. Требует положительный баланс на аккаунте.",
-    "boltch": "Boltch Cloud: бесплатный пул моделей (free:deepseek-v4-flash, free:kimi-k2.6). Кулдаун между запросами 15-20 секунд.",
-    "siliconflow": "SiliconFlow: международный агрегатор моделей DeepSeek и Qwen. Требует привязки ключа.",
-    "cerebras": "Cerebras: сверхскоростной инференс моделей Llama 3 на специализированных процессорах CS-3.",
-    "mistral": "Mistral AI: официальный европейский API Mistral, Codestral и Mixtral.",
-    "pollinations": "Pollinations: бесплатный шлюз без обязательной регистрации для тестирования моделей.",
-    "openai_compatible": "OpenAI-Compatible: подключение любых локальных (LM Studio, Ollama) или кастомных прокси-серверов."
+    "openrouter": "Text",
+    "dashscope": "Text",
+    "gemini": "Text",
+    "cloudflare": "Text",
+    "deepseek": "Text",
+    "boltch": "Text",
+    "siliconflow": "Text",
+    "cerebras": "Text",
+    "mistral": "Text",
+    "pollinations": "Text",
+    "openai_compatible": "Text"
 }
 
 FIELD_HELP = {
-    "tmpl": "Выберите базовый шаблон провайдера. Шаблон автоматически заполнит рекомендованный эндпоинт, режим сети и параметры.",
-    "name": "Понятное имя сервиса на кнопке в панели QTranslate и на карточке в AI Hub.",
-    "id": "Имя папки в data/services/ и секции в models.ini. Заполняется автоматически латиницей без пробелов.",
-    "model": "Идентификатор модели на сервере провайдера. Кнопка «Запрос» открывает список моделей с ценами и контекстом.",
-    "endpoint": "Полный веб-адрес API (URL) для отправки запросов chat completions.",
-    "account_id": "Идентификатор аккаунта (Account ID). Обязателен для Cloudflare. Для остальных оставляйте пустым.",
-    "key": "Секретный токен доступа (API-ключ). Сохраняется локально и передается только целевому провайдеру.",
-    "net": "Режим сети: direct (прямой), socks5 (через прокси для обхода блокировок), doh (встроенный SmartDNS).",
-    "thinking": "Политика мыслей (<think>): вырезать рассуждения, сохранять в ответе или отключать в API.",
-    "json_path": "Путь к тексту в JSON-ответе (по умолчанию choices.0.message.content).",
-    "btn_id": "Числовой ID кнопки в клиенте QTranslate."
+    "tmpl": "Text",
+    "name": "Text",
+    "id": "Text",
+    "model": "Text",
+    "endpoint": "Text",
+    "account_id": "Text",
+    "key": "Text",
+    "net": "Text",
+    "thinking": "Text",
+    "json_path": "Text",
+    "btn_id": "Text"
 }
 
 class AddServiceWizardDialog(tk.Toplevel):
@@ -54,7 +54,7 @@ class AddServiceWizardDialog(tk.Toplevel):
 
         theme.apply_ttk_theme(self)
 
-        self.title("Студия подключения сервисов — QTranslate AI Hub")
+        self.title("Text")
         self.geometry("740x800")
         self.minsize(660, 680)
         self.configure(bg=theme.get_color("bg_main"))
@@ -92,7 +92,7 @@ class AddServiceWizardDialog(tk.Toplevel):
         self.var_thinking_policy = tk.StringVar(value="strip")
         self.var_json_path = tk.StringVar(value="choices.0.message.content")
         self.var_btn_id = tk.StringVar(value="716")
-        self.var_status_msg = tk.StringVar(value="Готов к тестированию модели или созданию плагина.")
+        self.var_status_msg = tk.StringVar(value="Text")
 
     def _load_templates(self):
         self.available_templates = service_generator.get_available_templates()
@@ -112,7 +112,7 @@ class AddServiceWizardDialog(tk.Toplevel):
             row, text="?", font=theme.font(-2, "bold"), relief=tk.FLAT,
             bg=theme.get_color("btn_bg"), fg=theme.get_color("accent"),
             cursor="hand2", width=2, padx=1, pady=0,
-            command=lambda: HelpPopup(self, "Справка по полю", h_text)
+            command=lambda: HelpPopup(self, "Text", h_text)
         )
         btn_h.pack(side=tk.LEFT, padx=(0, 6))
         ToolTip(btn_h, h_text)
@@ -130,82 +130,82 @@ class AddServiceWizardDialog(tk.Toplevel):
         pad.pack(fill=tk.BOTH, expand=True)
 
         tk.Label(
-            pad, text="Студия подключения и настройки сервисов",
+            pad, text="Text",
             font=theme.font(1, "bold"), fg=theme.get_color("accent"), bg=bg_main
         ).pack(anchor="w", pady=(0, 6))
 
         form_box = tk.Frame(pad, bg=bg_card, padx=12, pady=8, relief=tk.SOLID, bd=1)
         form_box.pack(fill=tk.X, pady=(0, 6))
 
-        # 1. Шаблон
-        r_tmpl = self._make_field_row(form_box, "Провайдер / Шаблон:", "tmpl")
+        # 1. note
+        r_tmpl = self._make_field_row(form_box, "Text", "tmpl")
         tmpl_titles = [f"{t['name']} ({t['id']})" for t in self.available_templates]
         self.cb_templates = ttk.Combobox(r_tmpl, values=tmpl_titles, state="readonly", width=26)
         self.cb_templates.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 6))
         self.cb_templates.bind("<<ComboboxSelected>>", self._on_template_selected)
 
         btn_docs = tk.Button(
-            r_tmpl, text="Документация API", font=theme.font(-2, "bold"), relief=tk.FLAT,
+            r_tmpl, text="Text", font=theme.font(-2, "bold"), relief=tk.FLAT,
             bg=btn_bg, fg=fg_pri, padx=6, pady=2, command=self._open_official_docs
         )
         btn_docs.pack(side=tk.LEFT, padx=(0, 4))
-        ToolTip(btn_docs, "Открыть официальное руководство API провайдера в браузере")
+        ToolTip(btn_docs, "Text")
 
         btn_ai_help = tk.Button(
-            r_tmpl, text="Справка ИИ", font=theme.font(-2, "bold"), relief=tk.FLAT,
+            r_tmpl, text="Text", font=theme.font(-2, "bold"), relief=tk.FLAT,
             bg=btn_bg, fg=theme.get_color("accent"), padx=6, pady=2, command=self._show_ai_docs_help
         )
         btn_ai_help.pack(side=tk.LEFT)
-        ToolTip(btn_ai_help, "Найти документацию через встроенный поиск ИИ и показать выжимку")
+        ToolTip(btn_ai_help, "Text")
 
-        # 2. Название сервиса
-        r_name = self._make_field_row(form_box, "Название сервиса:", "name")
+        # 2. note note
+        r_name = self._make_field_row(form_box, "Text", "name")
         self.ent_name = tk.Entry(r_name, textvariable=self.var_display_name, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_name.pack(side=tk.LEFT, fill=tk.X, expand=True)
         self.ent_name.bind("<KeyRelease>", self._on_display_name_typed)
         attach_entry_context_menu(self.ent_name)
 
-        # 3. ID папки
-        r_id = self._make_field_row(form_box, "ID папки / сервиса:", "id")
+        # 3. ID note
+        r_id = self._make_field_row(form_box, "Text", "id")
         self.ent_id = tk.Entry(r_id, textvariable=self.var_service_id, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_id.pack(side=tk.LEFT, fill=tk.X, expand=True)
         self.ent_id.bind("<Key>", lambda e: setattr(self, "_manual_id_edit", True))
         attach_entry_context_menu(self.ent_id)
 
-        # 4. Модель + Запрос
-        r_model = self._make_field_row(form_box, "Идентификатор модели:", "model")
+        # 4. note + note
+        r_model = self._make_field_row(form_box, "Text", "model")
         self.ent_model = tk.Entry(r_model, textvariable=self.var_model, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_model.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 6))
         attach_entry_context_menu(self.ent_model)
 
         btn_select_model = tk.Button(
-            r_model, text="Запрос", font=theme.font(-1, "bold"), relief=tk.FLAT,
+            r_model, text="Text", font=theme.font(-1, "bold"), relief=tk.FLAT,
             bg=theme.get_color("accent"), fg=theme.get_color("accent_text"), padx=10, pady=1,
             command=self._open_model_selector
         )
         btn_select_model.pack(side=tk.RIGHT)
-        ToolTip(btn_select_model, "Запросить список моделей с сервера через API, посмотреть лимиты контекста и цены")
+        ToolTip(btn_select_model, "Text")
 
-        # 5. Эндпоинт
-        r_end = self._make_field_row(form_box, "Эндпоинт (URL):", "endpoint")
+        # 5. note
+        r_end = self._make_field_row(form_box, "Text", "endpoint")
         self.ent_endpoint = tk.Entry(r_end, textvariable=self.var_endpoint, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_endpoint.pack(side=tk.LEFT, fill=tk.X, expand=True)
         attach_entry_context_menu(self.ent_endpoint)
 
         # 6. Account ID
-        r_acc = self._make_field_row(form_box, "ID аккаунта (Account ID):", "account_id")
+        r_acc = self._make_field_row(form_box, "Text", "account_id")
         self.ent_acc = tk.Entry(r_acc, textvariable=self.var_account_id, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_acc.pack(side=tk.LEFT, fill=tk.X, expand=True)
         attach_entry_context_menu(self.ent_acc)
 
-        # 7. API Ключ (открытый ввод)
-        r_key = self._make_field_row(form_box, "API Ключ провайдера:", "key")
+        # 7. API note (note note)
+        r_key = self._make_field_row(form_box, "Text", "key")
         self.ent_key = tk.Entry(r_key, textvariable=self.var_api_key, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_key.pack(side=tk.LEFT, fill=tk.X, expand=True)
         attach_entry_context_menu(self.ent_key)
 
-        # 8. Режим сети
-        r_net = self._make_field_row(form_box, "Режим сети:", "net")
+        # 8. note note
+        r_net = self._make_field_row(form_box, "Text", "net")
         self.cb_net = ttk.Combobox(r_net, textvariable=self.var_connection_mode, values=("direct", "socks5", "doh"), state="readonly", width=16)
         self.cb_net.pack(side=tk.LEFT, padx=(0, 8))
 
@@ -213,25 +213,25 @@ class AddServiceWizardDialog(tk.Toplevel):
         self.ent_proxy = tk.Entry(r_net, textvariable=self.var_proxy, font=theme.font(-1), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1, width=22)
         self.ent_proxy.pack(side=tk.LEFT, padx=(4, 0))
 
-        # 9. Размышления (Thinking)
-        r_th = self._make_field_row(form_box, "Размышления (Thinking):", "thinking")
+        # 9. note (Thinking)
+        r_th = self._make_field_row(form_box, "Text", "thinking")
         self.cb_th = ttk.Combobox(r_th, textvariable=self.var_thinking_policy, values=("strip", "keep", "disable"), state="readonly")
         self.cb_th.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
-        # 10. Путь ответа и ID кнопки
+        # 10. note note note ID note
         r_meta = tk.Frame(form_box, bg=bg_card)
         r_meta.pack(fill=tk.X, pady=(4, 2))
 
-        tk.Label(r_meta, text="Путь ответа (JSON Path):", font=theme.font(-1), bg=bg_card, fg=fg_pri).pack(side=tk.LEFT)
+        tk.Label(r_meta, text="Text", font=theme.font(-1), bg=bg_card, fg=fg_pri).pack(side=tk.LEFT)
         self.ent_json_path = tk.Entry(r_meta, textvariable=self.var_json_path, font=theme.font(-1), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1, width=24)
         self.ent_json_path.pack(side=tk.LEFT, padx=(4, 10))
 
-        tk.Label(r_meta, text="ID кнопки:", font=theme.font(-1), bg=bg_card, fg=fg_pri).pack(side=tk.LEFT)
+        tk.Label(r_meta, text="Text", font=theme.font(-1), bg=bg_card, fg=fg_pri).pack(side=tk.LEFT)
         self.ent_btn_id = tk.Entry(r_meta, textvariable=self.var_btn_id, font=theme.font(-1, "bold"), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1, width=8, justify="center")
         self.ent_btn_id.pack(side=tk.LEFT, padx=(4, 0))
 
-        # Блок тестирования
-        box_stand = tk.LabelFrame(pad, text=" Тестирование и проверка созданного сервиса ", font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=10, pady=6)
+        # note note
+        box_stand = tk.LabelFrame(pad, text="Text", font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=10, pady=6)
         box_stand.pack(fill=tk.BOTH, expand=True, pady=(0, 6))
 
         self.lbl_status_test = tk.Label(box_stand, textvariable=self.var_status_msg, font=theme.font(-1, "bold"), bg=bg_card, fg=theme.get_color("status_ready"), anchor="w")
@@ -254,34 +254,34 @@ class AddServiceWizardDialog(tk.Toplevel):
         bar_stand.pack(fill=tk.X)
 
         self.btn_ping_fast = tk.Button(
-            bar_stand, text="Быстрый пинг (Hello)", font=theme.font(-1, "bold"), relief=tk.FLAT,
+            bar_stand, text="Text", font=theme.font(-1, "bold"), relief=tk.FLAT,
             bg=btn_bg, fg=fg_pri, padx=10, pady=2, command=lambda: self._run_test(quick=True)
         )
         self.btn_ping_fast.pack(side=tk.LEFT, padx=(0, 6))
-        ToolTip(self.btn_ping_fast, "Проверить отклик API и валидность ключа ДО сохранения сервиса")
+        ToolTip(self.btn_ping_fast, "Text")
 
         self.btn_ping_full = tk.Button(
-            bar_stand, text="Полный пинг (Сырой ответ)", font=theme.font(-1, "bold"), relief=tk.FLAT,
+            bar_stand, text="Text", font=theme.font(-1, "bold"), relief=tk.FLAT,
             bg=btn_bg, fg=fg_pri, padx=10, pady=2, command=lambda: self._run_test(quick=False)
         )
         self.btn_ping_full.pack(side=tk.LEFT, padx=(0, 6))
-        ToolTip(self.btn_ping_full, "Отправить тестовое предложение и отобразить полный сырой JSON с сервера")
+        ToolTip(self.btn_ping_full, "Text")
 
         self.btn_copy_res = tk.Button(
-            bar_stand, text="Копировать ответ", font=theme.font(-1), relief=tk.FLAT,
+            bar_stand, text="Text", font=theme.font(-1), relief=tk.FLAT,
             bg=btn_bg, fg=fg_pri, padx=8, pady=2, command=self._copy_result_to_clipboard
         )
         self.btn_copy_res.pack(side=tk.LEFT, padx=(0, 6))
-        ToolTip(self.btn_copy_res, "Скопировать содержимое окна ответа в буфер обмена")
+        ToolTip(self.btn_copy_res, "Text")
 
         self.btn_open_py = tk.Button(
-            bar_stand, text="Открыть service.py", font=theme.font(-1), relief=tk.FLAT,
+            bar_stand, text="Text", font=theme.font(-1), relief=tk.FLAT,
             bg=btn_bg, fg=fg_pri, padx=8, pady=2, state=tk.DISABLED, command=self._open_py_file
         )
         self.btn_open_py.pack(side=tk.LEFT, padx=(0, 4))
 
         self.btn_open_js = tk.Button(
-            bar_stand, text="Открыть service.js", font=theme.font(-1), relief=tk.FLAT,
+            bar_stand, text="Text", font=theme.font(-1), relief=tk.FLAT,
             bg=btn_bg, fg=fg_pri, padx=8, pady=2, state=tk.DISABLED, command=self._open_js_file
         )
         self.btn_open_js.pack(side=tk.LEFT)
@@ -290,12 +290,12 @@ class AddServiceWizardDialog(tk.Toplevel):
         btn_bar.pack(fill=tk.X, side=tk.BOTTOM, pady=(4, 0))
 
         tk.Button(
-            btn_bar, text="Закрыть", font=theme.font(0), relief=tk.FLAT,
+            btn_bar, text="Text", font=theme.font(0), relief=tk.FLAT,
             bg=btn_bg, fg=fg_pri, padx=14, pady=4, command=self.destroy
         ).pack(side=tk.RIGHT, padx=(6, 0))
 
         self.btn_create = tk.Button(
-            btn_bar, text="Создать сервис", font=theme.font(0, "bold"), relief=tk.FLAT,
+            btn_bar, text="Text", font=theme.font(0, "bold"), relief=tk.FLAT,
             bg=theme.get_color("accent"), fg=theme.get_color("accent_text"), padx=18, pady=4,
             command=self._on_create
         )
@@ -360,16 +360,16 @@ class AddServiceWizardDialog(tk.Toplevel):
                     import ctypes
                     ctypes.windll.shell32.ShellExecuteW(0, "open", url, None, None, 1)
                 except Exception as e:
-                    messagebox.showerror("Ошибка", f"Не удалось открыть ссылку:\n{e}", parent=self)
+                    messagebox.showerror("Text", f"Text", parent=self)
         else:
-            messagebox.showinfo("Инфо", "Ссылка на документацию для этого шаблона не указана.", parent=self)
+            messagebox.showinfo("Text", "Text", parent=self)
 
     def _show_ai_docs_help(self):
         tmpl_id = self.var_template_id.get().strip()
         prov_name = self.var_display_name.get().strip() or tmpl_id
 
         top = tk.Toplevel(self)
-        top.title(f"Справка ИИ: {prov_name}")
+        top.title(f"Text")
         top.geometry("740x560")
         theme.apply_ttk_theme(top)
         top.configure(bg=theme.get_color("bg_main"))
@@ -381,7 +381,7 @@ class AddServiceWizardDialog(tk.Toplevel):
         bar_top = tk.Frame(pad, bg=theme.get_color("bg_card"), padx=8, pady=6, relief=tk.SOLID, bd=1)
         bar_top.pack(fill=tk.X, pady=(0, 6))
 
-        tk.Label(bar_top, text="Поисковик:", font=theme.font(-1, "bold"), bg=theme.get_color("bg_card"), fg=theme.get_color("fg_primary")).pack(side=tk.LEFT)
+        tk.Label(bar_top, text="Text", font=theme.font(-1, "bold"), bg=theme.get_color("bg_card"), fg=theme.get_color("fg_primary")).pack(side=tk.LEFT)
 
         engine_map = {
             "Google (Supermium)": "google",
@@ -399,7 +399,7 @@ class AddServiceWizardDialog(tk.Toplevel):
 
         user_lang = getattr(i18n, "current_lang", "ru")
         if user_lang == "ru":
-            default_query = f"Дай развернутый ответ как подключить API {prov_name}: базовый URL endpoint, формат POST chat completions, заголовок Authorization, список моделей и пример JSON"
+            default_query = f"Text"
         else:
             default_query = f"Detailed guide on connecting {prov_name} API: base URL endpoint, POST chat completions format, Authorization header, models list and JSON example"
 
@@ -408,7 +408,7 @@ class AddServiceWizardDialog(tk.Toplevel):
         ent_q.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
         attach_entry_context_menu(ent_q)
 
-        lbl_status = tk.Label(pad, text="Поиск документации и правил API через ИИ...", font=theme.font(-1, "bold"), bg=theme.get_color("bg_main"), fg=theme.get_color("status_ready"))
+        lbl_status = tk.Label(pad, text="Text", font=theme.font(-1, "bold"), bg=theme.get_color("bg_main"), fg=theme.get_color("status_ready"))
         lbl_status.pack(anchor="w", pady=(0, 4))
 
         frame_txt = tk.Frame(pad, bg=theme.get_color("bg_main"))
@@ -442,27 +442,27 @@ class AddServiceWizardDialog(tk.Toplevel):
             query_text = ent_q.get().strip()
             if not query_text:
                 return
-            lbl_status.config(text=f"Поиск через {cb_eng.get()}...", fg=theme.get_color("accent"))
+            lbl_status.config(text=f"Text", fg=theme.get_color("accent"))
             txt.delete("1.0", tk.END)
-            txt.insert("1.0", "Выполняется запрос к поисковой системе...")
+            txt.insert("1.0", "Text")
 
             def _worker():
                 try:
                     from data.core.web_search import search_web
                     res_text = search_web(query_text, engine=chosen_eng, max_results=4)
                     def _show():
-                        lbl_status.config(text=f"Результаты поиска ({cb_eng.get()}):", fg=theme.get_color("status_ready"))
+                        lbl_status.config(text=f"Text", fg=theme.get_color("status_ready"))
                         txt.delete("1.0", tk.END)
                         txt.insert("1.0", res_text)
                         _make_links_clickable(txt)
                     top.after(0, _show)
                 except Exception as e:
-                    top.after(0, lambda: lbl_status.config(text=f"Ошибка: {e}", fg=theme.get_color("status_error")))
+                    top.after(0, lambda: lbl_status.config(text=f"Text", fg=theme.get_color("status_error")))
 
             threading.Thread(target=_worker, daemon=True).start()
 
         btn_search = tk.Button(
-            bar_top, text="Искать", font=theme.font(-1, "bold"), relief=tk.FLAT,
+            bar_top, text="Text", font=theme.font(-1, "bold"), relief=tk.FLAT,
             bg=theme.get_color("accent"), fg=theme.get_color("accent_text"), padx=8, command=_do_search
         )
         btn_search.pack(side=tk.RIGHT)
@@ -488,11 +488,11 @@ class AddServiceWizardDialog(tk.Toplevel):
         account_id = self.var_account_id.get().strip()
 
         if not endpoint or not model:
-            messagebox.showwarning("Внимание", "Укажите эндпоинт и модель перед тестированием.", parent=self)
+            messagebox.showwarning("Text", "Text", parent=self)
             return
 
         self.txt_result.delete("1.0", tk.END)
-        self.txt_result.insert("1.0", "Отправка запроса на сервер модели... Пожалуйста, подождите (таймаут 8 сек).")
+        self.txt_result.insert("1.0", "Text")
         self.update_idletasks()
 
         test_data = {
@@ -514,9 +514,9 @@ class AddServiceWizardDialog(tk.Toplevel):
                     self.txt_result.delete("1.0", tk.END)
                     self.txt_result.insert("1.0", msg)
                     if success:
-                        self.lbl_status_test.config(text="Запрос выполнен успешно.", fg=theme.get_color("status_ready"))
+                        self.lbl_status_test.config(text="Text", fg=theme.get_color("status_ready"))
                     else:
-                        self.lbl_status_test.config(text="Ошибка ответа сервера.", fg=theme.get_color("status_error"))
+                        self.lbl_status_test.config(text="Text", fg=theme.get_color("status_error"))
                 self.after(0, _update_ui)
             except Exception as ex:
                 self.after(0, lambda: self._on_test_fail(str(ex)))
@@ -525,8 +525,8 @@ class AddServiceWizardDialog(tk.Toplevel):
 
     def _on_test_fail(self, ex_str):
         self.txt_result.delete("1.0", tk.END)
-        self.txt_result.insert("1.0", f"Исключение при вызове: {ex_str}")
-        self.lbl_status_test.config(text="Сбой соединения.", fg=theme.get_color("status_error"))
+        self.txt_result.insert("1.0", f"Text")
+        self.lbl_status_test.config(text="Text", fg=theme.get_color("status_error"))
 
     def _on_create(self):
         display_name = self.var_display_name.get().strip()
@@ -534,10 +534,10 @@ class AddServiceWizardDialog(tk.Toplevel):
         account_id = self.var_account_id.get().strip()
 
         if not display_name:
-            messagebox.showwarning("Внимание", "Укажите название сервиса.", parent=self)
+            messagebox.showwarning("Text", "Text", parent=self)
             return
 
-        self.var_status_msg.set("Генерация плагинов и регистрация сервиса...")
+        self.var_status_msg.set("Text")
         self.update_idletasks()
 
         try:
@@ -568,12 +568,12 @@ class AddServiceWizardDialog(tk.Toplevel):
             self.created_folder_name = service_generator.sanitize_folder_name(display_name)
 
             btn_id_val = self.var_btn_id.get().strip()
-            self.var_status_msg.set(f"Сервис '{display_name}' успешно создан! QTranslate перезапущен (ID: {btn_id_val}).")
+            self.var_status_msg.set(f"Text")
             self.lbl_status_test.config(fg=theme.get_color("status_ready"))
 
             self.btn_open_py.config(state=tk.NORMAL)
             self.btn_open_js.config(state=tk.NORMAL)
-            self.btn_create.config(text="Обновить сервис")
+            self.btn_create.config(text="Text")
 
             if self.on_created_callback:
                 try:
@@ -582,10 +582,10 @@ class AddServiceWizardDialog(tk.Toplevel):
                     pass
 
         except Exception as e:
-            logger.error(f"Ошибка при создании сервиса: {e}")
-            self.var_status_msg.set(f"Ошибка создания: {e}")
+            logger.error(f"Text")
+            self.var_status_msg.set(f"Text")
             self.lbl_status_test.config(fg=theme.get_color("status_error"))
-            messagebox.showerror("Ошибка", str(e), parent=self)
+            messagebox.showerror("Text", str(e), parent=self)
 
     def _open_py_file(self):
         if not self.created_service_id:

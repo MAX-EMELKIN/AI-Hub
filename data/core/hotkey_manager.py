@@ -137,12 +137,12 @@ class GlobalHotkeyManager:
 
     def parse_hotkey(self, hotkey_str):
         h = str(hotkey_str).strip().lower()
-        if not h or h in ("none", "нет", "отключено", "[ не назначено ]", ""):
+        if not h or h in ("none", "Text", "Text", "[ Text Text ]", ""):
             return None
 
-        if h in ("double_ctrl", "ctrl+ctrl", "ctrl ctrl", "2xctrl", "двойной ctrl"):
+        if h in ("double_ctrl", "ctrl+ctrl", "ctrl ctrl", "2xctrl", "Text ctrl"):
             return ("double_ctrl", None, None, None, None)
-        if h in ("double_alt", "alt+alt", "alt alt", "двойной alt"):
+        if h in ("double_alt", "alt+alt", "alt alt", "Text alt"):
             return ("double_alt", None, None, None, None)
 
         tokens = [k.strip() for k in re.split(r'[\+\s\-]+', h) if k.strip()]
@@ -340,7 +340,7 @@ class GlobalHotkeyManager:
 
                     text = grab_selection_from_target_hwnd(window_tracker.last_user_hwnd)
                     if text:
-                        print(f"[TTS]: Озвучивание выделения -> \"{text[:60]}...\"")
+                        print(f"[TTS]: Text Text -> \"{text[:60]}...\"")
                         tts_engine.speak_text(text)
                 except Exception as e:
                     print(f"[TTS Error]: {e}")

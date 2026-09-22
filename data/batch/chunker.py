@@ -9,7 +9,7 @@ class TextChunker :
 
     def read_file_safe (self ,file_path ):
         if not os .path .exists (file_path ):
-            raise FileNotFoundError (f"Файл не найден: {file_path }")
+            raise FileNotFoundError (f"Text Text Text: {file_path }")
 
         encodings_to_try =["utf-8-sig","utf-8","cp1251","windows-1252","utf-16","cp866"]
         for enc in encodings_to_try :

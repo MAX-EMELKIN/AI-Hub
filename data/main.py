@@ -46,11 +46,11 @@ def run ():
         logger .show_console (True )
 
     print ("=================================================================")
-    print ("  Инициализация QTranslate AI Hub...                             ")
-    print (f"  Рабочий каталог: {base_dir }                                    ")
+    print ("Text")
+    print (f"Text")
     print ("=================================================================")
 
-    logger .system ("Старт приложения QTranslate AI Hub")
+    logger .system ("Text")
 
     check_and_autostart_qtranslate ()
 
@@ -64,8 +64,8 @@ def run ():
     app =MainWindow ()
 
     def _on_app_exit ():
-        print ("\n[AI Hub]: Завершение работы...")
-        logger .system ("Завершение работы QTranslate AI Hub")
+        print ("Text")
+        logger .system ("Text")
         stop_server ()
         try :
             browser_cdp .close_browser ()
@@ -83,8 +83,8 @@ def run ():
     start_minimized =config .get_bool ("GENERAL","StartMinimized",default =True )
     if start_minimized :
         app .withdraw ()
-        print ("[AI Hub]: Приложение готово и свернуто в трей.")
-        logger .system ("Приложение свернуто в трей")
+        print ("Text")
+        logger .system ("Text")
     else :
         app .deiconify ()
 

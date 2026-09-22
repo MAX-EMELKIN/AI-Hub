@@ -5,7 +5,7 @@ import os, sys, time, json, socket, ssl, struct, re, threading
 import urllib.request, urllib.parse, urllib.error
 
 UNIFIED_DOH_PRESETS = {
-    "Comss.one (SmartDNS / РФ обход)": {
+    "Comss.one (SmartDNS / Text Text)": {
         "url": "https://dns.comss.one/dns-query",
         "host": "dns.comss.one",
         "bootstrap_ip": "195.133.25.16"
@@ -58,7 +58,7 @@ def _recv_all(sock, n):
     while len(data) < n:
         packet = sock.recv(n - len(data))
         if not packet:
-            raise ConnectionError("Соединение разорвано удаленной стороной.")
+            raise ConnectionError("Text Text Text Text.")
         data.extend(packet)
     return bytes(data)
 
@@ -71,7 +71,7 @@ def create_socks5_socket(proxy_host, proxy_port, dest_host, dest_port, timeout=8
     resp = _recv_all(s, 2)
     if resp[0] != 5 or resp[1] != 0:
         s.close()
-        raise ConnectionError("SOCKS5 прокси отклонил соединение без пароля.")
+        raise ConnectionError("SOCKS5 Text Text Text Text Text.")
 
     dest_bytes = dest_host.encode("utf-8")
     req = b"\x05\x01\x00\x03" + bytes([len(dest_bytes)]) + dest_bytes + struct.pack("!H", dest_port)
@@ -80,7 +80,7 @@ def create_socks5_socket(proxy_host, proxy_port, dest_host, dest_port, timeout=8
     resp_header = _recv_all(s, 4)
     if resp_header[0] != 5 or resp_header[1] != 0:
         s.close()
-        raise ConnectionError(f"SOCKS5 ошибка подключения (код: {resp_header[1]})")
+        raise ConnectionError(f"SOCKS5 Text Text (Text: {resp_header[1]})")
 
     atyp = resp_header[3]
     if atyp == 1:
@@ -150,7 +150,7 @@ def execute_test_ping(service_id, test_data, quick_mode=True):
     doh_preset = str(test_data.get("doh_preset", "smartdns")).strip()
 
     if not endpoint or not model:
-        return False, "Не указан URL эндпоинта или идентификатор модели."
+        return False, "Text Text URL Text Text Text Text."
 
     if "{account_id}" in endpoint:
         aid = account_id if account_id else "b53d06890fe315cfac0a5e6c074f99b4"
@@ -218,7 +218,7 @@ def execute_test_ping(service_id, test_data, quick_mode=True):
             raw_resp = b"".join(chunks)
             sep = raw_resp.find(b"\r\n\r\n")
             if sep == -1:
-                return False, "Сервер вернул некорректный ответ."
+                return False, "Text Text Text Text."
             h_part = raw_resp[:sep].decode("latin1", errors="replace")
             b_part = raw_resp[sep+4:]
 
@@ -264,16 +264,16 @@ def execute_test_ping(service_id, test_data, quick_mode=True):
 
         if data and isinstance(data, dict) and data.get("error"):
             err_msg = data["error"].get("message", str(data["error"]))
-            return False, f"Ошибка API: {err_msg}"
+            return False, f"Error API: {err_msg}"
 
         if not quick_mode:
             if data:
                 try:
                     pretty = json.dumps(data, indent=2, ensure_ascii=False)
-                    return True, f"HTTP 200 OK | Время отклика: {elapsed}с\n{pretty}"
+                    return True, f"HTTP 200 OK | Text Text: {elapsed}Text\n{pretty}"
                 except Exception:
                     pass
-            return True, f"HTTP 200 OK | Время отклика: {elapsed}с\n{raw_text}"
+            return True, f"HTTP 200 OK | Text Text: {elapsed}Text\n{raw_text}"
 
         result = ""
         if data:
@@ -292,10 +292,10 @@ def execute_test_ping(service_id, test_data, quick_mode=True):
 
         result = re.sub(r'<think>[\s\S]*?</think>', '', str(result), flags=re.IGNORECASE).strip()
         ans_clean = result if result else "OK"
-        return True, f"Ответ: {ans_clean} | Задержка: {elapsed}с"
+        return True, f"Response: {ans_clean} | Text: {elapsed}Text"
 
     except socket.timeout:
-        return False, "Превышен таймаут ожидания сервера (8 сек)."
+        return False, "Text Text Text Text (8 Text)."
     except urllib.error.HTTPError as he:
         try:
             err_body = he.read().decode("utf-8", errors="replace")
@@ -305,13 +305,13 @@ def execute_test_ping(service_id, test_data, quick_mode=True):
             msg = str(he)
         return False, f"HTTP {he.code}: {msg}"
     except Exception as ex:
-        return False, f"Сбой соединения: {ex}"
+        return False, f"Text Text: {ex}"
 
 UNIFIED_PYTHON_TEMPLATE = """# -*- coding: utf-8 -*-
 \"\"\"
-Модуль: data/services/{SERVICE_ID_SLUG}/service.py
-Назначение: Плагин {SERVICE_NAME} на базе Единого универсального движка Хаба.
-            Провайдер: {PROVIDER_KEY} | Модель: {MODEL_ID}
+Text: data/services/{SERVICE_ID_SLUG}/service.py
+Text: Text {SERVICE_NAME} Text Text Text Text Text Text.
+            Text: {PROVIDER_KEY} | Text: {MODEL_ID}
 \"\"\"
 
 import os
@@ -332,7 +332,7 @@ from data.core.api_config import api_config
 from data.core.logger import logger
 
 UNIFIED_DOH_PRESETS = {
-    "Comss.one (SmartDNS / РФ обход)": {
+    "Comss.one (SmartDNS / Text Text)": {
         "url": "https://dns.comss.one/dns-query",
         "host": "dns.comss.one",
         "bootstrap_ip": "195.133.25.16"
@@ -385,7 +385,7 @@ def _recv_all(sock, n):
     while len(data) < n:
         packet = sock.recv(n - len(data))
         if not packet:
-            raise ConnectionError("Соединение разорвано удаленной стороной.")
+            raise ConnectionError("Text Text Text Text.")
         data.extend(packet)
     return bytes(data)
 
@@ -398,7 +398,7 @@ def create_socks5_socket(proxy_host, proxy_port, dest_host, dest_port, timeout=3
     resp = _recv_all(s, 2)
     if resp[0] != 5 or resp[1] != 0:
         s.close()
-        raise ConnectionError("SOCKS5 прокси отклонил соединение без пароля.")
+        raise ConnectionError("SOCKS5 Text Text Text Text Text.")
 
     dest_bytes = dest_host.encode("utf-8")
     req = b"\\x05\\x01\\x00\\x03" + bytes([len(dest_bytes)]) + dest_bytes + struct.pack("!H", dest_port)
@@ -407,7 +407,7 @@ def create_socks5_socket(proxy_host, proxy_port, dest_host, dest_port, timeout=3
     resp_header = _recv_all(s, 4)
     if resp_header[0] != 5 or resp_header[1] != 0:
         s.close()
-        raise ConnectionError(f"SOCKS5 ошибка подключения (код: {resp_header[1]})")
+        raise ConnectionError(f"SOCKS5 Text Text (Text: {resp_header[1]})")
 
     atyp = resp_header[3]
     if atyp == 1:
@@ -498,13 +498,13 @@ class UnifiedService(BaseService):
     def get_config_fields(self):
         fields = []
         if self.auth_header_type != "none":
-            fields.append({"key": "api_key", "label": "API Ключ:", "required": True})
+            fields.append({"key": "api_key", "label": "API Text:", "required": True})
         fields.extend([
-            {"key": "model", "label": "Модель:", "required": True},
-            {"key": "endpoint", "label": "Эндпоинт (URL):", "required": True},
-            {"key": "connection_mode", "label": "Режим сети (direct/proxy/doh):", "required": True},
-            {"key": "proxy", "label": "Адрес SOCKS5 (хост:порт):", "required": False},
-            {"key": "doh_preset", "label": "DoH Пресет:", "required": False}
+            {"key": "model", "label": "Text:", "required": True},
+            {"key": "endpoint", "label": "Text (URL):", "required": True},
+            {"key": "connection_mode", "label": "Text Text (direct/proxy/doh):", "required": True},
+            {"key": "proxy", "label": "Text SOCKS5 (Text:Text):", "required": False},
+            {"key": "doh_preset", "label": "DoH Text:", "required": False}
         ])
         return fields
 
@@ -512,11 +512,11 @@ class UnifiedService(BaseService):
         if self.auth_header_type != "none":
             api_key = self.get_config_val("api_key", "").strip()
             if not api_key:
-                return False, f"Укажите API Key для {self.name} в параметрах"
+                return False, f"Text API Key Text {self.name} Text Text"
         ep = self.get_config_val("endpoint", "{ENDPOINT}").strip()
         if not ep:
-            return False, "Укажите URL эндпоинта в параметрах"
-        return True, f"Сервис {self.name} настроен и готов к работе"
+            return False, "Text URL Text Text Text"
+        return True, f"Text {self.name} Text Text Text Text Text"
 
     def _execute_request_raw(self, url, payload_bytes, headers, timeout=60.0):
         conn_mode = self.get_config_val("connection_mode", "direct").lower().strip()
@@ -578,7 +578,7 @@ class UnifiedService(BaseService):
             return status_code, raw_str
 
         elif conn_mode == "doh":
-            preset_name = self.get_config_val("doh_preset", "Comss.one (SmartDNS / РФ обход)")
+            preset_name = self.get_config_val("doh_preset", "Comss.one (SmartDNS / Text Text)")
             doh_url = UNIFIED_DOH_PRESETS.get(preset_name, {}).get("url") or "https://dns.comss.one/dns-query"
             ip = resolve_doh(dest_host, doh_url)
 
@@ -717,20 +717,20 @@ class UnifiedService(BaseService):
                     extracted_val = data["result"].get("response")
 
             if not extracted_val:
-                return f"[{self.name}: Пустой ответ сервера]"
+                return f"[{self.name}: Text Text Text]"
 
             content = str(extracted_val)
             content = re.sub(r'<think>[\\s\\S]*?</think>', '', content, flags=re.IGNORECASE)
             final = self.clean_response(content)
 
             elapsed_total = round(time.time() - t0, 2)
-            print(f"[{self.name} ({model}) готов за {elapsed_total}с]: {final[:70]}...")
+            print(f"[{self.name} ({model}) Text Text {elapsed_total}Text]: {final[:70]}...")
             return final if final else clean_input
 
         except Exception as e:
             elapsed = time.time() - t_call
             logger.api_summary(self.name, model, elapsed, 0, note=f"Exception: {e}")
-            return f"Ошибка {self.name}: {e}"
+            return f"Error {self.name}: {e}"
 
 service = UnifiedService()
 

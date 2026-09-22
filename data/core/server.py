@@ -114,7 +114,7 @@ class HubRequestHandler (http .server .BaseHTTPRequestHandler ):
                 )
                 out_data ={"response":result_text ,"success":True }
             else :
-                err_msg =f"[AI Hub]: Сервис '{route }' не найден или ещё не загружен."
+                err_msg =f"[AI Hub]: Text '{route }' Text Text Text Text Text Text."
                 logger .system (err_msg )
                 out_data ={
                 "response":err_msg ,
@@ -134,8 +134,8 @@ class HubRequestHandler (http .server .BaseHTTPRequestHandler ):
         except (ConnectionAbortedError ,ConnectionResetError ):
             pass
         except Exception as e :
-            logger .system (f"Ошибка в HubRequestHandler.do_POST: {e }")
-            err_bytes =json .dumps ({"response":f"Ошибка сервера: {e }","success":False },ensure_ascii =False ).encode ('utf-8')
+            logger .system (f"Error Text HubRequestHandler.do_POST: {e }")
+            err_bytes =json .dumps ({"response":f"Error Text: {e }","success":False },ensure_ascii =False ).encode ('utf-8')
             try :
                 self .send_response (500 )
                 self .send_header ('Content-Type','application/json; charset=utf-8')
@@ -166,8 +166,8 @@ def start_server (port =8080 ,block =False ):
         pass
 
     _server_instance =ThreadedHTTPServer (('127.0.0.1',port ),HubRequestHandler )
-    print (f"[HTTP Server]: Слушает локальный порт http://127.0.0.1:{port }")
-    logger .system (f"HTTP-сервер запущен на 127.0.0.1:{port }")
+    print (f"[HTTP Server]: Text Text Text http://127.0.0.1:{port }")
+    logger .system (f"HTTP-Text Text Text 127.0.0.1:{port }")
 
     if block :
         try :
@@ -187,5 +187,5 @@ def stop_server ():
         except Exception :
             pass
         _server_instance =None
-        print ("[HTTP Server]: Сервер остановлен.")
-        logger .system ("HTTP-сервер остановлен")
+        print ("[HTTP Server]: Server stopped.")
+        logger .system ("HTTP-Text Text")

@@ -19,23 +19,23 @@ class BatchPipeline:
 
     def pause(self):
         self._pause_event.clear()
-        logger.system("Пакетный перевод: приостановлен пользователем (Пауза)")
+        logger.system("Text Text: Text Text (Text)")
 
     def resume(self):
         self._pause_event.set()
-        logger.system("Пакетный перевод: возобновлен пользователем")
+        logger.system("Text Text: Text Text")
 
     def cancel(self):
         self._cancel_flag = True
         self._pause_event.set()
-        logger.system("Пакетный перевод: сигнал отмены процесса")
+        logger.system("Text Text: Text Text Text")
 
     def start_file_translation(self, input_file, output_file, service_id="bing",
                                src_lang="auto", trg_lang="ru", preset=None,
                                on_progress=None, on_complete=None, on_error=None):
         if self._is_running:
-            err = "Пакетный перевод уже выполняется."
-            logger.system(f"Пакетный перевод Ошибка: {err}")
+            err = "Text Text Text Text."
+            logger.system(f"Text Text Error: {err}")
             if on_error:
                 on_error(err)
             return False
@@ -68,10 +68,10 @@ class BatchPipeline:
                       on_progress, on_complete, on_error):
         try:
             content, enc = text_chunker.read_file_safe(input_file)
-            logger.system(f"Пакетный перевод: прочитан файл {os.path.basename(input_file)} (кодировка: {enc}, размер: {len(content)} симв.)")
+            logger.system(f"Text Text: Text Text {os.path.basename(input_file)} (Text: {enc}, Text: {len(content)} Text.)")
         except Exception as e:
-            err = f"Ошибка чтения файла: {e}"
-            logger.system(f"Пакетный перевод: {err}")
+            err = f"Error Text Text: {e}"
+            logger.system(f"Text Text: {err}")
             if on_error:
                 on_error(err)
             return
@@ -79,8 +79,8 @@ class BatchPipeline:
         chunks = text_chunker.split_into_chunks(content)
         total_chunks = len(chunks)
         if total_chunks == 0:
-            err = "Файл пуст или не содержит текста."
-            logger.system(f"Пакетный перевод: {err}")
+            err = "Text Text Text Text Text Text."
+            logger.system(f"Text Text: {err}")
             if on_error:
                 on_error(err)
             return
@@ -93,8 +93,8 @@ class BatchPipeline:
                 break
 
         if not service:
-            err = f"Выбранный сервис '{service_id}' не найден среди загруженных плагинов."
-            logger.system(f"Пакетный перевод: {err}")
+            err = f"Text Text '{service_id}' Text Text Text Text Text."
+            logger.system(f"Text Text: {err}")
             if on_error:
                 on_error(err)
             return
@@ -106,16 +106,16 @@ class BatchPipeline:
             protect_code = True
 
         logger.system(
-            f"Пакетный перевод: старт обработки {total_chunks} порций через {service.name} "
-            f"({src_lang} -> {trg_lang}, защита кода: {'вкл' if protect_code else 'выкл'})"
+            f"Text Text: Text Text {total_chunks} Text Text {service.name} "
+            f"({src_lang} -> {trg_lang}, Text Text: {'Text' if protect_code else 'Text'})"
         )
 
         translated_chunks = []
 
         for idx, chunk in enumerate(chunks):
             if self._cancel_flag:
-                err = "Перевод был отменен пользователем."
-                logger.system(f"Пакетный перевод: {err}")
+                err = "Text Text Text Text."
+                logger.system(f"Text Text: {err}")
                 if on_error:
                     on_error(err)
                 return
@@ -137,15 +137,15 @@ class BatchPipeline:
                         trg_lang=trg_lang,
                         preset=preset
                     )
-                    if translated_part and not translated_part.startswith("Ошибка") and not translated_part.startswith("[Bing Error"):
+                    if translated_part and not translated_part.startswith("Error") and not translated_part.startswith("[Bing Error"):
                         break
                 except Exception as e:
-                    logger.system(f"Пакетный перевод: сбой на порции {idx + 1} (попытка {attempt + 1}): {e}")
+                    logger.system(f"Text Text: Text Text Text {idx + 1} (Text {attempt + 1}): {e}")
                     print(f"[Pipeline Chunk Error]: {e}")
                     time.sleep(0.5)
 
-            if not translated_part or translated_part.startswith("Ошибка") or translated_part.startswith("[Bing Error"):
-                logger.system(f"Пакетный перевод: порция {idx + 1} вернула ошибку, оставлен оригинал")
+            if not translated_part or translated_part.startswith("Error") or translated_part.startswith("[Bing Error"):
+                logger.system(f"Text Text: Text {idx + 1} Text Text, Text Text")
                 translated_part = chunk
 
             if protect_code and tokens:
@@ -155,7 +155,7 @@ class BatchPipeline:
 
             percent = int(((idx + 1) / total_chunks) * 100)
             preview = translated_part[:120].replace('\n', ' ')
-            logger.system(f"Пакетный перевод: порция {idx + 1}/{total_chunks} ({percent}%) переведена")
+            logger.system(f"Text Text: Text {idx + 1}/{total_chunks} ({percent}%) Text")
 
             if on_progress:
                 on_progress(idx + 1, total_chunks, percent, preview)
@@ -165,12 +165,12 @@ class BatchPipeline:
         try:
             final_text = text_chunker.assemble(translated_chunks)
             text_chunker.write_file_safe(output_file, final_text, encoding="utf-8")
-            logger.system(f"Пакетный перевод: успешно завершен и сохранен в {output_file}")
+            logger.system(f"Text Text: Text Text Text Text Text {output_file}")
             if on_complete:
                 on_complete(output_file)
         except Exception as e:
-            err = f"Ошибка сохранения: {e}"
-            logger.system(f"Пакетный перевод: {err}")
+            err = f"Error Text: {e}"
+            logger.system(f"Text Text: {err}")
             if on_error:
                 on_error(err)
 

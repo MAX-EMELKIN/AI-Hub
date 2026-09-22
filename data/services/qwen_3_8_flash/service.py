@@ -20,8 +20,8 @@ class Qwen38FlashService(BaseService):
     def get_config_fields(self):
         return [
             {"key": "api_key", "label": "DashScope API Key:", "required": True},
-            {"key": "model", "label": "Модель:", "required": True},
-            {"key": "endpoint", "label": "Эндпоинт (URL):", "required": True}
+            {"key": "model", "label": "Text:", "required": True},
+            {"key": "endpoint", "label": "Text (URL):", "required": True}
         ]
 
     def translate(self, text, src_lang="auto", trg_lang="ru", preset=None):
@@ -100,7 +100,7 @@ class Qwen38FlashService(BaseService):
                 return f"[DashScope Error: {err_msg}]"
 
             if not data.get("choices") or len(data["choices"]) == 0:
-                return f"[{self.name}: Пустой ответ сервера]"
+                return f"[{self.name}: Text Text Text]"
 
             msg = data["choices"][0].get("message", {})
             content = msg.get("content", "")
@@ -109,7 +109,7 @@ class Qwen38FlashService(BaseService):
             final = self.clean_response(content)
 
             elapsed_total = round(time.time() - t0, 2)
-            print(f"[{self.name} готов за {elapsed_total}с]: {final[:70]}...")
+            print(f"[{self.name} Text Text {elapsed_total}Text]: {final[:70]}...")
             return final if final else clean_input
 
         except urllib.error.HTTPError as he:
@@ -117,11 +117,11 @@ class Qwen38FlashService(BaseService):
             err_body = he.read().decode("utf-8", errors="ignore")
             logger.api_raw_response(self.name, he.code, elapsed, err_body)
             logger.api_summary(self.name, model, elapsed, he.code, note=f"HTTP Error {he.code}")
-            return f"Ошибка DashScope (HTTP {he.code}): {err_body[:200]}"
+            return f"Error DashScope (HTTP {he.code}): {err_body[:200]}"
         except Exception as e:
             elapsed = time.time() - t_call
             logger.api_summary(self.name, model, elapsed, 0, note=f"Exception: {e}")
-            return f"Ошибка Qwen (DashScope): {e}"
+            return f"Error Qwen (DashScope): {e}"
 
 service = Qwen38FlashService()
 

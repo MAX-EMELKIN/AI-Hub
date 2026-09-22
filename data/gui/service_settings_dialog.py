@@ -9,11 +9,11 @@ from data.core.logger import logger
 from data.gui.dialog_helpers import attach_entry_context_menu, attach_text_context_menu
 from data.gui.theme_manager import theme
 DOH_PRESET_KEYS = [
-    "Comss.one (SmartDNS / РФ обход)",
+    "Text",
     "Control D (Uncensored)",
     "Cloudflare (1.1.1.1)",
     "Google (8.8.8.8)",
-    "Пользовательский URL..."
+    "Text"
 ]
 
 GEMINI_MODELS_LIST = [
@@ -38,7 +38,7 @@ class TestResultDialog(tk.Toplevel):
         in_bg = theme.get_color("input_bg")
         in_fg = theme.get_color("input_fg")
 
-        self.title("Результат тестирования API")
+        self.title("Text")
         self.geometry("540x380")
         self.minsize(400, 300)
         self.configure(bg=bg_main)
@@ -58,7 +58,7 @@ class TestResultDialog(tk.Toplevel):
         pad.pack(fill=tk.BOTH, expand=True)
 
         tk.Label(
-            pad, text="Ответ от сервера:",
+            pad, text="Text",
             font=theme.font(1, "bold"), fg=theme.get_color("accent"), bg=bg_main
         ).pack(anchor="w", pady=(0, 6))
 
@@ -75,7 +75,7 @@ class TestResultDialog(tk.Toplevel):
         attach_text_context_menu(text_area)
 
         tk.Button(
-            pad, text="Закрыть", font=theme.font(0, "bold"), relief=tk.FLAT,
+            pad, text="Text", font=theme.font(0, "bold"), relief=tk.FLAT,
             bg=theme.get_color("btn_bg"), fg=fg_pri, cursor="hand2", padx=16, pady=4,
             command=self.destroy
         ).pack(anchor="e")
@@ -89,7 +89,7 @@ class ServiceSettingsDialog(tk.Toplevel):
         self.entries = {}
 
         bg_main = theme.get_color("bg_main")
-        self.title(t("params_dialog_title", f"Параметры — {service.name}", name=service.name))
+        self.title(t("params_dialog_title", f"Text", name=service.name))
 
         self.has_search_prompt = any(
             f.get("key") == "search_prompt"
@@ -138,13 +138,13 @@ class ServiceSettingsDialog(tk.Toplevel):
         pad_frame = tk.Frame(self, bg=bg_main, padx=16, pady=14)
         pad_frame.pack(fill=tk.BOTH, expand=True)
 
-        header_str = t("params_dialog_header", f"Параметры сервиса: {self.service.name}", name=self.service.name)
+        header_str = t("params_dialog_header", f"Text", name=self.service.name)
         tk.Label(pad_frame, text=header_str, font=theme.font(2, "bold"), fg=theme.get_color("accent"), bg=bg_main).pack(anchor="w", pady=(0, 10))
 
         if self.service.service_id == "gemini_family":
             r_api = tk.Frame(pad_frame, bg=bg_main)
             r_api.pack(fill=tk.X, pady=3)
-            tk.Label(r_api, text="API Ключ (AIzaSy... / AQ...): *", font=theme.font(0, "bold"), fg=fg_pri, width=24, anchor="w", bg=bg_main).pack(side=tk.LEFT)
+            tk.Label(r_api, text="Text", font=theme.font(0, "bold"), fg=fg_pri, width=24, anchor="w", bg=bg_main).pack(side=tk.LEFT)
             self.e_api_gemini = tk.Entry(r_api, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
             self.e_api_gemini.insert(0, str(self.service.get_config_val("api_key", "")))
             self.e_api_gemini.pack(side=tk.LEFT, fill=tk.X, expand=True)
@@ -152,19 +152,19 @@ class ServiceSettingsDialog(tk.Toplevel):
 
             r_mod = tk.Frame(pad_frame, bg=bg_main)
             r_mod.pack(fill=tk.X, pady=3)
-            tk.Label(r_mod, text="Модель по умолчанию: *", font=theme.font(0, "bold"), fg=fg_pri, width=24, anchor="w", bg=bg_main).pack(side=tk.LEFT)
+            tk.Label(r_mod, text="Text", font=theme.font(0, "bold"), fg=fg_pri, width=24, anchor="w", bg=bg_main).pack(side=tk.LEFT)
             self.combo_gem_def_model = ttk.Combobox(r_mod, values=GEMINI_MODELS_LIST, state="readonly")
             cur_m = self.service.get_config_val("model", GEMINI_MODELS_LIST[0])
             self.combo_gem_def_model.set(cur_m if cur_m in GEMINI_MODELS_LIST else GEMINI_MODELS_LIST[0])
             self.combo_gem_def_model.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
-            conn_frame = tk.LabelFrame(pad_frame, text=" Режим соединения и обхода блокировок ", font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=10, pady=8)
+            conn_frame = tk.LabelFrame(pad_frame, text="Text", font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=10, pady=8)
             conn_frame.pack(fill=tk.X, pady=(10, 4))
 
             self.conn_mode_var = tk.StringVar(value=self.service.get_config_val("connection_mode", "doh"))
 
             rb_doh = tk.Radiobutton(
-                conn_frame, text="Встроенный DoH (SmartDNS / РФ обход)",
+                conn_frame, text="Text",
                 variable=self.conn_mode_var, value="doh", bg=bg_card, fg=fg_pri,
                 selectcolor=in_bg, font=theme.font(0), command=self._toggle_conn_ui
             )
@@ -175,7 +175,7 @@ class ServiceSettingsDialog(tk.Toplevel):
 
             doh_top = tk.Frame(self.doh_subframe, bg=bg_card)
             doh_top.pack(fill=tk.X)
-            tk.Label(doh_top, text="DoH-сервер:", bg=bg_card, fg=fg_pri, font=theme.font(-1)).pack(side=tk.LEFT)
+            tk.Label(doh_top, text="Text", bg=bg_card, fg=fg_pri, font=theme.font(-1)).pack(side=tk.LEFT)
 
             self.combo_doh = ttk.Combobox(doh_top, values=DOH_PRESET_KEYS, state="readonly", width=30)
             cur_doh = self.service.get_config_val("doh_preset", DOH_PRESET_KEYS[0])
@@ -184,14 +184,14 @@ class ServiceSettingsDialog(tk.Toplevel):
             self.combo_doh.bind("<<ComboboxSelected>>", self._toggle_doh_custom_ui)
 
             self.doh_custom_frame = tk.Frame(self.doh_subframe, bg=bg_card)
-            tk.Label(self.doh_custom_frame, text="Свой DoH URL:", bg=bg_card, fg=fg_pri, font=theme.font(-1)).pack(side=tk.LEFT)
+            tk.Label(self.doh_custom_frame, text="Text", bg=bg_card, fg=fg_pri, font=theme.font(-1)).pack(side=tk.LEFT)
             self.e_doh_custom = tk.Entry(self.doh_custom_frame, font=theme.font(-1), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
             self.e_doh_custom.insert(0, self.service.get_config_val("doh_custom_url", "https://xbox-dns.ru/dns-query"))
             self.e_doh_custom.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=6)
             attach_entry_context_menu(self.e_doh_custom)
 
             rb_proxy = tk.Radiobutton(
-                conn_frame, text="SOCKS5 / HTTP Прокси",
+                conn_frame, text="Text",
                 variable=self.conn_mode_var, value="proxy", bg=bg_card, fg=fg_pri,
                 selectcolor=in_bg, font=theme.font(0), command=self._toggle_conn_ui
             )
@@ -203,7 +203,7 @@ class ServiceSettingsDialog(tk.Toplevel):
             attach_entry_context_menu(self.e_proxy)
 
             rb_direct = tk.Radiobutton(
-                conn_frame, text="Прямое соединение (Без обходов)",
+                conn_frame, text="Text",
                 variable=self.conn_mode_var, value="direct", bg=bg_card, fg=fg_pri,
                 selectcolor=in_bg, font=theme.font(0), command=self._toggle_conn_ui
             )
@@ -212,7 +212,7 @@ class ServiceSettingsDialog(tk.Toplevel):
             self._toggle_conn_ui()
             self._toggle_doh_custom_ui()
 
-            search_frame = tk.LabelFrame(pad_frame, text=" Инструкция веб-поиска (Промпт для агента) ", font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=10, pady=6)
+            search_frame = tk.LabelFrame(pad_frame, text="Text", font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=10, pady=6)
             search_frame.pack(fill=tk.BOTH, expand=True, pady=(4, 4))
 
             t_border = tk.Frame(search_frame, relief=tk.SOLID, bd=1, bg=in_bg)
@@ -266,7 +266,7 @@ class ServiceSettingsDialog(tk.Toplevel):
                     self.entries[k] = entry
 
         help_box = tk.Label(
-            pad_frame, text=t("params_dialog_note", "* Все данные сохраняются в файл models.ini и providers.ini."),
+            pad_frame, text=t("params_dialog_note", "Text"),
             font=theme.font(-1, "italic"), fg=theme.get_color("fg_muted"), bg=bg_main, justify="left"
         )
         help_box.pack(anchor="w", pady=(10, 0))
@@ -275,15 +275,15 @@ class ServiceSettingsDialog(tk.Toplevel):
         btn_row.pack(fill=tk.X, side=tk.BOTTOM, pady=(10, 0))
 
         self.btn_test = tk.Button(
-            btn_row, text="Тест API", font=theme.font(0, "bold"), relief=tk.FLAT,
+            btn_row, text="Text", font=theme.font(0, "bold"), relief=tk.FLAT,
             bg=theme.get_color("help_btn_bg"), fg=theme.get_color("help_btn_fg"),
             cursor="hand2", padx=12, command=self._on_test_api
         )
         self.btn_test.pack(side=tk.LEFT)
 
-        tk.Button(btn_row, text=t("btn_cancel", "Отмена"), font=theme.font(0), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, padx=12, command=self.destroy).pack(side=tk.RIGHT, padx=(6, 0))
+        tk.Button(btn_row, text=t("btn_cancel", "Text"), font=theme.font(0), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, padx=12, command=self.destroy).pack(side=tk.RIGHT, padx=(6, 0))
         tk.Button(
-            btn_row, text=t("params_btn_save", "Сохранить и запомнить"), font=theme.font(0, "bold"),
+            btn_row, text=t("params_btn_save", "Text"), font=theme.font(0, "bold"),
             relief=tk.FLAT, bg=theme.get_color("accent"), fg=theme.get_color("accent_text"),
             cursor="hand2", padx=14, command=lambda: self._on_save(close_window=True)
         ).pack(side=tk.RIGHT)
@@ -304,7 +304,7 @@ class ServiceSettingsDialog(tk.Toplevel):
             self.doh_custom_frame.pack_forget()
 
     def _toggle_doh_custom_ui(self, event=None):
-        if self.conn_mode_var.get() == "doh" and self.combo_doh.get() == "Пользовательский URL...":
+        if self.conn_mode_var.get() == "doh" and self.combo_doh.get() == "Text":
             self.doh_custom_frame.pack(fill="x", pady=(4, 0))
         else:
             self.doh_custom_frame.pack_forget()
@@ -326,7 +326,7 @@ class ServiceSettingsDialog(tk.Toplevel):
                     val = entry.get().strip()
                 self.service.set_config_val(k, val)
 
-        logger.system(f"Параметры сервиса '{self.service.name}' обновлены пользователем")
+        logger.system(f"Text")
 
     def _on_save(self, close_window=True):
         self._save_data()
@@ -335,7 +335,7 @@ class ServiceSettingsDialog(tk.Toplevel):
             self.on_saved()
 
         if close_window:
-            success_msg = t("params_saved_msg", f"Параметры сервиса '{self.service.name}' успешно обновлены!", name=self.service.name)
+            success_msg = t("params_saved_msg", f"Text", name=self.service.name)
             messagebox.showinfo("OK", success_msg, parent=self)
             self.destroy()
 
@@ -344,18 +344,18 @@ class ServiceSettingsDialog(tk.Toplevel):
         if self.on_saved:
             self.on_saved()
 
-        self.btn_test.config(state="disabled", text="Тестирование...")
+        self.btn_test.config(state="disabled", text="Text")
 
         def _worker():
             test_text = "Connection established successfully! System is ready to use."
             try:
                 res = self.service.translate(test_text, src_lang="en", trg_lang="ru")
             except Exception as e:
-                res = f"Внутренняя ошибка тестирования (ошибка плагина):\n{e}"
+                res = f"Text"
 
             def _on_done():
                 if self.winfo_exists():
-                    self.btn_test.config(state="normal", text="Тест API")
+                    self.btn_test.config(state="normal", text="Text")
                     TestResultDialog(self, res)
 
             self.after(0, _on_done)

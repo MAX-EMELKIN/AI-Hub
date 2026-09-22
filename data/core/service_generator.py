@@ -91,7 +91,7 @@ class ServiceGenerator:
                 "module": module
             }
         except Exception as e:
-            logger.error(f"Ошибка загрузки метаданных шаблона {template_id}: {e}")
+            logger.error(f"Error Text Text Text {template_id}: {e}")
             return None
 
     def get_template_docs_url(self, template_id):
@@ -107,7 +107,7 @@ class ServiceGenerator:
         templates = {t["id"]: t for t in self.get_available_templates()}
         tmpl = templates.get(template_id)
         if not tmpl:
-            raise ValueError(f"Шаблон '{template_id}' не найден.")
+            raise ValueError(f"Text '{template_id}' Text Text.")
 
         service_id = self.sanitize_id(display_name)
         folder_name = self.sanitize_folder_name(display_name)
@@ -165,14 +165,14 @@ class ServiceGenerator:
 
         self._setup_service_icons(tmpl, hub_service_dir, qt_service_dir)
 
-        logger.system(f"Сервис '{folder_name}' (ID: {service_id}) успешно сгенерирован.")
+        logger.system(f"Text '{folder_name}' (ID: {service_id}) Text Text.")
 
         if restart_qt:
             try:
                 restart_qtranslate()
-                logger.system("QTranslate успешно перезапущен с новым сервисом.")
+                logger.system("QTranslate Text Text Text Text Text.")
             except Exception as e:
-                logger.error(f"Не удалось перезапустить QTranslate: {e}")
+                logger.error(f"Text Text Text QTranslate: {e}")
 
         return service_id
 
@@ -196,7 +196,7 @@ class ServiceGenerator:
                         pass
                 else:
                     with open(target_file, "w", encoding="utf-8") as f:
-                        f.write(f"Ты — профессиональный переводчик. Выполни перевод на целевой язык в стиле {style}.")
+                        f.write(f"Text — Text Text. Text Text Text Text Text Text Text {style}.")
 
     def _write_hub_service_file(self, target_path, service_id, template_id):
         content = f"""# -*- coding: utf-8 -*-
@@ -246,13 +246,13 @@ function getRequest(text, from, to) {{
 
 function getResponse(text) {{
     if (!text || text.length === 0) {{
-        return "Ошибка: пустой ответ от AI Hub";
+        return "Error: Text Text Text AI Hub";
     }}
     try {{
         if (text.indexOf('{{"result":') === 0 || text.indexOf('{{"error":') === 0) {{
             var res = eval("(" + text + ")");
             if (res.error) {{
-                return "Ошибка AI Hub: " + res.error;
+                return "Error AI Hub: " + res.error;
             }}
             return res.result;
         }}
@@ -293,27 +293,27 @@ function getResponse(text) {{
             try:
                 shutil.rmtree(qt_dir, ignore_errors=True)
             except Exception as e:
-                logger.error(f"Не удалось удалить папку QTranslate {qt_dir}: {e}")
+                logger.error(f"Text Text Text Text QTranslate {qt_dir}: {e}")
 
         hub_dir = os.path.join(self.services_hub_dir, sec)
         if os.path.exists(hub_dir):
             try:
                 shutil.rmtree(hub_dir, ignore_errors=True)
             except Exception as e:
-                logger.error(f"Не удалось удалить папку Hub {hub_dir}: {e}")
+                logger.error(f"Text Text Text Text Hub {hub_dir}: {e}")
 
         preset_dir = os.path.join(self.presets_dir, sec)
         if os.path.exists(preset_dir):
             try:
                 shutil.rmtree(preset_dir, ignore_errors=True)
             except Exception as e:
-                logger.error(f"Не удалось удалить папку пресетов {preset_dir}: {e}")
+                logger.error(f"Text Text Text Text Text {preset_dir}: {e}")
 
         if api_config.models.has_section(sec):
             api_config.models.remove_section(sec)
             api_config.save_models()
 
-        logger.system(f"Сервис '{display_name}' ({sec}) успешно удален.")
+        logger.system(f"Text '{display_name}' ({sec}) Text Text.")
         try:
             restart_qtranslate()
         except Exception:

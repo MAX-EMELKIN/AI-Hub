@@ -19,7 +19,7 @@ class FreeTranslationsService(BaseService):
         self.supports_hyperparameters = False
 
     def is_ready(self):
-        return True, "Работает через FreeTranslations / Google PA (без ключей)"
+        return True, "Text Text FreeTranslations / Google PA (Text Text)"
 
     def translate(self, text, src_lang="auto", trg_lang="ru", preset=None):
         if not text or not text.strip():
@@ -63,7 +63,7 @@ class FreeTranslationsService(BaseService):
                 res = raw_html
 
             final = self.clean_response(res)
-            print(f"[{self.name} готов за {elapsed:.2f}с]: {final[:70]}...")
+            print(f"[{self.name} Text Text {elapsed:.2f}Text]: {final[:70]}...")
             return final if final else text
 
         except urllib.error.HTTPError as he:
@@ -74,15 +74,15 @@ class FreeTranslationsService(BaseService):
 
             fast = self.fetch_fast_word(text, src=src_lang, trg=trg_lang)
             if fast: return fast
-            return f"Ошибка FreeTranslations: HTTP {he.code}"
+            return f"Error FreeTranslations: HTTP {he.code}"
 
         except Exception as e:
             elapsed = time.time() - t0
-            logger.api_summary(self.name, "Google PA API", elapsed, 0, note=f"Ошибка: {e}")
+            logger.api_summary(self.name, "Google PA API", elapsed, 0, note=f"Error: {e}")
 
             fast = self.fetch_fast_word(text, src=src_lang, trg=trg_lang)
             if fast: return fast
             print(f"[❌ FreeTranslations Error]: {e}")
-            return f"Ошибка FreeTranslations: {e}"
+            return f"Error FreeTranslations: {e}"
 
 service = FreeTranslationsService()

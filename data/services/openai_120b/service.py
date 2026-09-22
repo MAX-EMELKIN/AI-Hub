@@ -21,8 +21,8 @@ class OpenAIService(BaseService):
         return [
             {"key": "account_id", "label": "Account ID:", "required": True},
             {"key": "api_token", "label": "API Token:", "required": True},
-            {"key": "model", "label": "Модель:", "required": True},
-            {"key": "endpoint", "label": "Шаблон URL:", "required": True}
+            {"key": "model", "label": "Text:", "required": True},
+            {"key": "endpoint", "label": "Text URL:", "required": True}
         ]
 
     def translate(self, text, src_lang="auto", trg_lang="ru", preset=None):
@@ -98,14 +98,14 @@ class OpenAIService(BaseService):
                     res = data["result"]["choices"][0].get("message", {}).get("content", "")
 
             if not res:
-                return f"[{self.name}: Пустой ответ сервера]"
+                return f"[{self.name}: Text Text Text]"
 
             res = re.sub(r'<think>[\s\S]*?</think>', '', str(res), flags=re.IGNORECASE)
             res = re.sub(r'^(?:Here is the translation:?|Translation:?)\s*(\r?\n)+', '', res, flags=re.IGNORECASE)
 
             final = self.clean_response(res)
             elapsed_total = round(time.time() - t0, 2)
-            print(f"[{self.name} готов за {elapsed_total}с]: {final[:70]}...")
+            print(f"[{self.name} Text Text {elapsed_total}Text]: {final[:70]}...")
             return final if final else clean_input
 
         except urllib.error.HTTPError as he:
@@ -113,10 +113,10 @@ class OpenAIService(BaseService):
             err_body = he.read().decode("utf-8", errors="ignore")
             logger.api_raw_response(self.name, he.code, elapsed, err_body)
             logger.api_summary(self.name, model, elapsed, he.code, note=f"HTTP Error {he.code}")
-            return f"Ошибка {self.name} (HTTP {he.code}): {err_body[:200]}"
+            return f"Error {self.name} (HTTP {he.code}): {err_body[:200]}"
         except Exception as e:
             elapsed = time.time() - t_call
             logger.api_summary(self.name, model, elapsed, 0, note=f"Exception: {e}")
-            return f"Ошибка {self.name}: {e}"
+            return f"Error {self.name}: {e}"
 
 service = OpenAIService()

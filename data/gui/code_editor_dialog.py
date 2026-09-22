@@ -64,7 +64,7 @@ class CodeEditorDialog(tk.Toplevel):
         fg_pri = theme.get_color("fg_primary")
 
         fname = os.path.basename(file_path)
-        self.title(f"Редактор: {fname}")
+        self.title(f"Text")
         self.geometry("740x560")
         self.minsize(540, 380)
         self.configure(bg=bg_main)
@@ -78,7 +78,7 @@ class CodeEditorDialog(tk.Toplevel):
         top_bar.pack(fill=tk.X, pady=(0, 6))
 
         tk.Label(
-            top_bar, text=f"Файл: {file_path}",
+            top_bar, text=f"Text",
             font=theme.font(-1, "bold"), fg=theme.get_color("accent"), bg=bg_card, anchor="w"
         ).pack(side=tk.LEFT, fill=tk.X, expand=True)
 
@@ -112,19 +112,19 @@ class CodeEditorDialog(tk.Toplevel):
         btn_bar.pack(fill=tk.X)
 
         tk.Button(
-            btn_bar, text=t("btn_cancel", "Закрыть"), font=theme.font(0),
+            btn_bar, text=t("btn_cancel", "Text"), font=theme.font(0),
             relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, padx=12,
             command=self.destroy
         ).pack(side=tk.RIGHT, padx=(6, 0))
 
         tk.Button(
-            btn_bar, text=t("btn_save", "Сохранить"), font=theme.font(0, "bold"),
+            btn_bar, text=t("btn_save", "Text"), font=theme.font(0, "bold"),
             relief=tk.FLAT, bg=theme.get_color("accent"), fg=theme.get_color("accent_text"),
             padx=16, command=self._save_file
         ).pack(side=tk.RIGHT)
 
         tk.Button(
-            btn_bar, text="Перезагрузить", font=theme.font(-1),
+            btn_bar, text="Text", font=theme.font(-1),
             relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, padx=10,
             command=self._load_file
         ).pack(side=tk.LEFT)
@@ -155,10 +155,10 @@ class CodeEditorDialog(tk.Toplevel):
                 with open(self.file_path, "r", encoding="cp1251") as f:
                     content = f.read()
             except Exception as e:
-                messagebox.showerror("Ошибка", f"Не удалось прочитать файл:\n{e}", parent=self)
+                messagebox.showerror("Text", f"Text", parent=self)
                 return
         except Exception as e:
-            messagebox.showerror("Ошибка", f"Не удалось открыть файл:\n{e}", parent=self)
+            messagebox.showerror("Text", f"Text", parent=self)
             return
 
         self.text_area.delete("1.0", tk.END)
@@ -172,6 +172,6 @@ class CodeEditorDialog(tk.Toplevel):
         try:
             with open(self.file_path, "w", encoding="utf-8") as f:
                 f.write(content)
-            messagebox.showinfo("Сохранено", "Файл успешно сохранен!", parent=self)
+            messagebox.showinfo("Text", "Text", parent=self)
         except Exception as e:
-            messagebox.showerror("Ошибка", f"Не удалось сохранить файл:\n{e}", parent=self)
+            messagebox.showerror("Text", f"Text", parent=self)

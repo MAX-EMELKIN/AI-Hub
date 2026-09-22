@@ -104,7 +104,7 @@ class MainWindow(tk.Tk):
 
         self.bind("<Configure>", self._on_window_configure)
         self.protocol("WM_DELETE_WINDOW", self._on_close_clicked)
-        logger.system("Главное окно GUI инициализировано")
+        logger.system("Text")
 
     def _apply_theme_colors(self):
         self.configure(bg=theme.get_color("bg_main"))
@@ -201,13 +201,13 @@ class MainWindow(tk.Tk):
         header_frame.pack(fill=tk.X)
 
         tk.Label(
-            header_frame, text=t("services_title", "ПОДКЛЮЧЕННЫЕ НЕЙРОСЕТИ И ПЕРЕВОДЧИКИ"),
+            header_frame, text=t("services_title", "Text"),
             font=theme.font(0, "bold"), fg=accent, bg=bg_hdr
         ).pack(side=tk.LEFT)
 
         self.btn_add = tk.Button(
             header_frame,
-            text="Студия подключения и настройки сервисов",
+            text="Text",
             font=theme.font(-1, "bold"),
             relief=tk.FLAT,
             bg=theme.get_color("help_btn_bg"),
@@ -220,12 +220,12 @@ class MainWindow(tk.Tk):
         self.btn_add.pack(side=tk.RIGHT)
 
         tooltip_text = (
-            "Студия подключения и настройки сервисов:\n"
-            "- Подключение моделей по шаблонам (OpenRouter, Qwen, DeepSeek, Gemini и др.)\n"
-            "- Онлайн-запрос списка моделей, лимитов контекста и цен через API\n"
-            "- Проверка методов сервера (OPTIONS) и ручная отправка запросов\n"
-            "- Быстрый пинг и тестирование модели до создания файлов\n"
-            "- Генерация кнопок QTranslate (service.js) и скриптов Хаба (service.py)"
+            "Text"
+            "Text"
+            "Text"
+            "Text"
+            "Text"
+            "Text"
         )
         SafeTooltip(self.btn_add, tooltip_text)
 
@@ -259,7 +259,7 @@ class MainWindow(tk.Tk):
 
         self.browser_icon_photo = self._extract_chrome_icon(target_size=18)
         btn_browser_opts = {
-            "text": " " + t("btn_browser", "Браузер"),
+            "text": " " + t("btn_browser", "Text"),
             "font": theme.font(-1, "bold"),
             "relief": tk.FLAT,
             "bg": btn_bg,
@@ -277,18 +277,18 @@ class MainWindow(tk.Tk):
         if self.browser_icon_photo:
             self.btn_browser.image = self.browser_icon_photo
         self.btn_browser.pack(side=tk.LEFT, padx=2)
-        ToolTip(self.btn_browser, t("tip_browser", "Открыть окно браузера"))
+        ToolTip(self.btn_browser, t("tip_browser", "Text"))
 
         ocr_frame = tk.Frame(bottom_toolbar, bg=bg_tool)
         ocr_frame.pack(side=tk.LEFT, padx=2)
 
         btn_ocr = tk.Button(
-            ocr_frame, text=t("btn_ocr", "Снимок OCR"), font=theme.font(-1, "bold"),
+            ocr_frame, text=t("btn_ocr", "Text"), font=theme.font(-1, "bold"),
             relief=tk.FLAT, bg=btn_bg, fg=fg_pri, cursor="hand2", padx=6, pady=2,
             command=self._on_ocr_snip_click
         )
         btn_ocr.pack(side=tk.LEFT)
-        ToolTip(btn_ocr, t("tip_ocr", "Сканирование текста с экрана с передачей в QTranslate."))
+        ToolTip(btn_ocr, t("tip_ocr", "Text"))
 
         btn_ocr_settings = tk.Button(
             ocr_frame, text="⚙", font=theme.font(0, "bold"), relief=tk.FLAT,
@@ -296,39 +296,39 @@ class MainWindow(tk.Tk):
             cursor="hand2", padx=3, pady=2, command=self._on_ocr_settings_click
         )
         btn_ocr_settings.pack(side=tk.LEFT, padx=(1, 0))
-        ToolTip(btn_ocr_settings, t("tip_ocr_settings", "Настройка OCR"))
+        ToolTip(btn_ocr_settings, t("tip_ocr_settings", "Text"))
 
         btn_chat = tk.Button(
-            bottom_toolbar, text=t("btn_chat", "Чат с ИИ"), font=theme.font(-1, "bold"),
+            bottom_toolbar, text=t("btn_chat", "Text"), font=theme.font(-1, "bold"),
             relief=tk.FLAT, bg=theme.get_color("help_btn_bg"), fg=theme.get_color("help_btn_fg"),
             cursor="hand2", padx=6, pady=2, command=self._on_chat_click
         )
         btn_chat.pack(side=tk.LEFT, padx=(8, 2))
-        ToolTip(btn_chat, t("tip_chat", "Свободное общение с ИИ-моделями (с учетом контекста и поиском)"))
+        ToolTip(btn_chat, t("tip_chat", "Text"))
 
         btn_dict = tk.Button(
-            bottom_toolbar, text=t("btn_dict", "Словарь"), font=theme.font(-1, "bold"),
+            bottom_toolbar, text=t("btn_dict", "Text"), font=theme.font(-1, "bold"),
             relief=tk.FLAT, bg=btn_bg, fg=fg_pri, cursor="hand2", padx=6, pady=2,
             command=self._on_dict_click
         )
         btn_dict.pack(side=tk.LEFT, padx=2)
-        ToolTip(btn_dict, t("tip_dict", "Словарь терминов и умный глоссарий"))
+        ToolTip(btn_dict, t("tip_dict", "Text"))
 
         btn_batch = tk.Button(
-            bottom_toolbar, text=t("btn_batch", "Пакетный перевод"), font=theme.font(-1, "bold"),
+            bottom_toolbar, text=t("btn_batch", "Text"), font=theme.font(-1, "bold"),
             relief=tk.FLAT, bg=btn_bg, fg=fg_pri, cursor="hand2", padx=6, pady=2,
             command=self._on_batch_click
         )
         btn_batch.pack(side=tk.LEFT, padx=2)
-        ToolTip(btn_batch, t("tip_batch", "Пакетный перевод файлов и модов"))
+        ToolTip(btn_batch, t("tip_batch", "Text"))
 
         btn_settings = tk.Button(
-            bottom_toolbar, text=t("btn_settings", "Настройки"), font=theme.font(-1, "bold"),
+            bottom_toolbar, text=t("btn_settings", "Text"), font=theme.font(-1, "bold"),
             relief=tk.FLAT, bg=btn_bg, fg=fg_pri, cursor="hand2", padx=6, pady=2,
             command=self._on_global_settings_click
         )
         btn_settings.pack(side=tk.RIGHT, padx=2)
-        ToolTip(btn_settings, t("tip_settings", "Настройки программы"))
+        ToolTip(btn_settings, t("tip_settings", "Text"))
 
     def _load_services_list(self):
         saved_order = config.get_service_order()
@@ -388,22 +388,22 @@ class MainWindow(tk.Tk):
 
     def _on_card_drag_end(self, service_id):
         config.save_service_order(self.ordered_service_ids)
-        logger.system(f"Главное окно: сохранен новый порядок сервисов: {', '.join(self.ordered_service_ids)}")
+        logger.system(f"Text")
 
     def _on_delete_service_click(self, service):
-        msg = t("confirm_delete_msg", f"Вы действительно хотите удалить сервис «{service.name}»?", name=service.name, id=service.service_id)
-        if messagebox.askyesno(t("confirm_delete_title", "Подтверждение удаления"), msg, icon="warning", parent=self):
+        msg = t("confirm_delete_msg", f"Text", name=service.name, id=service.service_id)
+        if messagebox.askyesno(t("confirm_delete_title", "Text"), msg, icon="warning", parent=self):
             delete_service_completely(service.service_id, service.name)
-            logger.system(f"Главное окно: сервис {service.name} ({service.service_id}) удален пользователем")
+            logger.system(f"Text")
             self._load_services_list()
-            messagebox.showinfo(t("deleted_title", "Удалено"), t("deleted_msg", f"Сервис «{service.name}» удален.", name=service.name), parent=self)
+            messagebox.showinfo(t("deleted_title", "Text"), t("deleted_msg", f"Text", name=service.name), parent=self)
 
     def reload_entire_gui(self):
         self._apply_theme_colors()
         self.title(t("app_title", "QTranslate AI Hub"))
         self._build_ui()
         self._load_services_list()
-        logger.system("Главное окно: интерфейс полностью перезагружен")
+        logger.system("Text")
 
     def _open_service_settings(self, service, on_saved=None):
         ServiceSettingsDialog(self, service, on_saved_callback=on_saved)
@@ -428,7 +428,7 @@ class MainWindow(tk.Tk):
             from data.core.cdp_client import browser_cdp
             browser_cdp.toggle_browser_window()
         except Exception as e:
-            messagebox.showerror(t("status_error", "Ошибка"), str(e), parent=self)
+            messagebox.showerror(t("status_error", "Text"), str(e), parent=self)
 
     def _on_ocr_settings_click(self):
         OCRSettingsDialog(self)

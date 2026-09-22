@@ -9,18 +9,18 @@ from data.core.cdp_client import browser_cdp
 from data.core.logger import logger
 
 GOOGLE_UI_JUNK = [
-    "Преобразование речи в текст…", "Преобразование речи в текст...",
-    "Добавить файлы и инструменты", "Микрофон", "Остановить", "Повторить",
-    "Копировать", "Поделиться", "Хороший ответ", "Плохой ответ",
-    "Перейти к основному контенту", "Справка по использованию специальных возможностей",
-    "Режим ИИ", "Все", "Картинки", "Видео", "Новости", "Ещё", "Войти",
-    "Результаты поиска", "Быстрый ответ", "Оставить отзыв", "Источники",
-    "Показать больше", "Развернуть", "Свернуть", "История режима ИИ",
-    "Новый чат", "Скопировано", "Изменить", "Facebook", "Gmail", "Reddit",
-    "WhatsApp", "Поделиться ссылкой", "Отправить", "Задать вопрос по теме:",
-    "Центр управления рекламой", "Приложения Google", "Экономит время",
-    "Очистить", "Полезный", "Подробный", "Другое", "Неверный", "Недопустимый",
-    "Не работает", "Нет", "Спасибо, что сообщили нам.", "Показать все"
+    "Text Text Text Text…", "Text Text Text Text...",
+    "Text Text Text Text", "Text", "Text", "Text",
+    "Text", "Text", "Text Text", "Text Text",
+    "Text Text Text Text", "Text Text Text Text Text",
+    "Text Text", "Text", "Text", "Text", "Text", "Text", "Text",
+    "Text Text", "Text Text", "Text Text", "Text",
+    "Text Text", "Text", "Text", "Text Text Text",
+    "Text Text", "Text", "Text", "Facebook", "Gmail", "Reddit",
+    "WhatsApp", "Text Text", "Text", "Text Text Text Text:",
+    "Text Text Text", "Text Google", "Text Text",
+    "Text", "Text", "Text", "Text", "Text", "Text",
+    "Text Text", "Text", "Text, Text Text Text.", "Text Text"
 ]
 
 JS_EXTRACT_DOM = """
@@ -74,11 +74,11 @@ class GoogleAIService(BaseService):
 
     def get_config_fields(self):
         return [
-            {"key": "endpoint", "label": "Поисковый URL:", "required": True}
+            {"key": "endpoint", "label": "Text URL:", "required": True}
         ]
 
     def is_ready(self):
-        return True, "Работает через браузер Supermium (без API-ключей)"
+        return True, "Text Text Text Supermium (Text API-Text)"
 
     def is_meaningful(self, text):
         if not text or text == "ERROR_414" or len(text.strip()) < 2:
@@ -102,7 +102,7 @@ class GoogleAIService(BaseService):
         text = re.sub(r'^(?:"""|\"|\'|«|“|”|\s|\n)+', '', text)
         text = re.sub(r'(?:"""|\"|\'|»|”|\s|\n)+$', '', text)
 
-        forbidden = ["ПРАВИЛА:", "ОБЯЗАТЕЛЬНЫЕ ТРЕБОВАНИЯ:", "Сделай профессиональный перевод", "КРИТИЧЕСКОЕ ПРАВИЛО"]
+        forbidden = ["Text:", "Text Text:", "Text Text Text", "Text Text"]
         lines = text.split('\n')
         clean_lines = [l for l in lines if not any(l.strip().startswith(b) for b in forbidden)]
 
@@ -124,11 +124,11 @@ class GoogleAIService(BaseService):
             fast_res = self.fetch_fast_word(clean_input, src=source_code, trg=target_code)
             if fast_res:
                 elapsed = round(time.time() - t0, 3)
-                logger.api_summary(self.name, "Google QuickWord", elapsed, 200, note="Микро-перевод 1 слова")
-                print(f"[Google AI]: Быстрый перевод 1 слова ({elapsed}с): {fast_res}")
+                logger.api_summary(self.name, "Google QuickWord", elapsed, 200, note="Text-Text 1 Text")
+                print(f"[Google AI]: Text Text 1 Text ({elapsed}Text): {fast_res}")
                 return fast_res
 
-        logger.browser_event(f"Google AI: старт запроса ({source_code} -> {target_code}, длина: {len(clean_input)} симв.)")
+        logger.browser_event(f"Google AI: Text Text ({source_code} -> {target_code}, Text: {len(clean_input)} Text.)")
         query = self.build_prompt_query(clean_input, src_lang=source_code, trg_lang=target_code, preset=preset)
 
         endpoint = self.get_config_val("endpoint", "https://www.google.com/search")
@@ -136,9 +136,9 @@ class GoogleAIService(BaseService):
         full_url = endpoint + "?" + urllib.parse.urlencode(params)
 
         if len(full_url) > 7800:
-            logger.browser_event("Google AI: URL превысил 7800 байт (HTTP 414 limit), переключение на fallback")
+            logger.browser_event("Google AI: URL Text 7800 Text (HTTP 414 limit), Text Text fallback")
             fallback = self.fetch_fast_word(clean_input, src=source_code, trg=target_code)
-            return fallback or "[Google AI: Ошибка 414. Текст слишком длинный для поискового запроса.]"
+            return fallback or "[Google AI: Error 414. Text Text Text Text Text Text.]"
 
         try:
             browser_cdp.ensure_browser_running()
@@ -156,7 +156,7 @@ class GoogleAIService(BaseService):
                     continue
 
                 if raw_text == "ERROR_414":
-                    logger.browser_event("Google AI: зафиксирована ошибка 414 на странице, переключение на fallback")
+                    logger.browser_event("Google AI: Text Text 414 Text Text, Text Text fallback")
                     break
 
                 raw_without_prompt = self._strip_prompt_leakage(raw_text)
@@ -166,38 +166,38 @@ class GoogleAIService(BaseService):
                 if self.is_meaningful(cleaned) and cleaned.lower() != clean_input.lower():
                     if has_end_marker:
                         final_translation = cleaned
-                        logger.browser_event(f"Google AI: маркер окончания зафиксирован на такте {attempt}")
+                        logger.browser_event(f"Google AI: Text Text Text Text Text {attempt}")
                         break
 
                     if len(cleaned) == last_len and len(cleaned) > 5:
                         stable_count += 1
                         if stable_count >= 2:
                             final_translation = cleaned
-                            logger.browser_event(f"Google AI: текст стабилизировался на такте {attempt}")
+                            logger.browser_event(f"Google AI: Text Text Text Text {attempt}")
                             break
                     else:
                         stable_count = 0
                         last_len = len(cleaned)
 
             if not final_translation:
-                logger.browser_event("Google AI: ответ не успел сформироваться вовремя, выполняется fallback")
+                logger.browser_event("Google AI: Text Text Text Text Text, Text fallback")
                 fallback_res = self.fetch_fast_word(clean_input, src=source_code, trg=target_code)
                 if fallback_res:
                     final_translation = fallback_res
                 else:
-                    final_translation = "[Google AI: Сервис поиска не вернул перевод. Проверьте окно браузера.]"
+                    final_translation = "[Google AI: Text Text Text Text Text. Text Text Text.]"
 
             elapsed = round(time.time() - t0, 2)
             logger.api_summary(self.name, "Google Search AI", elapsed, 200)
-            print(f"[{self.name} готов за {elapsed}с]: {final_translation[:70]}...")
+            print(f"[{self.name} Text Text {elapsed}Text]: {final_translation[:70]}...")
             return final_translation
 
         except Exception as e:
             elapsed = round(time.time() - t0, 2)
-            logger.api_summary(self.name, "Google Search AI", elapsed, 0, note=f"Ошибка: {e}")
+            logger.api_summary(self.name, "Google Search AI", elapsed, 0, note=f"Error: {e}")
             fallback_res = self.fetch_fast_word(clean_input, src=source_code, trg=target_code)
             if fallback_res:
                 return fallback_res
-            return f"Ошибка Google AI: {e}"
+            return f"Error Google AI: {e}"
 
 service = GoogleAIService()

@@ -7,7 +7,7 @@ from data.core.i18n import t
 THEMES ={
 "light":{
 "key":"theme_light",
-"default_name":"Светлая",
+"default_name":"Text",
 "bg_main":"#f0f0f0",
 "bg_card":"#ffffff",
 "bg_card_border":"#cbd5e1",
@@ -40,7 +40,7 @@ THEMES ={
 },
 "dark":{
 "key":"theme_dark",
-"default_name":"Тёмная",
+"default_name":"Text",
 "bg_main":"#18181b",
 "bg_card":"#27272a",
 "bg_card_border":"#3f3f46",
@@ -73,7 +73,7 @@ THEMES ={
 },
 "gray":{
 "key":"theme_gray",
-"default_name":"Серый",
+"default_name":"Text",
 "bg_main":"#2d3035",
 "bg_card":"#373a40",
 "bg_card_border":"#4e525a",
@@ -106,7 +106,7 @@ THEMES ={
 },
 "nord":{
 "key":"theme_nord",
-"default_name":"Норд",
+"default_name":"Text",
 "bg_main":"#242933",
 "bg_card":"#2e3440",
 "bg_card_border":"#434c5e",
@@ -139,7 +139,7 @@ THEMES ={
 },
 "ochre":{
 "key":"theme_ochre",
-"default_name":"Охра",
+"default_name":"Text",
 "bg_main":"#2d241e",
 "bg_card":"#3a3028",
 "bg_card_border":"#54463b",
@@ -173,10 +173,10 @@ THEMES ={
 }
 
 FONT_SIZES ={
-"small":{"key":"font_small","default_name":"Компактный (8pt)","size":8 },
-"normal":{"key":"font_normal","default_name":"Стандартный (9pt)","size":9 },
-"large":{"key":"font_large","default_name":"Увеличенный (11pt)","size":11 },
-"huge":{"key":"font_huge","default_name":"Крупный (13pt)","size":13 }
+"small":{"key":"font_small","default_name":"Text","size":8 },
+"normal":{"key":"font_normal","default_name":"Text","size":9 },
+"large":{"key":"font_large","default_name":"Text","size":11 },
+"huge":{"key":"font_huge","default_name":"Text","size":13 }
 }
 
 class ThemeManager :

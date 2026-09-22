@@ -11,38 +11,38 @@ def get_base_dir ():
 
 DEFAULT_PRESETS_DATA ={
 "default":(
-"Сделай профессиональный перевод на {TARGET_LANG} с точной передачей стиля оригинала.\n"
-"ПРАВИЛА:\n"
-"1. Стиль и мимикрия: точно воспроизводи стиль, регистр и тональность источника.\n"
-"2. Терминология: устоявшиеся официальные термины пиши на целевом языке, уникальные бренды без перевода — в оригинале (без скобок с дублированием)."
+"Text Text Text Text {TARGET_LANG} Text Text Text Text Text.\n"
+"Text:\n"
+"1. Text Text Text: Text Text Text, Text Text Text Text.\n"
+"2. Text: Text Text Text Text Text Text Text, Text Text Text Text — Text Text (Text Text Text Text)."
 ),
 "games":(
-"Ты — профессиональный локализатор видеоигр. Сделай живой и атмосферный перевод на {TARGET_LANG}.\n"
-"ПРАВИЛА:\n"
-"1. Живая речь: переводи диалоги персонажей естественно. Если в оригинале есть игровой сленг, грубость, ругань или юмор — смело и сочно адаптируй их под колорит целевого языка.\n"
-"2. Игровой лор: сохраняй общепринятые игровые названия локаций, предметов и рас.\n"
-"3. Без цензуры и стерильности: сохраняй характер и интонацию говорящего персонажа."
+"Text — Text Text Text. Text Text Text Text Text Text {TARGET_LANG}.\n"
+"Text:\n"
+"1. Text Text: Text Text Text Text. Text Text Text Text Text Text, Text, Text Text Text — Text Text Text Text Text Text Text Text Text.\n"
+"2. Text Text: Text Text Text Text Text, Text Text Text.\n"
+"3. Text Text Text Text: Text Text Text Text Text Text."
 ),
 "academic":(
-"Сделай строгий технический/академический перевод на {TARGET_LANG}.\n"
-"ПРАВИЛА:\n"
-"1. Академический регистр: соблюдай нейтральный научный стиль. Никакого сленга, фамильярности или просторечий.\n"
-"2. Точность терминов: используй общепринятые государственные и отраслевые стандарты терминологии.\n"
-"3. Структурная строгость: точно передавай причинно-следственные связи и логические конструкции."
+"Text Text Text/Text Text Text {TARGET_LANG}.\n"
+"Text:\n"
+"1. Text Text: Text Text Text Text. Text Text, Text Text Text.\n"
+"2. Text Text: Text Text Text Text Text Text Text.\n"
+"3. Text Text: Text Text Text-Text Text Text Text Text."
 ),
 "literary":(
-"Ты — профессиональный художественный переводчик и писатель. Переведи этот литературный текст на {TARGET_LANG}.\n"
-"ПРАВИЛА:\n"
-"1. Художественность: используй богатый словарный запас, выразительные метафоры и красивый литературный слог.\n"
-"2. Эмоциональность: передавай атмосферу сцены, напряжение и чувства персонажей.\n"
-"3. Избегай канцеляризмов и сухого подстрочника — текст должен читаться как качественная книга."
+"Text — Text Text Text Text Text. Text Text Text Text Text {TARGET_LANG}.\n"
+"Text:\n"
+"1. Text: Text Text Text Text, Text Text Text Text Text Text.\n"
+"2. Text: Text Text Text, Text Text Text Text.\n"
+"3. Text Text Text Text Text — Text Text Text Text Text Text."
 ),
 "code":(
-"Сделай перевод текста для программистов и IT-специалистов на {TARGET_LANG}.\n"
-"ПРАВИЛА:\n"
-"1. Не переводи синтаксис языков программирования, имена функций, переменных (camelCase, snake_case), команды терминала и пути к файлам.\n"
-"2. Переводи только комментарии, описания, документацию и сообщения об ошибках.\n"
-"3. Терминологию разработки пиши общепринятым языком разработчиков."
+"Text Text Text Text Text Text IT-Text Text {TARGET_LANG}.\n"
+"Text:\n"
+"1. Text Text Text Text Text, Text Text, Text (camelCase, snake_case), Text Text Text Text Text Text.\n"
+"2. Text Text Text, Text, Text Text Text Text Text.\n"
+"3. Text Text Text Text Text Text."
 )
 }
 
@@ -110,7 +110,7 @@ class PresetManager :
                 f .write (content .strip ())
             return True
         except Exception as e :
-            print (f"[PresetManager Error]: Не удалось сохранить пресет '{preset_name }' для '{service_id }': {e }")
+            print (f"[PresetManager Error]: Text Text Text Text '{preset_name }' Text '{service_id }': {e }")
             return False
 
     def delete_preset (self ,service_id ,preset_name ):

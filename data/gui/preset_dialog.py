@@ -18,7 +18,7 @@ class PresetEditorDialog(tk.Toplevel):
         self.on_saved_callback = on_saved_callback
 
         bg_main = theme.get_color("bg_main")
-        title_prefix = t("preset_create_title", "Создать новый пресет") if is_new else t("preset_edit_title", "Редактировать пресет")
+        title_prefix = t("preset_create_title", "Text") if is_new else t("preset_edit_title", "Text")
         self.title(f"{title_prefix} — {service_id}")
         self.geometry("640x500")
         self.minsize(520, 380)
@@ -52,7 +52,7 @@ class PresetEditorDialog(tk.Toplevel):
         top_row = tk.Frame(pad_frame, bg=bg_main)
         top_row.pack(fill=tk.X, pady=(0, 8))
 
-        tk.Label(top_row, text=t("preset_name_label", "Название пресета:"), font=theme.font(0, "bold"), fg=fg_pri, bg=bg_main).pack(side=tk.LEFT, padx=(0, 8))
+        tk.Label(top_row, text=t("preset_name_label", "Text"), font=theme.font(0, "bold"), fg=fg_pri, bg=bg_main).pack(side=tk.LEFT, padx=(0, 8))
         self.name_entry = tk.Entry(top_row, font=theme.font(1), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.name_entry.insert(0, "" if self.is_new else self.preset_name)
         if not self.is_new and self.preset_name == "default":
@@ -62,7 +62,7 @@ class PresetEditorDialog(tk.Toplevel):
 
         helper_row = tk.Frame(pad_frame, bg=bg_main)
         helper_row.pack(fill=tk.X, pady=(0, 6))
-        tk.Label(helper_row, text=t("preset_tag_label", "Вставить переменную:"), font=theme.font(-1), fg=theme.get_color("fg_muted"), bg=bg_main).pack(side=tk.LEFT, padx=(0, 6))
+        tk.Label(helper_row, text=t("preset_tag_label", "Text"), font=theme.font(-1), fg=theme.get_color("fg_muted"), bg=bg_main).pack(side=tk.LEFT, padx=(0, 6))
 
         btn_tag = tk.Button(
             helper_row, text=t("preset_btn_tag", "+ {TARGET_LANG}"), font=theme.font(-1, "bold"), relief=tk.FLAT,
@@ -70,26 +70,26 @@ class PresetEditorDialog(tk.Toplevel):
             command=lambda: self.text_area.insert(tk.INSERT, "{TARGET_LANG}")
         )
         btn_tag.pack(side=tk.LEFT, padx=2)
-        ToolTip(btn_tag, t("preset_tag_tooltip", "Вставляет тег языка перевода"))
+        ToolTip(btn_tag, t("preset_tag_tooltip", "Text"))
 
         btn_row = tk.Frame(pad_frame, bg=bg_main)
         btn_row.pack(fill=tk.X, side=tk.BOTTOM, pady=(10, 0))
 
         if not self.is_new and self.preset_name != "default":
             tk.Button(
-                btn_row, text=t("preset_btn_delete", "Удалить пресет"), font=theme.font(0), relief=tk.FLAT,
+                btn_row, text=t("preset_btn_delete", "Text"), font=theme.font(0), relief=tk.FLAT,
                 bg="#ffebee", fg="#c62828", cursor="hand2", padx=10, pady=4,
                 command=self._on_delete
             ).pack(side=tk.LEFT)
 
         tk.Button(
-            btn_row, text=t("btn_cancel", "Отмена"), font=theme.font(0), relief=tk.FLAT,
+            btn_row, text=t("btn_cancel", "Text"), font=theme.font(0), relief=tk.FLAT,
             bg=theme.get_color("btn_bg"), fg=fg_pri, padx=14, pady=4, cursor="hand2",
             command=self.destroy
         ).pack(side=tk.RIGHT, padx=(8, 0))
 
         tk.Button(
-            btn_row, text=t("preset_btn_save", "Сохранить пресет"), font=theme.font(0, "bold"), relief=tk.FLAT,
+            btn_row, text=t("preset_btn_save", "Text"), font=theme.font(0, "bold"), relief=tk.FLAT,
             bg=theme.get_color("accent"), fg=theme.get_color("accent_text"),
             cursor="hand2", padx=16, pady=4, command=self._on_save
         ).pack(side=tk.RIGHT)
@@ -111,10 +111,10 @@ class PresetEditorDialog(tk.Toplevel):
         name = self.name_entry.get().strip()
         content = self.text_area.get("1.0", tk.END).strip()
         if not name:
-            messagebox.showwarning(t("btn_settings", "Внимание"), t("preset_warn_fill_name", "Введите название пресета!"), parent=self)
+            messagebox.showwarning(t("btn_settings", "Text"), t("preset_warn_fill_name", "Text"), parent=self)
             return
         if not content:
-            messagebox.showwarning(t("btn_settings", "Внимание"), t("preset_warn_fill_content", "Текст промпта не может быть пустым!"), parent=self)
+            messagebox.showwarning(t("btn_settings", "Text"), t("preset_warn_fill_content", "Text"), parent=self)
             return
 
         preset_manager.save_preset(self.service_id, name, content)
@@ -123,12 +123,12 @@ class PresetEditorDialog(tk.Toplevel):
         if self.on_saved_callback:
             self.on_saved_callback(name)
 
-        messagebox.showinfo("OK", t("preset_saved_msg", "Пресет '{name}' успешно сохранён!", name=name), parent=self)
+        messagebox.showinfo("OK", t("preset_saved_msg", "Text", name=name), parent=self)
         self.destroy()
 
     def _on_delete(self):
-        msg = t("preset_delete_confirm_msg", "Удалить пресет '{name}'?", name=self.preset_name)
-        if messagebox.askyesno(t("confirm_delete_title", "Подтверждение"), msg, parent=self):
+        msg = t("preset_delete_confirm_msg", "Text", name=self.preset_name)
+        if messagebox.askyesno(t("confirm_delete_title", "Text"), msg, parent=self):
             preset_manager.delete_preset(self.service_id, self.preset_name)
             config.set_active_preset(self.service_id, "default")
             if self.on_saved_callback:

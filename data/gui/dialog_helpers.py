@@ -23,7 +23,7 @@ class HelpPopup(tk.Toplevel):
         lbl = tk.Label(frame, text=text, justify=tk.LEFT, bg=bg, fg=fg, font=theme.font(-1), wraplength=250)
         lbl.pack(anchor="w")
 
-        hint = tk.Label(frame, text=t("help_close_hint", "* Кликните в любом месте, чтобы закрыть"), font=theme.font(-2, "italic"), fg=hint_fg, bg=bg)
+        hint = tk.Label(frame, text=t("help_close_hint", "Text"), font=theme.font(-2, "italic"), fg=hint_fg, bg=bg)
         hint.pack(anchor="w", pady=(6, 0))
 
         self.update_idletasks()
@@ -93,11 +93,11 @@ def attach_entry_context_menu(widget):
         widget.selection_range(0, tk.END)
         widget.icursor(tk.END)
 
-    menu.add_command(label=t("menu_paste", "Вставить"), command=_paste)
-    menu.add_command(label=t("menu_copy", "Копировать"), command=_copy)
-    menu.add_command(label=t("menu_cut", "Вырезать"), command=_cut)
+    menu.add_command(label=t("menu_paste", "Text"), command=_paste)
+    menu.add_command(label=t("menu_copy", "Text"), command=_copy)
+    menu.add_command(label=t("menu_cut", "Text"), command=_cut)
     menu.add_separator()
-    menu.add_command(label=t("menu_select_all", "Выделить всё"), command=_select_all)
+    menu.add_command(label=t("menu_select_all", "Text"), command=_select_all)
 
     widget.bind("<Button-3>", lambda e: menu.tk_popup(e.x_root, e.y_root))
 
@@ -160,11 +160,11 @@ def attach_text_context_menu(text_widget):
         text_widget.tag_add(tk.SEL, "1.0", tk.END)
         text_widget.mark_set(tk.INSERT, "1.0")
 
-    menu.add_command(label=t("menu_paste", "Вставить"), command=_paste)
-    menu.add_command(label=t("menu_copy", "Копировать"), command=_copy)
-    menu.add_command(label=t("menu_cut", "Вырезать"), command=_cut)
+    menu.add_command(label=t("menu_paste", "Text"), command=_paste)
+    menu.add_command(label=t("menu_copy", "Text"), command=_copy)
+    menu.add_command(label=t("menu_cut", "Text"), command=_cut)
     menu.add_separator()
-    menu.add_command(label=t("menu_select_all", "Выделить всё"), command=_select_all)
+    menu.add_command(label=t("menu_select_all", "Text"), command=_select_all)
 
     text_widget.bind("<Button-3>", lambda e: menu.tk_popup(e.x_root, e.y_root))
 

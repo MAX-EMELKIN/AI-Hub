@@ -170,7 +170,7 @@ def send_key_event (vk ,is_up =False ):
 def simulate_hardware_hotkey (hotkey_str ):
     h =str (hotkey_str ).strip ().lower ()
 
-    if h in ("double_ctrl","ctrl+ctrl","ctrl ctrl","2xctrl","двойной ctrl"):
+    if h in ("double_ctrl","ctrl+ctrl","ctrl ctrl","2xctrl","Text ctrl"):
         send_key_event (0x11 ,False )
         send_key_event (0x11 ,True )
         time .sleep (0.04 )

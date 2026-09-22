@@ -19,18 +19,18 @@ def get_base_dir ():
     return os .path .abspath (os .path .join (current_dir ,"..",".."))
 
 LANG_NAMES ={
-"ru":"русский язык","en":"английский язык","de":"немецкий язык","fr":"французский язык",
-"es":"испанский язык","it":"итальянский язык","zh":"китайский язык","zh-cn":"китайский язык (упрощенный)",
-"zh-tw":"традиционный китайский язык","ja":"японский язык","ko":"корейский язык",
-"pt":"португальский язык","pl":"польский язык","uk":"украинский язык","be":"белорусский язык",
-"tr":"турецкий язык","ar":"арабский язык","he":"иврит","iw":"иврит","hi":"хинди","nl":"нидерландский язык",
-"sv":"шведский язык","no":"норвежский язык","fi":"финский язык","da":"датский язык","cs":"чешский язык",
-"el":"греческий язык","ro":"румынский язык","hu":"венгерский язык","bg":"болгарский язык",
-"sr":"сербский язык","sk":"словацкий язык","sl":"словенский язык","hr":"хорватский язык",
-"lt":"литовский язык","lv":"латышский язык","et":"эстонский язык","vi":"вьетнамский язык",
-"th":"тайский язык","id":"индонезийский язык","ms":"малайский язык","fa":"персидский язык",
-"ka":"грузинский язык","hy":"армянский язык","az":"азербайджанский язык","kk":"казахский язык",
-"uz":"узбекский язык","tg":"таджикский язык","la":"латынь","eo":"эсперанто"
+"ru":"Text Text","en":"Text Text","de":"Text Text","fr":"Text Text",
+"es":"Text Text","it":"Text Text","zh":"Text Text","zh-cn":"Text Text (Text)",
+"zh-tw":"Text Text Text","ja":"Text Text","ko":"Text Text",
+"pt":"Text Text","pl":"Text Text","uk":"Text Text","be":"Text Text",
+"tr":"Text Text","ar":"Text Text","he":"Text","iw":"Text","hi":"Text","nl":"Text Text",
+"sv":"Text Text","no":"Text Text","fi":"Text Text","da":"Text Text","cs":"Text Text",
+"el":"Text Text","ro":"Text Text","hu":"Text Text","bg":"Text Text",
+"sr":"Text Text","sk":"Text Text","sl":"Text Text","hr":"Text Text",
+"lt":"Text Text","lv":"Text Text","et":"Text Text","vi":"Text Text",
+"th":"Text Text","id":"Text Text","ms":"Text Text","fa":"Text Text",
+"ka":"Text Text","hy":"Text Text","az":"Text Text","kk":"Text Text",
+"uz":"Text Text","tg":"Text Text","la":"Text","eo":"Text"
 }
 
 USER_AGENT ="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -47,9 +47,9 @@ class BaseService :
 
     def get_config_fields (self ):
         return [
-        {"key":"api_key","label":"API Ключ:","required":True },
-        {"key":"model","label":"Модель:","required":True },
-        {"key":"endpoint","label":"Эндпоинт URL:","required":True }
+        {"key":"api_key","label":"API Text:","required":True },
+        {"key":"model","label":"Text:","required":True },
+        {"key":"endpoint","label":"Text URL:","required":True }
         ]
 
     def get_config_val (self ,key ,default =""):
@@ -68,8 +68,8 @@ class BaseService :
                     missing .append (f ["label"].replace (":",""))
 
         if missing :
-            return False ,"Заполните данные в параметрах сервиса ("+", ".join (missing )+")"
-        return True ,"Сервис настроен и готов к работе"
+            return False ,"Text Text Text Text Text ("+", ".join (missing )+")"
+        return True ,"Text Text Text Text Text Text"
 
     def get_icon_path (self ):
         service_dir =os .path .join (self .base_dir ,"data","services",self .service_id )
@@ -85,7 +85,7 @@ class BaseService :
         return None
 
     def get_target_lang_name (self ,lang_code ):
-        return LANG_NAMES .get (str (lang_code ).lower (),f"{lang_code } язык")
+        return LANG_NAMES .get (str (lang_code ).lower (),f"{lang_code } Text")
 
     def load_preset_text (self ,preset_name =None ):
         if not preset_name :
@@ -101,14 +101,14 @@ class BaseService :
         preset_raw =self .load_preset_text (preset_name =preset )
 
         prompt_rules =re .sub (
-        r'\{TARGET_LANG\}|\{target_lang\}|\{ЯЗЫК\}|\{язык\}',
+        r'\{TARGET_LANG\}|\{target_lang\}|\{Text\}|\{Text\}',
         target_name ,
         preset_raw ,
         flags =re .IGNORECASE
         )
         if trg_lang .lower ()!="ru":
-            prompt_rules =re .sub (r'на русский язык',f'на {target_name }',prompt_rules ,flags =re .IGNORECASE )
-            prompt_rules =re .sub (r'на русский',f'на {target_name }',prompt_rules ,flags =re .IGNORECASE )
+            prompt_rules =re .sub (r'Text Text Text',f'Text {target_name }',prompt_rules ,flags =re .IGNORECASE )
+            prompt_rules =re .sub (r'Text Text',f'Text {target_name }',prompt_rules ,flags =re .IGNORECASE )
 
         enable_glossary =self .get_config_val ("enable_glossary","1")in ("1","true","yes")
         glossary_rule =""
@@ -125,16 +125,16 @@ class BaseService :
             except Exception :
                 pass
 
-        src_info =f" с языка '{src_lang }'"if (src_lang and src_lang !="auto")else ""
+        src_info =f" Text Text '{src_lang }'"if (src_lang and src_lang !="auto")else ""
 
         system_prompt =(
         f"{prompt_rules }\n\n"
-        f"ОБЯЗАТЕЛЬНЫЕ ТРЕБОВАНИЯ:\n"
-        f"1. Переведи входной текст{src_info } на {target_name } в точном соответствии со стилем.\n"
-        f"2. Выводи СТРОГО чистый готовый перевод БЕЗ вводных слов, пояснений и кавычек.\n"
-        f"3. СТРОГО СОХРАНЯЙ все переносы строк, структуру списков и абзацев оригинала! "
-        f"Категорически запрещено объединять отдельные строки и пункты в один сплошной абзац.\n"
-        f"4. Сохраняй все теги разметки, переменные и технические маркеры без изменений."
+        f"Text Text:\n"
+        f"1. Text Text Text{src_info } Text {target_name } Text Text Text Text Text.\n"
+        f"2. Text Text Text Text Text Text Text Text, Text Text Text.\n"
+        f"3. Text Text Text Text Text, Text Text Text Text Text! "
+        f"Text Text Text Text Text Text Text Text Text Text Text.\n"
+        f"4. Text Text Text Text, Text Text Text Text Text Text."
         )
 
         if glossary_rule :
@@ -186,7 +186,7 @@ class BaseService :
                     res =data ["result"].get ("response")or data ["result"].get ("output_text")or ""
                 return str (res )
             except Exception as e :
-                logger .api_summary (self .name ,model ,time .time ()-t0 ,0 ,note =f"Ошибка: {e }")
+                logger .api_summary (self .name ,model ,time .time ()-t0 ,0 ,note =f"Error: {e }")
                 return ""
 
         else :
@@ -233,7 +233,7 @@ class BaseService :
                 res =re .sub (r'<think>[\s\S]*?</think>','',str (res ),flags =re .IGNORECASE ).strip ()
                 return str (res )
             except Exception as e :
-                logger .api_summary (self .name ,model ,time .time ()-t0 ,0 ,note =f"Ошибка: {e }")
+                logger .api_summary (self .name ,model ,time .time ()-t0 ,0 ,note =f"Error: {e }")
                 return ""
 
     def build_prompt_query (self ,source_text ,src_lang ="auto",trg_lang ="ru",preset =None ):
@@ -241,8 +241,8 @@ class BaseService :
 
         query =(
         f"{system_prompt }\n\n"
-        f"5. В самом конце текста находится маркер {self .end_marker }. ОБЯЗАТЕЛЬНО выведи {self .end_marker } в самом конце перевода!\n"
-        f"6. Вывод — строго только сам перевод:\n"
+        f"5. Text Text Text Text Text Text {self .end_marker }. Text Text {self .end_marker } Text Text Text Text!\n"
+        f"6. Text — Text Text Text Text:\n"
         f'"""\n{clean_text } {self .end_marker }\n"""'
         )
         return query
@@ -296,19 +296,19 @@ class BaseService :
                     continue
                 if any (junk .lower ()==l .lower ()or l .lower ().startswith (junk .lower ())for junk in ui_junk_list ):
                     continue
-                if l .lower ().startswith ("перевод на")or l .lower ().startswith ("сделай")or l .startswith ('"""')or l .endswith ('"""'):
+                if l .lower ().startswith ("Text Text")or l .lower ().startswith ("Text")or l .startswith ('"""')or l .endswith ('"""'):
                     continue
                 pure .append (line )
             cleaned ="\n".join (pure ).strip ()
 
-        cleaned =re .sub (r'^(?:AI Overview|ИИ-ответ|Обзор от ИИ|Перевод:?|Ответ:?|Translation:?)\s*','',cleaned ,flags =re .IGNORECASE ).strip ()
+        cleaned =re .sub (r'^(Text:AI Overview|Text-Text|Text Text Text|Translation:Text|Text:Text|Translation:Text)\s*','',cleaned ,flags =re .IGNORECASE ).strip ()
 
         cleaned =re .sub (r'^(?:"""|\"|\'|«|“|”|\s|\n)+','',cleaned )
         cleaned =re .sub (r'(?:"""|\"|\'|»|”|\s|\n)+$','',cleaned )
         cleaned =re .sub (r'\n{3,}','\n\n',cleaned ).strip ()
 
         if raw_text .strip ()!=cleaned :
-            logger .text_filtering (self .name ,"Очистка текста ответа",raw_text ,cleaned )
+            logger .text_filtering (self .name ,"Text Text Text",raw_text ,cleaned )
 
         return cleaned
 
@@ -346,7 +346,7 @@ def load_all_services ():
                         if register_service_route :
                             register_service_route (attr .service_id ,attr .translate )
                             register_service_route (attr .route_name ,attr .translate )
-                        print (f"[Plugin System]: [OK] Загружен сервис: {attr .name } (ID: {attr .service_id })")
+                        print (f"[Plugin System]: [OK] Text Text: {attr .name } (ID: {attr .service_id })")
                         break
             except Exception as e :
-                print (f"[Plugin System Error]: [ERROR] Не удалось загрузить '{item }': {e }")
+                print (f"[Plugin System Error]: [ERROR] Text Text Text '{item }': {e }")

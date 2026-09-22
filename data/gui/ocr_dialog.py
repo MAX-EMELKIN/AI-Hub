@@ -16,7 +16,7 @@ class OCRSettingsDialog(tk.Toplevel):
         self.on_saved = on_saved_callback
 
         bg_main = theme.get_color("bg_main")
-        self.title(t("tip_ocr_settings", "Настройка OCR"))
+        self.title(t("tip_ocr_settings", "Text"))
         self.geometry("540x360")
         self.resizable(False, False)
         self.configure(bg=bg_main)
@@ -51,14 +51,14 @@ class OCRSettingsDialog(tk.Toplevel):
 
         r1 = tk.Frame(pad, bg=bg_main)
         r1.pack(fill=tk.X, pady=(0, 10))
-        tk.Label(r1, text=t("ocr_model_label", "Модель распознавания (OCR):"), font=theme.font(0, "bold"), fg=fg_pri, bg=bg_main).pack(side=tk.LEFT)
+        tk.Label(r1, text=t("ocr_model_label", "Text"), font=theme.font(0, "bold"), fg=fg_pri, bg=bg_main).pack(side=tk.LEFT)
         self.combo_model = ttk.Combobox(r1, values=ocr_engine.get_available_models(), state="readonly", width=14, font=theme.font(0))
         self.combo_model.set(ocr_engine.get_active_model())
         self.combo_model.pack(side=tk.RIGHT)
 
         r2 = tk.Frame(pad, bg=bg_main)
         r2.pack(fill=tk.X, pady=(0, 8))
-        tk.Label(r2, text=t("ocr_key_label", "Клавиша вызова в QTranslate:"), font=theme.font(0, "bold"), fg=fg_pri, bg=bg_main).pack(side=tk.LEFT)
+        tk.Label(r2, text=t("ocr_key_label", "Text"), font=theme.font(0, "bold"), fg=fg_pri, bg=bg_main).pack(side=tk.LEFT)
 
         cur_key = config.get_str("QTRANSLATE", "SummonHotkey", "F1").strip()
         self.entry_key = tk.Entry(r2, font=theme.font(1, "bold"), width=16, justify="center", bg=in_bg, fg=theme.get_color("accent"), relief=tk.SOLID, bd=1)
@@ -67,21 +67,21 @@ class OCRSettingsDialog(tk.Toplevel):
         self.entry_key.bind("<KeyPress>", self._on_key_press)
         attach_entry_context_menu(self.entry_key)
 
-        help_box = tk.LabelFrame(pad, text=t("ocr_help_title", "Пояснение"), font=theme.font(-1, "bold"), fg=fg_pri, bg=bg_card, padx=10, pady=8)
+        help_box = tk.LabelFrame(pad, text=t("ocr_help_title", "Text"), font=theme.font(-1, "bold"), fg=fg_pri, bg=bg_card, padx=10, pady=8)
         help_box.pack(fill=tk.BOTH, expand=True, pady=(2, 12))
 
         default_ocr_help = (
-            "* При снимке экрана текст мгновенно отправляется в верхнее поле QTranslate.\n"
-            "* Перевод выполняется сервисом, который выбран в самом окне QTranslate.\n"
-            "* Текст заменяется чисто без затирания буфера обмена."
+            "Text"
+            "Text"
+            "Text"
         )
         tk.Label(help_box, text=t("ocr_help_text", default_ocr_help), font=theme.font(-1), justify="left", fg=theme.get_color("fg_secondary"), bg=bg_card).pack(anchor="w")
 
         btn_bar = tk.Frame(pad, bg=bg_main)
         btn_bar.pack(fill=tk.X)
 
-        tk.Button(btn_bar, text=t("btn_cancel", "Отмена"), font=theme.font(0), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, padx=10, command=self.destroy).pack(side=tk.RIGHT, padx=(6, 0))
-        tk.Button(btn_bar, text=t("btn_save", "Сохранить"), font=theme.font(0, "bold"), relief=tk.FLAT, bg=theme.get_color("accent"), fg=theme.get_color("accent_text"), padx=14, command=self._on_save).pack(side=tk.RIGHT)
+        tk.Button(btn_bar, text=t("btn_cancel", "Text"), font=theme.font(0), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, padx=10, command=self.destroy).pack(side=tk.RIGHT, padx=(6, 0))
+        tk.Button(btn_bar, text=t("btn_save", "Text"), font=theme.font(0, "bold"), relief=tk.FLAT, bg=theme.get_color("accent"), fg=theme.get_color("accent_text"), padx=14, command=self._on_save).pack(side=tk.RIGHT)
 
     def _on_key_press(self, event):
         keysym = event.keysym

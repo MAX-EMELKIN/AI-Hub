@@ -2,7 +2,7 @@
 # data/core/templates/common_js.py
 
 JS_SERVICE_TEMPLATE = """// =============================================================================
-// Сервис: {SERVICE_NAME} (Автономный мост к AI Hub)
+// Text: {SERVICE_NAME} (Text Text Text AI Hub)
 // ID: {QT_ID}
 // =============================================================================
 
@@ -104,15 +104,15 @@ function serviceTranslateRequest(text, from, to) {
 
 function serviceTranslateResponse(original, json, from, to) {
     try {
-        if (!json) return new ResponseData(original + Const.NL2 + "[AI Hub: Сервер не ответил]", from, to);
+        if (!json) return new ResponseData(original + Const.NL2 + "[AI Hub: Text Text Text]", from, to);
         var data = parseJSON(json);
-        if (!data) return new ResponseData(original + Const.NL2 + "[Ошибка парсера JSON]", from, to);
-        if (data.error) return new ResponseData(original + Const.NL2 + "[Ошибка: " + data.error + "]", from, to);
+        if (!data) return new ResponseData(original + Const.NL2 + "[Error Text JSON]", from, to);
+        if (data.error) return new ResponseData(original + Const.NL2 + "[Error: " + data.error + "]", from, to);
 
         var result = trimString(String(data.response || ""));
         return new ResponseData(result, from, to);
     } catch (e) {
-        return new ResponseData(original + Const.NL2 + "[Ошибка: " + (e.message || e) + "]", from, to);
+        return new ResponseData(original + Const.NL2 + "[Error: " + (e.message || e) + "]", from, to);
     }
 }
 """

@@ -31,33 +31,33 @@ SEC_MS_GEC_VERSION ="1-140.0.3485.14"
 
 POPULAR_VOICES ={
 "ru":[
-("ru-RU-SvetlanaNeural","Светлана (Женский, РФ)"),
-("ru-RU-DmitryNeural","Дмитрий (Мужской, РФ)")
+("ru-RU-SvetlanaNeural","Text (Text, Text)"),
+("ru-RU-DmitryNeural","Text (Text, Text)")
 ],
 "en":[
-("en-US-JennyNeural","Jenny (Женский, США)"),
-("en-US-GuyNeural","Guy (Мужской, США)"),
-("en-GB-SoniaNeural","Sonia (Женский, Британия)")
+("en-US-JennyNeural","Jenny (Text, Text)"),
+("en-US-GuyNeural","Guy (Text, Text)"),
+("en-GB-SoniaNeural","Sonia (Text, Text)")
 ],
 "de":[
-("de-DE-KatjaNeural","Katja (Женский, Германия)"),
-("de-DE-StefanNeural","Stefan (Мужской, Германия)")
+("de-DE-KatjaNeural","Katja (Text, Text)"),
+("de-DE-StefanNeural","Stefan (Text, Text)")
 ],
 "zh":[
-("zh-CN-XiaoxiaoNeural","Xiaoxiao (Женский, Китай)"),
-("zh-CN-YunxiNeural","Yunxi (Мужской, Китай)")
+("zh-CN-XiaoxiaoNeural","Xiaoxiao (Text, Text)"),
+("zh-CN-YunxiNeural","Yunxi (Text, Text)")
 ],
 "ja":[
-("ja-JP-NanamiNeural","Nanami (Женский, Япония)"),
-("ja-JP-KeitaNeural","Keita (Мужской, Япония)")
+("ja-JP-NanamiNeural","Nanami (Text, Text)"),
+("ja-JP-KeitaNeural","Keita (Text, Text)")
 ],
 "es":[
-("es-ES-ElviraNeural","Elvira (Женский, Испания)"),
-("es-ES-AlvaroNeural","Alvaro (Мужской, Испания)")
+("es-ES-ElviraNeural","Elvira (Text, Text)"),
+("es-ES-AlvaroNeural","Alvaro (Text, Text)")
 ],
 "fr":[
-("fr-FR-DeniseNeural","Denise (Женский, Франция)"),
-("fr-FR-HenriNeural","Henri (Мужской, Франция)")
+("fr-FR-DeniseNeural","Denise (Text, Text)"),
+("fr-FR-HenriNeural","Henri (Text, Text)")
 ]
 }
 
@@ -111,7 +111,7 @@ def grab_selection_from_target_hwnd (target_hwnd =None ):
 
     text =read_clipboard_text ()
     if text :
-        logger .system (f"TTS: захвачен выделенный текст ({len (text )} симв.): '{text [:60 ]}...'")
+        logger .system (f"TTS: Text Text Text ({len (text )} Text.): '{text [:60 ]}...'")
     return text
 
 get_selected_text_from_active_window =grab_selection_from_target_hwnd
@@ -152,8 +152,8 @@ class TTSEngine :
             try :
                 winmm .mciSendStringW ("stop qsound",None ,0 ,None )
                 winmm .mciSendStringW ("close qsound",None ,0 ,None )
-                logger .system ("TTS: воспроизведение звука остановлено")
-                print ("[TTS]: Воспроизведение звука остановлено.")
+                logger .system ("TTS: Text Text Text")
+                print ("[TTS]: Text Text Text.")
                 return True
             except Exception :
                 pass
@@ -207,7 +207,7 @@ class TTSEngine :
         )
 
         t0 =time .time ()
-        logger .system (f"TTS: генерация речи (голос: {voice }, скорость: {speed_str }, символов: {len (clean_text )})")
+        logger .system (f"TTS: Text Text (Text: {voice }, Text: {speed_str }, Text: {len (clean_text )})")
 
         try :
             parsed =urllib .parse .urlparse (ws_url )
@@ -236,8 +236,8 @@ class TTSEngine :
             resp =sock .recv (2048 ).decode ("utf-8",errors ="ignore")
             if " 101 "not in resp :
                 sock .close ()
-                err_line =resp .split ('\r\n')[0 ]if resp else "Нет ответа"
-                raise Exception (f"Microsoft Edge TTS вернул: {err_line }")
+                err_line =resp .split ('\r\n')[0 ]if resp else "Text Text"
+                raise Exception (f"Microsoft Edge TTS Text: {err_line }")
 
             cfg_payload =(
             f"X-Timestamp:{time .strftime ('%a %b %d %Y %H:%M:%S GMT+0000')}\r\n"
@@ -285,11 +285,11 @@ class TTSEngine :
 
             sock .close ()
             elapsed =time .time ()-t0
-            logger .system (f"TTS: аудиопоток успешно получен за {elapsed :.2f}с ({len (audio_bytes )} байт)")
+            logger .system (f"TTS: Text Text Text Text {elapsed :.2f}Text ({len (audio_bytes )} Text)")
             return bytes (audio_bytes )
 
         except Exception as e :
-            logger .system (f"TTS Ошибка: {e }")
+            logger .system (f"TTS Error: {e }")
             print (f"[TTS Error]: {e }")
             raise e
 
@@ -328,11 +328,11 @@ class TTSEngine :
 
                 winmm .mciSendStringW (f'open "{temp_file }" type mpegvideo alias qsound',None ,0 ,None )
                 winmm .mciSendStringW ("play qsound",None ,0 ,None )
-                logger .system (f"TTS: воспроизведение через winmm mci ({len (audio_bytes )} байт)")
-                print (f"[TTS]: Воспроизведение звука ({len (audio_bytes )} байт)")
+                logger .system (f"TTS: Text Text winmm mci ({len (audio_bytes )} Text)")
+                print (f"[TTS]: Text Text ({len (audio_bytes )} Text)")
                 return True
             except Exception as e :
-                logger .system (f"TTS Ошибка воспроизведения: {e }")
+                logger .system (f"TTS Error Text: {e }")
                 print (f"[Audio Player Error]: {e }")
                 return False
 

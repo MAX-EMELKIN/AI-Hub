@@ -16,7 +16,7 @@ def setup_config(api_config, slug, model_str):
     api_config.set_val(slug, "endpoint", DEFAULT_ENDPOINT)
     api_config.set_val(slug, "connection_mode", "direct")
     api_config.set_val(slug, "proxy", "213.165.38.49:1080")
-    api_config.set_val(slug, "doh_preset", "Comss.one (SmartDNS / РФ обход)")
+    api_config.set_val(slug, "doh_preset", "Comss.one (SmartDNS / Text Text)")
     api_config.set_val(slug, "temperature", "0.1")
     api_config.set_val(slug, "top_p", "0.2")
     api_config.set_val(slug, "max_tokens", "3072")
@@ -25,8 +25,8 @@ def setup_config(api_config, slug, model_str):
 
 PYTHON_TEMPLATE = """# -*- coding: utf-8 -*-
 \"\"\"
-Модуль: data/services/{SERVICE_ID_SLUG}/service.py
-Назначение: Плагин {SERVICE_NAME} через Cloudflare Workers AI.
+Text: data/services/{SERVICE_ID_SLUG}/service.py
+Text: Text {SERVICE_NAME} Text Cloudflare Workers AI.
 \"\"\"
 
 import os
@@ -46,7 +46,7 @@ from data.services.base_service import BaseService
 from data.core.logger import logger
 
 CLOUDFLARE_DOH_PRESETS = {
-    "Comss.one (SmartDNS / РФ обход)": {
+    "Comss.one (SmartDNS / Text Text)": {
         "url": "https://dns.comss.one/dns-query",
         "host": "dns.comss.one",
         "bootstrap_ip": "195.133.25.16"
@@ -98,7 +98,7 @@ def _recv_all(sock, n):
     while len(data) < n:
         packet = sock.recv(n - len(data))
         if not packet:
-            raise ConnectionError("Соединение закрыто сервером.")
+            raise ConnectionError("Text Text Text.")
         data.extend(packet)
     return bytes(data)
 
@@ -111,7 +111,7 @@ def create_socks5_socket(proxy_host, proxy_port, dest_host, dest_port, timeout=3
     resp = _recv_all(s, 2)
     if resp[0] != 5 or resp[1] != 0:
         s.close()
-        raise ConnectionError("SOCKS5 прокси отклонил соединение.")
+        raise ConnectionError("SOCKS5 Text Text Text.")
 
     dest_bytes = dest_host.encode("utf-8")
     req = b"\\x05\\x01\\x00\\x03" + bytes([len(dest_bytes)]) + dest_bytes + struct.pack("!H", dest_port)
@@ -120,7 +120,7 @@ def create_socks5_socket(proxy_host, proxy_port, dest_host, dest_port, timeout=3
     resp_header = _recv_all(s, 4)
     if resp_header[0] != 5 or resp_header[1] != 0:
         s.close()
-        raise ConnectionError(f"SOCKS5 ошибка подключения (код: {resp_header[1]})")
+        raise ConnectionError(f"SOCKS5 Text Text (Text: {resp_header[1]})")
 
     atyp = resp_header[3]
     if atyp == 1:
@@ -184,19 +184,19 @@ class CustomService(BaseService):
         return [
             {"key": "account_id", "label": "Account ID:", "required": True},
             {"key": "api_token", "label": "API Token:", "required": True},
-            {"key": "model", "label": "Модель (@cf/...):", "required": True},
-            {"key": "endpoint", "label": "Шаблон URL:", "required": True},
-            {"key": "connection_mode", "label": "Режим сети (direct/proxy/doh):", "required": True},
-            {"key": "proxy", "label": "Адрес SOCKS5 (хост:порт):", "required": False},
-            {"key": "doh_preset", "label": "DoH Пресет:", "required": False}
+            {"key": "model", "label": "Text (@cf/...):", "required": True},
+            {"key": "endpoint", "label": "Text URL:", "required": True},
+            {"key": "connection_mode", "label": "Text Text (direct/proxy/doh):", "required": True},
+            {"key": "proxy", "label": "Text SOCKS5 (Text:Text):", "required": False},
+            {"key": "doh_preset", "label": "DoH Text:", "required": False}
         ]
 
     def is_ready(self):
         acc = self.get_config_val("account_id", "").strip()
         tok = self.get_config_val("api_token", "").strip()
         if not acc or not tok:
-            return False, "Укажите Account ID и API Token в параметрах"
-        return True, "Сервис {SERVICE_NAME} настроен и готов к работе"
+            return False, "Text Account ID Text API Token Text Text"
+        return True, "Text {SERVICE_NAME} Text Text Text Text Text"
 
     def _execute_request_raw(self, url, payload_bytes, headers, timeout=60.0):
         conn_mode = self.get_config_val("connection_mode", "direct").lower().strip()
@@ -237,7 +237,7 @@ class CustomService(BaseService):
                     if not chunk: break
                     response_bytes.extend(chunk)
                 except ConnectionResetError:
-                    # Игнорируем [WinError 10054], если мы уже получаем данные
+                    # info [WinError 10054], info info info info info
                     break
             sock.close()
 
@@ -258,7 +258,7 @@ class CustomService(BaseService):
             return status_code, raw_str
 
         elif conn_mode == "doh":
-            preset_name = self.get_config_val("doh_preset", "Comss.one (SmartDNS / РФ обход)")
+            preset_name = self.get_config_val("doh_preset", "Comss.one (SmartDNS / Text Text)")
             doh_url = CLOUDFLARE_DOH_PRESETS.get(preset_name, {}).get("url") or "https://dns.comss.one/dns-query"
             ip = resolve_doh(dest_host, doh_url)
 
@@ -366,21 +366,21 @@ class CustomService(BaseService):
                     res = data["result"]["choices"][0].get("message", {}).get("content", "")
 
             if not res:
-                return f"[{self.name}: Пустой ответ сервера]"
+                return f"[{self.name}: Text Text Text]"
 
             res = str(res)
             res = re.sub(r'<think>[\\s\\S]*?</think>', '', res, flags=re.IGNORECASE)
-            res = re.sub(r'^(?:Here is the translation:?|Translation:?|Вот перевод:?|Перевод:?)\\s*(\\r?\\n)+', '', res, flags=re.IGNORECASE)
+            res = re.sub(r'^(Text:Here is the translation:Text|Translation:Text|Text Text:Text|Translation:Text)\\s*(\\rText\\n)+', '', res, flags=re.IGNORECASE)
 
             final = self.clean_response(res)
             elapsed_total = round(time.time() - t0, 2)
-            print(f"[{self.name} готов за {elapsed_total}с]: {final[:70]}...")
+            print(f"[{self.name} Text Text {elapsed_total}Text]: {final[:70]}...")
             return final if final else clean_input
 
         except Exception as e:
             elapsed = time.time() - t_call
             logger.api_summary(self.name, model, elapsed, 0, note=f"Exception: {e}")
-            return f"Ошибка Cloudflare AI: {e}"
+            return f"Error Cloudflare AI: {e}"
 
 service = CustomService()
 """

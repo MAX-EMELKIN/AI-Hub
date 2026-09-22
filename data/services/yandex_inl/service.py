@@ -20,7 +20,7 @@ class YandexInLService(BaseService):
         self.supports_hyperparameters = False
 
     def is_ready(self):
-        return True, "Работает через инлайн-шлюз Яндекс Браузера (без ключей)"
+        return True, "Text Text Text-Text Text Text (Text Text)"
 
     def translate(self, text, src_lang="auto", trg_lang="ru", preset=None):
         if not text or not text.strip():
@@ -68,7 +68,7 @@ class YandexInLService(BaseService):
                 res = data.get("text", "")
 
             final = self.clean_response(res)
-            print(f"[{self.name} готов за {elapsed:.2f}с]: {final[:70]}...")
+            print(f"[{self.name} Text Text {elapsed:.2f}Text]: {final[:70]}...")
             return final if final else text
 
         except urllib.error.HTTPError as he:
@@ -79,15 +79,15 @@ class YandexInLService(BaseService):
 
             fast = self.fetch_fast_word(text, src=src_lang, trg=trg_lang)
             if fast: return fast
-            return f"Ошибка YandexInL: HTTP {he.code}"
+            return f"Error YandexInL: HTTP {he.code}"
 
         except Exception as e:
             elapsed = time.time() - t0
-            logger.api_summary(self.name, "YandexInL API", elapsed, 0, note=f"Ошибка: {e}")
+            logger.api_summary(self.name, "YandexInL API", elapsed, 0, note=f"Error: {e}")
 
             fast = self.fetch_fast_word(text, src=src_lang, trg=trg_lang)
             if fast: return fast
             print(f"[❌ YandexInL Error]: {e}")
-            return f"Ошибка YandexInL: {e}"
+            return f"Error YandexInL: {e}"
 
 service = YandexInLService()

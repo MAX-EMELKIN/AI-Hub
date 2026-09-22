@@ -29,7 +29,7 @@ class ModelSelectorDialog(tk.Toplevel):
 
         theme.apply_ttk_theme(self)
 
-        self.title("Обозреватель моделей API")
+        self.title("Text")
         self.geometry("780x640")
         self.minsize(620, 480)
         self.configure(bg=theme.get_color("bg_main"))
@@ -83,7 +83,7 @@ class ModelSelectorDialog(tk.Toplevel):
         url_box = tk.Frame(pad, bg=bg_card, padx=8, pady=6, relief=tk.SOLID, bd=1)
         url_box.pack(fill=tk.X, pady=(0, 6))
 
-        tk.Label(url_box, text="URL запроса:", font=theme.font(-1, "bold"), bg=bg_card, fg=fg_pri).pack(side=tk.LEFT)
+        tk.Label(url_box, text="Text", font=theme.font(-1, "bold"), bg=bg_card, fg=fg_pri).pack(side=tk.LEFT)
         default_url = self._resolve_models_url(self.endpoint_url, self.template_id, self.account_id)
         self.ent_url = tk.Entry(url_box, font=theme.font(-1), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_url.insert(0, default_url)
@@ -91,7 +91,7 @@ class ModelSelectorDialog(tk.Toplevel):
         attach_entry_context_menu(self.ent_url)
 
         tk.Button(
-            url_box, text="Отправить", font=theme.font(-1, "bold"), relief=tk.FLAT,
+            url_box, text="Text", font=theme.font(-1, "bold"), relief=tk.FLAT,
             bg=theme.get_color("accent"), fg=theme.get_color("accent_text"), padx=8,
             command=lambda: self._start_fetch(self.ent_url.get().strip())
         ).pack(side=tk.LEFT, padx=(0, 4))
@@ -101,12 +101,12 @@ class ModelSelectorDialog(tk.Toplevel):
             bg=btn_bg, fg=fg_pri, padx=6, command=self._check_options
         )
         btn_opt.pack(side=tk.LEFT)
-        ToolTip(btn_opt, "Проверить поддерживаемые HTTP-методы сервера (Allow: POST, OPTIONS, GET) без списания токенов")
+        ToolTip(btn_opt, "Text")
 
         filter_box = tk.Frame(pad, bg=bg_card, padx=8, pady=6, relief=tk.SOLID, bd=1)
         filter_box.pack(fill=tk.X, pady=(0, 6))
 
-        tk.Label(filter_box, text="Поиск:", font=theme.font(0), bg=bg_card, fg=fg_pri).pack(side=tk.LEFT)
+        tk.Label(filter_box, text="Text", font=theme.font(0), bg=bg_card, fg=fg_pri).pack(side=tk.LEFT)
         self.e_search = tk.Entry(filter_box, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1, width=22)
         self.e_search.pack(side=tk.LEFT, padx=(4, 10))
         self.e_search.bind("<KeyRelease>", lambda e: self._apply_filter())
@@ -114,12 +114,12 @@ class ModelSelectorDialog(tk.Toplevel):
 
         self.var_free_only = tk.BooleanVar(value=False)
         self.chk_free = tk.Checkbutton(
-            filter_box, text="Только бесплатные (:free / 0$)", variable=self.var_free_only,
+            filter_box, text="Text", variable=self.var_free_only,
             bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(0), command=self._apply_filter
         )
         self.chk_free.pack(side=tk.LEFT)
 
-        self.lbl_count = tk.Label(filter_box, text="Загрузка...", font=theme.font(-1), bg=bg_card, fg=theme.get_color("fg_muted"))
+        self.lbl_count = tk.Label(filter_box, text="Text", font=theme.font(-1), bg=bg_card, fg=theme.get_color("fg_muted"))
         self.lbl_count.pack(side=tk.RIGHT)
 
         body_frame = tk.Frame(pad, bg=bg_main)
@@ -147,41 +147,41 @@ class ModelSelectorDialog(tk.Toplevel):
         self.lb_models.bind("<<ListboxSelect>>", self._on_list_select)
         self._bind_context_menu()
 
-        detail_box = tk.LabelFrame(pad, text=" Характеристики выбранной модели ", font=theme.font(-1, "bold"), bg=bg_card, fg=fg_pri, padx=8, pady=6)
+        detail_box = tk.LabelFrame(pad, text="Text", font=theme.font(-1, "bold"), bg=bg_card, fg=fg_pri, padx=8, pady=6)
         detail_box.pack(fill=tk.X, pady=(6, 0))
 
         self.txt_details = tk.Text(detail_box, height=4, font=theme.font(-1), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1, wrap=tk.WORD)
         self.txt_details.pack(fill=tk.X)
-        self.txt_details.insert("1.0", "Выберите модель из списка для просмотра технических характеристик...")
+        self.txt_details.insert("1.0", "Text")
         self.txt_details.config(state=tk.DISABLED)
 
         btn_bar = tk.Frame(pad, bg=bg_main, pady=6)
         btn_bar.pack(fill=tk.X)
 
         tk.Button(
-            btn_bar, text="Отмена", font=theme.font(0), relief=tk.FLAT,
+            btn_bar, text="Text", font=theme.font(0), relief=tk.FLAT,
             bg=btn_bg, fg=fg_pri, padx=12, command=self.destroy
         ).pack(side=tk.RIGHT, padx=(6, 0))
 
         tk.Button(
-            btn_bar, text="Выбрать модель", font=theme.font(0, "bold"), relief=tk.FLAT,
+            btn_bar, text="Text", font=theme.font(0, "bold"), relief=tk.FLAT,
             bg=theme.get_color("accent"), fg=theme.get_color("accent_text"), padx=14,
             command=self._on_select
         ).pack(side=tk.RIGHT)
 
         tk.Button(
-            btn_bar, text="Копировать", font=theme.font(-1), relief=tk.FLAT,
+            btn_bar, text="Text", font=theme.font(-1), relief=tk.FLAT,
             bg=btn_bg, fg=fg_pri, padx=8, command=self._copy_selection
         ).pack(side=tk.LEFT, padx=(0, 4))
 
         tk.Button(
-            btn_bar, text="Экспорт в TXT", font=theme.font(-1), relief=tk.FLAT,
+            btn_bar, text="Text", font=theme.font(-1), relief=tk.FLAT,
             bg=btn_bg, fg=fg_pri, padx=8, command=self._export_to_txt
         ).pack(side=tk.LEFT)
 
     def _start_fetch(self, target_url):
         self.lb_models.delete(0, tk.END)
-        self.lbl_count.config(text="Запрос моделей к API...")
+        self.lbl_count.config(text="Text")
         self.models_data.clear()
 
         def _worker():
@@ -216,9 +216,9 @@ class ModelSelectorDialog(tk.Toplevel):
         ctx.verify_mode = ssl.CERT_NONE
         with urllib.request.urlopen(req, context=ctx, timeout=timeout) as resp:
             if method == "OPTIONS":
-                allow = resp.headers.get("Allow", "Не указан")
-                cors = resp.headers.get("Access-Control-Allow-Methods", "Не указан")
-                return f"HTTP {resp.status}\nМетоды (Allow): {allow}\nCORS: {cors}"
+                allow = resp.headers.get("Allow", "Text")
+                cors = resp.headers.get("Access-Control-Allow-Methods", "Text")
+                return f"Text"
             return resp.read().decode("utf-8", errors="replace")
 
     def _socks5_request(self, url, headers, proxy_str, timeout=12, method="GET"):
@@ -236,7 +236,7 @@ class ModelSelectorDialog(tk.Toplevel):
         sock.sendall(b"\x05\x01\x00")
         if sock.recv(2) != b"\x05\x00":
             sock.close()
-            raise ConnectionError("SOCKS5 отклонил авторизацию")
+            raise ConnectionError("Text")
 
         d_bytes = host.encode("idna")
         req = bytearray(b"\x05\x01\x00\x03") + bytearray([len(d_bytes)]) + d_bytes + port.to_bytes(2, "big")
@@ -244,7 +244,7 @@ class ModelSelectorDialog(tk.Toplevel):
         rep = sock.recv(10)
         if len(rep) < 4 or rep[1] != 0:
             sock.close()
-            raise ConnectionError("SOCKS5 CONNECT не удался")
+            raise ConnectionError("Text")
 
         client = ssl.create_default_context().wrap_socket(sock, server_hostname=host) if parsed.scheme == "https" else sock
         lines = [f"{method} {path} HTTP/1.1", f"Host: {host}", "Connection: close"]
@@ -277,7 +277,7 @@ class ModelSelectorDialog(tk.Toplevel):
 
     def _check_options(self):
         url = self.ent_url.get().strip()
-        self.lbl_count.config(text="Запрос OPTIONS...")
+        self.lbl_count.config(text="Text")
         def _worker():
             try:
                 headers = {"User-Agent": "QTranslate-AI-Hub/2.0", "Accept": "*/*"}
@@ -285,10 +285,10 @@ class ModelSelectorDialog(tk.Toplevel):
                     info = self._socks5_request(url, headers, proxy_str=self.proxy, timeout=8, method="OPTIONS")
                 else:
                     info = self._direct_request(url, headers, timeout=8, method="OPTIONS")
-                self.after(0, lambda: messagebox.showinfo("OPTIONS Сервера", info, parent=self))
-                self.after(0, lambda: self.lbl_count.config(text="OPTIONS успешно проверен"))
+                self.after(0, lambda: messagebox.showinfo("Text", info, parent=self))
+                self.after(0, lambda: self.lbl_count.config(text="Text"))
             except Exception as e:
-                self.after(0, lambda: messagebox.showerror("Ошибка OPTIONS", str(e), parent=self))
+                self.after(0, lambda: messagebox.showerror("Text", str(e), parent=self))
         threading.Thread(target=_worker, daemon=True).start()
 
     def _parse_models(self, raw_str):
@@ -331,10 +331,10 @@ class ModelSelectorDialog(tk.Toplevel):
         self._apply_filter()
 
     def _on_fetch_error(self, err_msg):
-        self.lbl_count.config(text="Ошибка загрузки")
+        self.lbl_count.config(text="Text")
         self.txt_details.config(state=tk.NORMAL)
         self.txt_details.delete("1.0", tk.END)
-        self.txt_details.insert("1.0", f"Не удалось получить список моделей:\n{err_msg}")
+        self.txt_details.insert("1.0", f"Text")
         self.txt_details.config(state=tk.DISABLED)
 
     def _apply_filter(self):
@@ -358,7 +358,7 @@ class ModelSelectorDialog(tk.Toplevel):
             prefix = "[FREE] " if is_free else ""
             self.lb_models.insert(tk.END, f"{prefix}{m_id}")
 
-        self.lbl_count.config(text=f"Найдено: {len(self.displayed_items)} из {len(self.models_data)}")
+        self.lbl_count.config(text=f"Text")
 
     def _on_list_select(self, event=None):
         sel = self.lb_models.curselection()
@@ -366,17 +366,17 @@ class ModelSelectorDialog(tk.Toplevel):
             return
         m = self.displayed_items[sel[0]]
 
-        lines = [f"Модель: {m['id']}"]
+        lines = [f"Text"]
         if m.get("context"):
             ctx_val = int(m['context'])
-            lines.append(f"Контекст: {ctx_val:,} токенов (~{round(ctx_val/1024)}K)")
+            lines.append(f"Text")
         if isinstance(m.get("pricing"), dict):
             p = m["pricing"]
-            lines.append(f"Цены: Ввод ${p.get('prompt', '0')} / Вывод ${p.get('completion', '0')} (за 1M токенов)")
+            lines.append(f"Text")
         if m.get("modality"):
-            lines.append(f"Модальность: {m['modality']}")
+            lines.append(f"Text")
         if m.get("desc"):
-            lines.append(f"Описание: {m['desc'][:140]}...")
+            lines.append(f"Text")
 
         self.txt_details.config(state=tk.NORMAL)
         self.txt_details.delete("1.0", tk.END)
@@ -410,17 +410,17 @@ class ModelSelectorDialog(tk.Toplevel):
         out_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "available_models_list.txt")
         out_path = os.path.abspath(out_path)
         with open(out_path, "w", encoding="utf-8") as f:
-            f.write(f"Список моделей для: {self.ent_url.get()}\nВсего найдено: {len(self.models_data)}\n\n")
+            f.write(f"Text")
             for m in self.models_data:
                 f.write(f"- {m['id']}\n")
                 if m.get("context"):
-                    f.write(f"  Контекст: {m['context']}\n")
+                    f.write(f"Text")
                 if m.get("pricing"):
-                    f.write(f"  Цены: {m['pricing']}\n")
+                    f.write(f"Text")
         open_file_in_smart_editor(out_path, self)
 
     def _bind_context_menu(self):
         menu = tk.Menu(self, tearoff=0)
-        menu.add_command(label="Копировать ID модели", command=self._copy_selection)
-        menu.add_command(label="Выбрать эту модель", command=self._on_select)
+        menu.add_command(label="Text", command=self._copy_selection)
+        menu.add_command(label="Text", command=self._on_select)
         self.lb_models.bind("<Button-3>", lambda e: menu.tk_popup(e.x_root, e.y_root))

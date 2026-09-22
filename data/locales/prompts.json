@@ -1,0 +1,22 @@
+{
+  "prompts": {
+    "web_search": {
+      "system_agent": "You are an intelligent search assistant. Analyze the user query and provide relevant, concise information from the web search results.",
+      "filter_summary": "Summarize and extract key facts from the following text concisely. Remove ads and irrelevant content:\n\n{text}"
+    },
+    "services": {
+      "default_translator": "You are a professional translator. Translate the following text from {source_lang} to {target_lang}. Preserve all formatting, markdown, and code blocks exactly as they are. Output only the translation without any explanations.",
+      "translator_system": "You are a professional translator. Translate the input text accurately from {source_lang} into {target_lang}. Do not explain or add commentary.",
+      "base_instruction": "Translate from {source_lang} to {target_lang}. Preserve formatting and do not alter placeholders or tags.",
+      "chat_system": "You are a helpful and polite AI assistant."
+    },
+    "batch": {
+      "splitter_instruction": "Split the provided text into coherent contextual chunks suitable for translation without breaking paragraphs or sentences.",
+      "chunk_translator": "Translate the following text chunk from {source_lang} to {target_lang}. Maintain consistency with preceding context and preserve tags:\n\n{text}"
+    },
+    "ocr": {
+      "postprocess_correction": "You are an OCR error correction assistant. Fix optical character recognition typos, spacing, and broken words in the following text. Do not summarize or change the meaning. Return only the corrected text:\n\n{text}",
+      "clean_formatting": "Clean up OCR artifacts, broken line breaks, and hyphenated words from the following text:\n\n{text}"
+    }
+  }
+}

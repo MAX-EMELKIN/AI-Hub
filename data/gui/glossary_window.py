@@ -19,7 +19,7 @@ LANG_OPTIONS = [
     ("ko", "한국어"),
     ("it", "Italiano"),
     ("pl", "Polski"),
-    ("ru", "Русский")
+    ("ru", "Text")
 ]
 
 class GlossaryEnrichmentDialog(tk.Toplevel):
@@ -31,7 +31,7 @@ class GlossaryEnrichmentDialog(tk.Toplevel):
         self._cancel_flag = False
 
         bg_main = theme.get_color("bg_main")
-        self.title(t("enrich_title", "✨ ИИ-обогащение всего словаря"))
+        self.title(t("enrich_title", "Text"))
         self.geometry("680x560")
         self.minsize(580, 460)
         self.configure(bg=bg_main)
@@ -65,7 +65,7 @@ class GlossaryEnrichmentDialog(tk.Toplevel):
         pad.pack(fill=tk.BOTH, expand=True)
 
         tk.Label(
-            pad, text=t("enrich_header", "✨ Генерация грамматических форм и множественного числа через ИИ"),
+            pad, text=t("enrich_header", "Text"),
             font=theme.font(1, "bold"), fg=theme.get_color("accent"), bg=bg_main
         ).pack(anchor="w", pady=(0, 8))
 
@@ -74,7 +74,7 @@ class GlossaryEnrichmentDialog(tk.Toplevel):
 
         r1 = tk.Frame(opt_frame, bg=bg_card)
         r1.pack(fill=tk.X, pady=3)
-        tk.Label(r1, text=t("enrich_model_lbl", "Модель ИИ для генерации:"), font=theme.font(0, "bold"), fg=fg_pri, width=22, anchor="w", bg=bg_card).pack(side=tk.LEFT)
+        tk.Label(r1, text=t("enrich_model_lbl", "Text"), font=theme.font(0, "bold"), fg=fg_pri, width=22, anchor="w", bg=bg_card).pack(side=tk.LEFT)
 
         self.srv_keys = [k for k in LOADED_SERVICES.keys() if k != "google_ai"]
         if not self.srv_keys:
@@ -88,23 +88,23 @@ class GlossaryEnrichmentDialog(tk.Toplevel):
         r2 = tk.Frame(opt_frame, bg=bg_card)
         r2.pack(fill=tk.X, pady=4)
 
-        tk.Label(r2, text=t("enrich_src_lbl", "Язык оригинала:"), font=theme.font(0, "bold"), fg=fg_pri, width=14, anchor="w", bg=bg_card).pack(side=tk.LEFT)
+        tk.Label(r2, text=t("enrich_src_lbl", "Text"), font=theme.font(0, "bold"), fg=fg_pri, width=14, anchor="w", bg=bg_card).pack(side=tk.LEFT)
         self.combo_src = ttk.Combobox(r2, values=[n for _, n in LANG_OPTIONS], state="readonly", width=18)
         self.combo_src.set("English")
         self.combo_src.pack(side=tk.LEFT, padx=(0, 10))
 
-        tk.Label(r2, text=t("enrich_trg_lbl", "➔ Язык перевода:"), font=theme.font(0, "bold"), fg=fg_pri, width=15, anchor="w", bg=bg_card).pack(side=tk.LEFT)
+        tk.Label(r2, text=t("enrich_trg_lbl", "Text"), font=theme.font(0, "bold"), fg=fg_pri, width=15, anchor="w", bg=bg_card).pack(side=tk.LEFT)
         self.combo_trg = ttk.Combobox(r2, values=[n for _, n in LANG_OPTIONS], state="readonly", width=18)
-        self.combo_trg.set("Русский")
+        self.combo_trg.set("Text")
         self.combo_trg.pack(side=tk.LEFT)
 
         r3 = tk.Frame(opt_frame, bg=bg_card)
         r3.pack(fill=tk.X, pady=4)
         self.var_plurals = tk.BooleanVar(value=True)
-        tk.Checkbutton(r3, text=t("enrich_chk_plurals", "Множественное число и глагольные формы"), variable=self.var_plurals, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1)).pack(side=tk.LEFT, padx=(0, 10))
+        tk.Checkbutton(r3, text=t("enrich_chk_plurals", "Text"), variable=self.var_plurals, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1)).pack(side=tk.LEFT, padx=(0, 10))
 
         self.var_spelling = tk.BooleanVar(value=True)
-        tk.Checkbutton(r3, text=t("enrich_chk_spelling", "Варианты через дефис / слитно и UK/US написание"), variable=self.var_spelling, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1)).pack(side=tk.LEFT)
+        tk.Checkbutton(r3, text=t("enrich_chk_spelling", "Text"), variable=self.var_spelling, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1)).pack(side=tk.LEFT)
 
         prog_frame = tk.Frame(pad, bg=bg_card, padx=8, pady=6, relief=tk.SOLID, bd=1, highlightbackground=border, highlightthickness=1)
         prog_frame.pack(fill=tk.X, pady=(0, 8))
@@ -112,10 +112,10 @@ class GlossaryEnrichmentDialog(tk.Toplevel):
         self.pbar = ttk.Progressbar(prog_frame, orient="horizontal", mode="determinate")
         self.pbar.pack(fill=tk.X, pady=2)
 
-        self.lbl_status = tk.Label(prog_frame, text=t("enrich_status_ready", "Готов к расширению словаря"), font=theme.font(-1), fg=theme.get_color("fg_muted"), bg=bg_card, anchor="w")
+        self.lbl_status = tk.Label(prog_frame, text=t("enrich_status_ready", "Text"), font=theme.font(-1), fg=theme.get_color("fg_muted"), bg=bg_card, anchor="w")
         self.lbl_status.pack(fill=tk.X)
 
-        tk.Label(pad, text=t("enrich_preview_lbl", "Результаты генерации (Новые найденные формы):"), font=theme.font(0, "bold"), fg=fg_pri, bg=bg_main).pack(anchor="w", pady=(0, 2))
+        tk.Label(pad, text=t("enrich_preview_lbl", "Text"), font=theme.font(0, "bold"), fg=fg_pri, bg=bg_main).pack(anchor="w", pady=(0, 2))
 
         preview_frame = tk.Frame(pad, relief=tk.SOLID, bd=1, highlightbackground=border, highlightthickness=1)
         preview_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 8))
@@ -134,20 +134,20 @@ class GlossaryEnrichmentDialog(tk.Toplevel):
         btn_bar.pack(fill=tk.X, side=tk.BOTTOM)
 
         self.btn_cancel = tk.Button(
-            btn_bar, text=t("btn_cancel", "Отмена"), font=theme.font(0), relief=tk.FLAT,
+            btn_bar, text=t("btn_cancel", "Text"), font=theme.font(0), relief=tk.FLAT,
             bg=theme.get_color("btn_bg"), fg=fg_pri, padx=12, command=self._on_close
         )
         self.btn_cancel.pack(side=tk.RIGHT, padx=(6, 0))
 
         self.btn_apply = tk.Button(
-            btn_bar, text=t("enrich_btn_apply", "💾 Применить к словарю"), font=theme.font(0, "bold"),
+            btn_bar, text=t("enrich_btn_apply", "Text"), font=theme.font(0, "bold"),
             relief=tk.FLAT, bg=theme.get_color("status_ready"), fg="#ffffff",
             state="disabled", cursor="hand2", padx=14, pady=3, command=self._apply_to_glossary
         )
         self.btn_apply.pack(side=tk.RIGHT, padx=(6, 0))
 
         self.btn_start = tk.Button(
-            btn_bar, text=t("enrich_btn_start", "🚀 Начать обогащение"), font=theme.font(0, "bold"),
+            btn_bar, text=t("enrich_btn_start", "Text"), font=theme.font(0, "bold"),
             relief=tk.FLAT, bg=theme.get_color("accent"), fg=theme.get_color("accent_text"),
             cursor="hand2", padx=16, pady=3, command=self._start_enrichment
         )
@@ -161,7 +161,7 @@ class GlossaryEnrichmentDialog(tk.Toplevel):
     def _start_enrichment(self):
         terms = glossary_engine.get_all_terms()
         if not terms:
-            messagebox.showwarning(t("btn_settings", "Внимание"), t("enrich_warn_empty_dict", "Словарь пуст! Сначала добавьте базовые термины."), parent=self)
+            messagebox.showwarning(t("btn_settings", "Text"), t("enrich_warn_empty_dict", "Text"), parent=self)
             return
 
         selected_idx = self.combo_srv.current()
@@ -207,7 +207,7 @@ class GlossaryEnrichmentDialog(tk.Toplevel):
             f"2. NO hyphenation changes: NEVER add '-' or merge words. Keep original spacing intact.\n"
             f"3. NO commentary, NO thoughts, NO preambles.\n\n"
             f"ALLOWED ONLY:\n"
-            f"• Plural form with matching Russian plural (e.g. 'Stealth Boys = Стелс-бои', 'Stimpaks = Стимуляторы', 'Wolves = Волки').\n"
+            f"Text"
             f"• Output format: strictly 'Variant = Translation' (MAX 1-2 lines per term)."
         )
 
@@ -265,7 +265,7 @@ class GlossaryEnrichmentDialog(tk.Toplevel):
             self.pbar["value"] = pct
             status_text = t(
                 "enrich_status_progress",
-                f"Обработано пачек: {curr} из {total} ({pct}%) | Найдено новых вариантов: +{new_count}",
+                f"Text",
                 curr=curr, total=total, pct=pct, new_count=new_count
             )
             self.lbl_status.config(text=status_text)
@@ -279,12 +279,12 @@ class GlossaryEnrichmentDialog(tk.Toplevel):
                 self.btn_apply.config(state="normal")
                 done_text = t(
                     "enrich_status_done",
-                    f"✅ Готово! Исходных терминов: {orig_count} | Найдено новых: +{new_count} | Всего станет: {orig_count + new_count}",
+                    f"Text",
                     orig=orig_count, new_count=new_count, total=orig_count + new_count
                 )
                 self.lbl_status.config(text=done_text)
             else:
-                self.lbl_status.config(text=t("enrich_status_empty", "Завершено. Все формы уже есть в словаре."))
+                self.lbl_status.config(text=t("enrich_status_empty", "Text"))
         self.after(0, _ui)
 
     def _apply_to_glossary(self):
@@ -299,7 +299,7 @@ class GlossaryEnrichmentDialog(tk.Toplevel):
 
         success_text = t(
             "enrich_success_msg",
-            f"Словарь успешно обогащён!\n\nДобавлено новых вариантов: +{len(self._generated_terms)}\nВсего терминов в базе: {len(current_terms)}.",
+            f"Text",
             count=len(self._generated_terms), total=len(current_terms)
         )
         messagebox.showinfo("OK", success_text, parent=self)
@@ -317,7 +317,7 @@ class BatchGlossaryImportDialog(tk.Toplevel):
         self.on_imported = on_imported_callback
 
         bg_main = theme.get_color("bg_main")
-        self.title(t("import_title", "Пакетный импорт терминов в словарь"))
+        self.title(t("import_title", "Text"))
         self.geometry("680x540")
         self.minsize(580, 440)
         self.configure(bg=bg_main)
@@ -350,7 +350,7 @@ class BatchGlossaryImportDialog(tk.Toplevel):
         pad.pack(fill=tk.BOTH, expand=True)
 
         tk.Label(
-            pad, text=t("import_header", "📥 Вставьте скопированный список или загрузите файл:"),
+            pad, text=t("import_header", "Text"),
             font=theme.font(1, "bold"), fg=theme.get_color("accent"), bg=bg_main
         ).pack(anchor="w", pady=(0, 6))
 
@@ -358,27 +358,27 @@ class BatchGlossaryImportDialog(tk.Toplevel):
         act_bar.pack(fill=tk.X, pady=(0, 6))
 
         tk.Button(
-            act_bar, text=t("import_btn_paste", "📋 Вставить из буфера"), font=theme.font(-1, "bold"),
+            act_bar, text=t("import_btn_paste", "Text"), font=theme.font(-1, "bold"),
             relief=tk.FLAT, bg=theme.get_color("help_btn_bg"), fg=theme.get_color("help_btn_fg"),
             cursor="hand2", padx=8, pady=2, command=self._paste_clipboard
         ).pack(side=tk.LEFT)
 
         tk.Button(
-            act_bar, text=t("import_btn_load_file", "📁 Загрузить из файла"), font=theme.font(-1),
+            act_bar, text=t("import_btn_load_file", "Text"), font=theme.font(-1),
             relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri,
             cursor="hand2", padx=8, pady=2, command=self._load_file
         ).pack(side=tk.LEFT, padx=6)
 
         self.btn_pre_enrich = tk.Button(
-            act_bar, text=t("import_btn_enrich_pre", "✨ Обогатить список через ИИ"), font=theme.font(-1, "bold"),
+            act_bar, text=t("import_btn_enrich_pre", "Text"), font=theme.font(-1, "bold"),
             relief=tk.FLAT, bg=theme.get_color("accent"), fg=theme.get_color("accent_text"),
             cursor="hand2", padx=8, pady=2, command=self._enrich_list_before_import
         )
         self.btn_pre_enrich.pack(side=tk.LEFT, padx=6)
-        ToolTip(self.btn_pre_enrich, t("import_tip_enrich_pre", "Сгенерировать множественные числа и формы для всех строк в поле перед сохранением"))
+        ToolTip(self.btn_pre_enrich, t("import_tip_enrich_pre", "Text"))
 
         tk.Button(
-            act_bar, text=t("import_btn_clear", "Очистить"), font=theme.font(-1),
+            act_bar, text=t("import_btn_clear", "Text"), font=theme.font(-1),
             relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri,
             cursor="hand2", padx=6, pady=2, command=lambda: self.text_area.delete("1.0", tk.END)
         ).pack(side=tk.RIGHT)
@@ -400,8 +400,8 @@ class BatchGlossaryImportDialog(tk.Toplevel):
         info_frame.pack(fill=tk.X, pady=(0, 8))
 
         default_info_text = (
-            "💡 Поддерживаются любые разделители (=, ->, табуляция, пробелы между языками).\n"
-            "Скрипт сам автоматически отделит латиницу / иероглифы от целевого перевода."
+            "Text"
+            "Text"
         )
         tk.Label(
             info_frame, text=t("import_info_text", default_info_text),
@@ -410,7 +410,7 @@ class BatchGlossaryImportDialog(tk.Toplevel):
 
         self.var_merge = tk.BooleanVar(value=True)
         tk.Checkbutton(
-            info_frame, text=t("import_chk_merge", "Добавить к существующим"), variable=self.var_merge,
+            info_frame, text=t("import_chk_merge", "Text"), variable=self.var_merge,
             bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1, "bold")
         ).pack(side=tk.RIGHT, padx=4)
 
@@ -418,12 +418,12 @@ class BatchGlossaryImportDialog(tk.Toplevel):
         btn_bar.pack(fill=tk.X, side=tk.BOTTOM)
 
         tk.Button(
-            btn_bar, text=t("btn_cancel", "Отмена"), font=theme.font(0), relief=tk.FLAT,
+            btn_bar, text=t("btn_cancel", "Text"), font=theme.font(0), relief=tk.FLAT,
             bg=theme.get_color("btn_bg"), fg=fg_pri, padx=12, command=self.destroy
         ).pack(side=tk.RIGHT, padx=(6, 0))
 
         tk.Button(
-            btn_bar, text=t("import_btn_do_import", "💾 Импортировать в словарь"), font=theme.font(0, "bold"),
+            btn_bar, text=t("import_btn_do_import", "Text"), font=theme.font(0, "bold"),
             relief=tk.FLAT, bg=theme.get_color("accent"), fg=theme.get_color("accent_text"),
             cursor="hand2", padx=16, pady=4, command=self._do_import
         ).pack(side=tk.RIGHT)
@@ -454,12 +454,12 @@ class BatchGlossaryImportDialog(tk.Toplevel):
     def _enrich_list_before_import(self):
         raw = self.text_area.get("1.0", tk.END).strip()
         if not raw:
-            messagebox.showwarning(t("btn_settings", "Внимание"), t("import_warn_empty", "Вставьте или загрузите список терминов!"), parent=self)
+            messagebox.showwarning(t("btn_settings", "Text"), t("import_warn_empty", "Text"), parent=self)
             return
 
         parsed = glossary_engine.parse_raw_text(raw)
         if not parsed:
-            messagebox.showwarning(t("btn_settings", "Внимание"), t("import_warn_parse_fail", "Не удалось распознать строки. Проверьте формат."), parent=self)
+            messagebox.showwarning(t("btn_settings", "Text"), t("import_warn_parse_fail", "Text"), parent=self)
             return
 
         avail = [s for s in LOADED_SERVICES.values() if s.service_id != "google_ai"]
@@ -467,7 +467,7 @@ class BatchGlossaryImportDialog(tk.Toplevel):
             avail = list(LOADED_SERVICES.values())
 
         if not avail:
-            messagebox.showerror(t("status_error", "Ошибка"), t("enrich_err_no_services", "Нет активных сервисов ИИ для генерации!"), parent=self)
+            messagebox.showerror(t("status_error", "Text"), t("enrich_err_no_services", "Text"), parent=self)
             return
 
         service = avail[0]
@@ -486,7 +486,7 @@ class BatchGlossaryImportDialog(tk.Toplevel):
                 "2. NO hyphenation changes: NEVER add '-' or merge words. Keep original spacing.\n"
                 "3. NO commentary, NO thoughts.\n\n"
                 "ALLOWED ONLY:\n"
-                "• Plural form with matching Russian plural (e.g. 'Stealth Boys = Стелс-бои', 'Stimpaks = Стимуляторы').\n"
+                "Text"
                 "• Output format: strictly 'Variant = Translation' (MAX 1-2 lines per term)."
             )
 
@@ -517,14 +517,14 @@ class BatchGlossaryImportDialog(tk.Toplevel):
                 time.sleep(0.2)
 
             def _done():
-                self.btn_pre_enrich.config(state="normal", text=t("import_btn_enrich_pre", "✨ Обогатить список через ИИ"))
+                self.btn_pre_enrich.config(state="normal", text=t("import_btn_enrich_pre", "Text"))
                 formatted_lines = [f"{k} = {v}" for k, v in sorted(all_combined.items(), key=lambda x: str(x[0]).lower())]
                 self.text_area.delete("1.0", tk.END)
                 self.text_area.insert("1.0", "\n".join(formatted_lines))
 
                 done_msg = t(
                     "import_pre_done_msg",
-                    f"✅ Список успешно обогащён!\n\nБыло исходных терминов: {len(parsed)}\nДобавлено новых форм: +{new_added}\nВсего готово к импорту: {len(all_combined)}\n\nНажмите «💾 Импортировать в словарь» для сохранения.",
+                    f"Text",
                     orig=len(parsed), new_count=new_added, total=len(all_combined)
                 )
                 messagebox.showinfo("OK", done_msg, parent=self)
@@ -536,12 +536,12 @@ class BatchGlossaryImportDialog(tk.Toplevel):
     def _do_import(self):
         raw = self.text_area.get("1.0", tk.END).strip()
         if not raw:
-            messagebox.showwarning(t("btn_settings", "Внимание"), t("import_warn_empty", "Вставьте или загрузите список терминов!"), parent=self)
+            messagebox.showwarning(t("btn_settings", "Text"), t("import_warn_empty", "Text"), parent=self)
             return
 
         parsed = glossary_engine.parse_raw_text(raw)
         if not parsed:
-            messagebox.showwarning(t("btn_settings", "Внимание"), t("import_warn_parse_fail", "Не удалось распознать термины. Проверьте формат строк."), parent=self)
+            messagebox.showwarning(t("btn_settings", "Text"), t("import_warn_parse_fail", "Text"), parent=self)
             return
 
         current_terms = glossary_engine.get_all_terms() if self.var_merge.get() else {}
@@ -554,7 +554,7 @@ class BatchGlossaryImportDialog(tk.Toplevel):
 
         success_msg = t(
             "import_success_msg",
-            f"Успешно импортировано {len(parsed)} терминов!\nВсего в словаре: {len(current_terms)}.",
+            f"Text",
             count=len(parsed), total=len(current_terms)
         )
         messagebox.showinfo("OK", success_msg, parent=self)
@@ -571,7 +571,7 @@ class GlossaryWindow(tk.Toplevel):
         self._is_enriching = False
 
         bg_main = theme.get_color("bg_main")
-        self.title(t("dict_title", "Словарь терминов (Глоссарий)"))
+        self.title(t("dict_title", "Text"))
         self.geometry("740x520")
         self.minsize(640, 440)
         self.configure(bg=bg_main)
@@ -594,38 +594,38 @@ class GlossaryWindow(tk.Toplevel):
         top_bar = tk.Frame(pad, bg=bg_main)
         top_bar.pack(fill=tk.X, pady=(0, 8))
 
-        tk.Label(top_bar, text=t("dict_search", "🔍 Поиск:"), font=theme.font(0, "bold"), fg=fg_pri, bg=bg_main).pack(side=tk.LEFT, padx=(0, 4))
+        tk.Label(top_bar, text=t("dict_search", "Text"), font=theme.font(0, "bold"), fg=fg_pri, bg=bg_main).pack(side=tk.LEFT, padx=(0, 4))
         self.e_search = tk.Entry(top_bar, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1, width=18)
         self.e_search.pack(side=tk.LEFT, padx=(0, 6))
         self.e_search.bind("<KeyRelease>", self._on_search_changed)
         attach_entry_context_menu(self.e_search)
 
-        self.lbl_count = tk.Label(top_bar, text=t("dict_total_count", "Всего: 0", count=0), font=theme.font(-1), fg=theme.get_color("fg_muted"), bg=bg_main)
+        self.lbl_count = tk.Label(top_bar, text=t("dict_total_count", "Text", count=0), font=theme.font(-1), fg=theme.get_color("fg_muted"), bg=bg_main)
         self.lbl_count.pack(side=tk.LEFT)
 
         btn_enrich_all = tk.Button(
-            top_bar, text=t("dict_btn_enrich_all", "✨ Обогатить всю базу через ИИ"), font=theme.font(-1, "bold"),
+            top_bar, text=t("dict_btn_enrich_all", "Text"), font=theme.font(-1, "bold"),
             relief=tk.FLAT, bg=theme.get_color("accent"), fg=theme.get_color("accent_text"),
             cursor="hand2", padx=8, pady=2, command=self._open_enrichment_wizard
         )
         btn_enrich_all.pack(side=tk.RIGHT)
-        ToolTip(btn_enrich_all, t("dict_tip_enrich_all", "Пакетная генерация форм для всех слов в словаре"))
+        ToolTip(btn_enrich_all, t("dict_tip_enrich_all", "Text"))
 
         btn_batch = tk.Button(
-            top_bar, text=t("dict_btn_batch_import", "📥 Пакетный импорт"), font=theme.font(-1, "bold"),
+            top_bar, text=t("dict_btn_batch_import", "Text"), font=theme.font(-1, "bold"),
             relief=tk.FLAT, bg=theme.get_color("help_btn_bg"), fg=theme.get_color("help_btn_fg"),
             cursor="hand2", padx=8, pady=2, command=self._open_batch_import
         )
         btn_batch.pack(side=tk.RIGHT, padx=6)
-        ToolTip(btn_batch, t("dict_tip_batch_import", "Вставить список из буфера или загрузить файл на тысячи слов"))
+        ToolTip(btn_batch, t("dict_tip_batch_import", "Text"))
 
         tree_frame = tk.Frame(pad, relief=tk.SOLID, bd=1, highlightbackground=border, highlightthickness=1)
         tree_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 8))
 
         columns = ("orig", "trans")
         self.tree = ttk.Treeview(tree_frame, columns=columns, show="headings", selectmode="extended")
-        self.tree.heading("orig", text=t("dict_col_orig", "Оригинальное слово / фраза"))
-        self.tree.heading("trans", text=t("dict_col_trans", "Обязательный перевод"))
+        self.tree.heading("orig", text=t("dict_col_orig", "Text"))
+        self.tree.heading("trans", text=t("dict_col_trans", "Text"))
         self.tree.column("orig", width=280)
         self.tree.column("trans", width=280)
 
@@ -638,12 +638,12 @@ class GlossaryWindow(tk.Toplevel):
         in_frame = tk.Frame(pad, bg=bg_card, padx=8, pady=6, relief=tk.SOLID, bd=1, highlightbackground=border, highlightthickness=1)
         in_frame.pack(fill=tk.X, pady=(0, 8))
 
-        tk.Label(in_frame, text=t("dict_lbl_orig", "Оригинал:"), font=theme.font(0), fg=fg_pri, bg=bg_card).grid(row=0, column=0, sticky="w", padx=2)
+        tk.Label(in_frame, text=t("dict_lbl_orig", "Text"), font=theme.font(0), fg=fg_pri, bg=bg_card).grid(row=0, column=0, sticky="w", padx=2)
         self.e_orig = tk.Entry(in_frame, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.e_orig.grid(row=0, column=1, padx=4, sticky="ew")
         attach_entry_context_menu(self.e_orig)
 
-        tk.Label(in_frame, text=t("dict_lbl_trans", "Перевод:"), font=theme.font(0), fg=fg_pri, bg=bg_card).grid(row=0, column=2, sticky="w", padx=4)
+        tk.Label(in_frame, text=t("dict_lbl_trans", "Text"), font=theme.font(0), fg=fg_pri, bg=bg_card).grid(row=0, column=2, sticky="w", padx=4)
         self.e_trans = tk.Entry(in_frame, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.e_trans.grid(row=0, column=3, padx=4, sticky="ew")
         attach_entry_context_menu(self.e_trans)
@@ -655,28 +655,28 @@ class GlossaryWindow(tk.Toplevel):
         btn_row.pack(fill=tk.X)
 
         tk.Button(
-            btn_row, text=t("dict_btn_add", "➕ Добавить / Обновить"), font=theme.font(0),
+            btn_row, text=t("dict_btn_add", "Text"), font=theme.font(0),
             relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=theme.get_color("status_ready"),
             cursor="hand2", padx=10, pady=3, command=self._add_term
         ).pack(side=tk.LEFT)
 
         self.btn_enrich = tk.Button(
-            btn_row, text=t("dict_btn_enrich_single", "✨ Обогатить термин"), font=theme.font(0, "bold"),
+            btn_row, text=t("dict_btn_enrich_single", "Text"), font=theme.font(0, "bold"),
             relief=tk.FLAT, bg=theme.get_color("help_btn_bg"), fg=theme.get_color("help_btn_fg"),
             cursor="hand2", padx=10, pady=3, command=self._enrich_selected_or_single
         )
         self.btn_enrich.pack(side=tk.LEFT, padx=6)
-        ToolTip(self.btn_enrich, t("dict_tip_enrich_single", "Сгенерировать множественное число и формы для одного или всех выделенных терминов"))
+        ToolTip(self.btn_enrich, t("dict_tip_enrich_single", "Text"))
 
         self.btn_delete = tk.Button(
-            btn_row, text=t("dict_btn_delete", "🗑️ Удалить"), font=theme.font(0),
+            btn_row, text=t("dict_btn_delete", "Text"), font=theme.font(0),
             relief=tk.FLAT, bg="#ffebee", fg="#c62828",
             cursor="hand2", padx=10, pady=3, command=self._delete_selected_terms
         )
         self.btn_delete.pack(side=tk.LEFT, padx=6)
 
         tk.Button(
-            btn_row, text=t("btn_close", "Закрыть"), font=theme.font(0, "bold"),
+            btn_row, text=t("btn_close", "Text"), font=theme.font(0, "bold"),
             relief=tk.FLAT, bg=theme.get_color("accent"), fg=theme.get_color("accent_text"),
             cursor="hand2", padx=14, pady=3, command=self.destroy
         ).pack(side=tk.RIGHT)
@@ -714,9 +714,9 @@ class GlossaryWindow(tk.Toplevel):
                     break
 
         if q:
-            self.lbl_count.config(text=t("dict_found_count", f"Найдено: {items_shown} из {total_count}", shown=items_shown, total=total_count))
+            self.lbl_count.config(text=t("dict_found_count", f"Text", shown=items_shown, total=total_count))
         else:
-            self.lbl_count.config(text=t("dict_total_count", f"Всего терминов: {total_count}", count=total_count))
+            self.lbl_count.config(text=t("dict_total_count", f"Text", count=total_count))
 
     def _on_select_item(self, event):
         sel = self.tree.selection()
@@ -727,20 +727,20 @@ class GlossaryWindow(tk.Toplevel):
             self.e_orig.insert(0, vals[0])
             self.e_trans.delete(0, tk.END)
             self.e_trans.insert(0, vals[1])
-            self.btn_enrich.config(text=t("dict_btn_enrich_single", "✨ Обогатить термин"))
-            self.btn_delete.config(text=t("dict_btn_delete", "🗑️ Удалить"))
+            self.btn_enrich.config(text=t("dict_btn_enrich_single", "Text"))
+            self.btn_delete.config(text=t("dict_btn_delete", "Text"))
         elif len(sel) > 1:
-            self.btn_enrich.config(text=t("dict_btn_enrich_selected", f"✨ Обогатить выбранное ({len(sel)})", count=len(sel)))
-            self.btn_delete.config(text=t("dict_btn_delete_selected", f"🗑️ Удалить ({len(sel)})", count=len(sel)))
+            self.btn_enrich.config(text=t("dict_btn_enrich_selected", f"Text", count=len(sel)))
+            self.btn_delete.config(text=t("dict_btn_delete_selected", f"Text", count=len(sel)))
         else:
-            self.btn_enrich.config(text=t("dict_btn_enrich_single", "✨ Обогатить термин"))
-            self.btn_delete.config(text=t("dict_btn_delete", "🗑️ Удалить"))
+            self.btn_enrich.config(text=t("dict_btn_enrich_single", "Text"))
+            self.btn_delete.config(text=t("dict_btn_delete", "Text"))
 
     def _add_term(self):
         k = self.e_orig.get().strip()
         v = self.e_trans.get().strip()
         if not k or not v:
-            messagebox.showwarning(t("btn_settings", "Внимание"), t("dict_warn_fill", "Заполните оба поля!"), parent=self)
+            messagebox.showwarning(t("btn_settings", "Text"), t("dict_warn_fill", "Text"), parent=self)
             return
         terms = glossary_engine.get_all_terms()
         terms[k] = v
@@ -763,7 +763,7 @@ class GlossaryWindow(tk.Toplevel):
             k = self.e_orig.get().strip()
             v = self.e_trans.get().strip()
             if not k or not v:
-                messagebox.showwarning(t("btn_settings", "Внимание"), t("dict_warn_fill", "Заполните поля или выделите строки в таблице!"), parent=self)
+                messagebox.showwarning(t("btn_settings", "Text"), t("dict_warn_fill", "Text"), parent=self)
                 return
             target_pairs.append((k, v))
 
@@ -772,14 +772,14 @@ class GlossaryWindow(tk.Toplevel):
             avail = list(LOADED_SERVICES.values())
 
         if not avail:
-            messagebox.showerror(t("status_error", "Ошибка"), t("dict_warn_no_ai", "Нет активных сервисов ИИ для генерации!"), parent=self)
+            messagebox.showerror(t("status_error", "Text"), t("dict_warn_no_ai", "Text"), parent=self)
             return
 
         service = avail[0]
         total_terms = len(target_pairs)
 
         self.btn_enrich.config(state="disabled", text=f"⏳ ({total_terms})...")
-        self.lbl_count.config(text=t("dict_enrich_generating", f"Генерация форм для {total_terms} терминов через {service.name}...", count=total_terms, name=service.name))
+        self.lbl_count.config(text=t("dict_enrich_generating", f"Text", count=total_terms, name=service.name))
 
         def _worker():
             batch_size = 10
@@ -793,7 +793,7 @@ class GlossaryWindow(tk.Toplevel):
                 "2. NO hyphenation changes: NEVER add '-' or merge words. Keep original spacing intact.\n"
                 "3. NO commentary, NO thoughts.\n\n"
                 "ALLOWED ONLY:\n"
-                "• Plural form with matching Russian plural (e.g. 'Stealth Boys = Стелс-бои', 'Stimpaks = Стимуляторы', 'Wolves = Волки').\n"
+                "Text"
                 "• Output format: strictly 'Variant = Translation' (MAX 1-2 lines per term)."
             )
 
@@ -834,7 +834,7 @@ class GlossaryWindow(tk.Toplevel):
 
             def _done():
                 self._load_terms()
-                self.btn_enrich.config(state="normal", text=t("dict_btn_enrich_single", "✨ Обогатить термин"))
+                self.btn_enrich.config(state="normal", text=t("dict_btn_enrich_single", "Text"))
                 if new_added > 0:
                     self.lbl_count.config(text=f"✅ +{new_added}")
                     preview = "\n".join(f"• {x}" for x in added_list[:12])
@@ -843,13 +843,13 @@ class GlossaryWindow(tk.Toplevel):
 
                     done_msg = t(
                         "dict_enrich_done_msg",
-                        f"Для {total_terms} терминов создано +{new_added} новых форм:\n\n{preview}",
+                        f"Text",
                         count=total_terms, new_count=new_added, preview=preview
                     )
                     messagebox.showinfo("OK", done_msg, parent=self)
                 else:
-                    self.lbl_count.config(text=t("dict_enrich_none_msg", "Все формы для выбранных терминов уже есть в словаре."))
-                    messagebox.showinfo("OK", t("dict_enrich_none_msg", "Все формы для выбранных терминов уже есть в словаре."), parent=self)
+                    self.lbl_count.config(text=t("dict_enrich_none_msg", "Text"))
+                    messagebox.showinfo("OK", t("dict_enrich_none_msg", "Text"), parent=self)
 
             self.after(0, _done)
 
@@ -863,8 +863,8 @@ class GlossaryWindow(tk.Toplevel):
         if count == 1:
             item = self.tree.item(sel[0])
             k = item["values"][0]
-            del_msg = t("dict_delete_confirm_single", f"Удалить термин '{k}'?", name=k)
-            if messagebox.askyesno(t("confirm_delete_title", "Подтверждение"), del_msg, parent=self):
+            del_msg = t("dict_delete_confirm_single", f"Text", name=k)
+            if messagebox.askyesno(t("confirm_delete_title", "Text"), del_msg, parent=self):
                 terms = glossary_engine.get_all_terms()
                 if k in terms:
                     del terms[k]
@@ -873,8 +873,8 @@ class GlossaryWindow(tk.Toplevel):
                     self.e_orig.delete(0, tk.END)
                     self.e_trans.delete(0, tk.END)
         else:
-            del_multi_msg = t("dict_delete_confirm_multi", f"Вы действительно хотите удалить {count} выделенных терминов?", count=count)
-            if messagebox.askyesno(t("confirm_delete_title", "Подтверждение"), del_multi_msg, parent=self):
+            del_multi_msg = t("dict_delete_confirm_multi", f"Text", count=count)
+            if messagebox.askyesno(t("confirm_delete_title", "Text"), del_multi_msg, parent=self):
                 terms = glossary_engine.get_all_terms()
                 for s_item in sel:
                     item_data = self.tree.item(s_item)

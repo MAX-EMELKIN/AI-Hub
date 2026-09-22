@@ -92,7 +92,7 @@ def launch_qtranslate():
             subprocess.Popen([qt_path], cwd=cwd)
             return True
         except Exception as e:
-            sys.stderr.write(f"Ошибка запуска QTranslate: {e}\n")
+            sys.stderr.write(f"Startup error QTranslate: {e}\n")
     return False
 
 def start_qtranslate():
@@ -104,7 +104,7 @@ def check_and_autostart_qtranslate():
             return launch_qtranslate()
         return True
     except Exception as e:
-        sys.stderr.write(f"Ошибка в check_and_autostart_qtranslate: {e}\n")
+        sys.stderr.write(f"Error Text check_and_autostart_qtranslate: {e}\n")
         return False
 
 def restart_qtranslate():
@@ -140,7 +140,7 @@ def set_autostart(enable=True):
                 except FileNotFoundError:
                     pass
     except Exception as e:
-        sys.stderr.write(f"Ошибка изменения автозагрузки: {e}\n")
+        sys.stderr.write(f"Error Text Text: {e}\n")
 
 def is_autostart_enabled():
     if sys.platform != "win32":

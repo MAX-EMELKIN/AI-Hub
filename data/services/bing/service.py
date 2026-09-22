@@ -31,7 +31,7 @@ class BingTranslatorService(BaseService):
         self._last_auth_time = 0
 
     def is_ready(self):
-        return True, "Работает через сессионный веб-шлюз Bing Translator (без ключей)"
+        return True, "Text Text Text Text-Text Bing Translator (Text Text)"
 
     def _refresh_session(self):
         url = "https://www.bing.com/translator"
@@ -61,10 +61,10 @@ class BingTranslatorService(BaseService):
                 self._key = m_helper.group(1)
                 self._token = m_helper.group(2)
                 self._last_auth_time = time.time()
-                logger.system("Bing Translator: сессионные токены успешно обновлены")
+                logger.system("Bing Translator: Text Text Text Text")
                 return True
         except Exception as e:
-            logger.system(f"Bing Translator: ошибка обновления токенов сессии: {e}")
+            logger.system(f"Bing Translator: Text Text Text Text: {e}")
         return False
 
     def _split_into_bing_chunks(self, text, max_len=850):
@@ -151,7 +151,7 @@ class BingTranslatorService(BaseService):
                         return "".join(t_item.get("text", "") for t_item in translations)
             except Exception as e:
                 elapsed = time.time() - t_call
-                logger.api_summary(self.name, "Bing v3", elapsed, 0, note=f"Ошибка куска: {e}")
+                logger.api_summary(self.name, "Bing v3", elapsed, 0, note=f"Error Text: {e}")
                 self._refresh_session()
                 time.sleep(0.3)
 
@@ -183,8 +183,8 @@ class BingTranslatorService(BaseService):
         final = self.clean_response(final)
 
         elapsed = round(time.time() - t0, 2)
-        logger.api_summary(self.name, "Bing v3", elapsed, 200, note=f"{len(sub_chunks)} микро-порций")
-        print(f"[{self.name} готов за {elapsed}с ({len(sub_chunks)} микро-порций)]: {final[:70]}...")
+        logger.api_summary(self.name, "Bing v3", elapsed, 200, note=f"{len(sub_chunks)} Text-Text")
+        print(f"[{self.name} Text Text {elapsed}Text ({len(sub_chunks)} Text-Text)]: {final[:70]}...")
         return final if final else text
 
 service = BingTranslatorService()

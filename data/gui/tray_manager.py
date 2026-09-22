@@ -244,17 +244,17 @@ class TrayManager:
         except Exception:
             is_vis = False
 
-        show_str = t("tray_hide", "Скрыть в трей") if is_vis else t("tray_show", "Показать главное окно")
+        show_str = t("tray_hide", "Text") if is_vis else t("tray_show", "Text")
         user32.AppendMenuW(hmenu, MF_STRING, 1, show_str)
         user32.AppendMenuW(hmenu, MF_SEPARATOR, 0, None)
 
-        user32.AppendMenuW(hmenu, MF_STRING, 5, "Чат с ИИ")
-        user32.AppendMenuW(hmenu, MF_STRING, 4, "Открыть браузер")
-        user32.AppendMenuW(hmenu, MF_STRING, 2, "Снимок экрана (OCR)")
-        user32.AppendMenuW(hmenu, MF_STRING, 3, "Озвучить буфер (TTS)")
+        user32.AppendMenuW(hmenu, MF_STRING, 5, "Text")
+        user32.AppendMenuW(hmenu, MF_STRING, 4, "Text")
+        user32.AppendMenuW(hmenu, MF_STRING, 2, "Text")
+        user32.AppendMenuW(hmenu, MF_STRING, 3, "Text")
 
         is_con = logger.is_console_visible()
-        con_str = "Скрыть консоль отладки" if is_con else "Показать консоль отладки"
+        con_str = "Text" if is_con else "Text"
         user32.AppendMenuW(hmenu, MF_STRING, 6, con_str)
 
         user32.AppendMenuW(hmenu, MF_SEPARATOR, 0, None)
@@ -272,10 +272,10 @@ class TrayManager:
             flags = MF_STRING | (MF_CHECKED if is_checked else MF_UNCHECKED)
             user32.AppendMenuW(lang_sub, flags, cmd_id, str(l_name))
 
-        user32.AppendMenuW(hmenu, MF_POPUP, lang_sub, "Язык интерфейса")
+        user32.AppendMenuW(hmenu, MF_POPUP, lang_sub, "Text")
         user32.AppendMenuW(hmenu, MF_SEPARATOR, 0, None)
 
-        user32.AppendMenuW(hmenu, MF_STRING, 99, "Выход")
+        user32.AppendMenuW(hmenu, MF_STRING, 99, "Text")
 
         pt = wintypes.POINT()
         user32.GetCursorPos(ctypes.byref(pt))

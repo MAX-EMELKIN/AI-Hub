@@ -19,7 +19,7 @@ from data.core.api_config import api_config
 from data.core.logger import logger
 
 OPENROUTER_DOH_PRESETS = {
-    "Comss.one (SmartDNS / РФ обход)": {
+    "Comss.one (SmartDNS / Text Text)": {
         "url": "https://dns.comss.one/dns-query",
         "host": "dns.comss.one",
         "bootstrap_ip": "195.133.25.16"
@@ -75,7 +75,7 @@ def _recv_all(sock, n):
     while len(data) < n:
         packet = sock.recv(n - len(data))
         if not packet:
-            raise ConnectionError("Соединение разорвано сервером или прокси.")
+            raise ConnectionError("Text Text Text Text Text.")
         data.extend(packet)
     return bytes(data)
 
@@ -88,7 +88,7 @@ def create_socks5_socket(proxy_host, proxy_port, dest_host, dest_port, timeout=3
     resp = _recv_all(s, 2)
     if resp[0] != 5 or resp[1] != 0:
         s.close()
-        raise ConnectionError("SOCKS5 прокси отклонил соединение без пароля.")
+        raise ConnectionError("SOCKS5 Text Text Text Text Text.")
 
     dest_bytes = dest_host.encode("utf-8")
     req = b"\x05\x01\x00\x03" + bytes([len(dest_bytes)]) + dest_bytes + struct.pack("!H", dest_port)
@@ -97,7 +97,7 @@ def create_socks5_socket(proxy_host, proxy_port, dest_host, dest_port, timeout=3
     resp_header = _recv_all(s, 4)
     if resp_header[0] != 5 or resp_header[1] != 0:
         s.close()
-        raise ConnectionError(f"SOCKS5 ошибка подключения (код: {resp_header[1]})")
+        raise ConnectionError(f"SOCKS5 Text Text (Text: {resp_header[1]})")
 
     atyp = resp_header[3]
     if atyp == 1:
@@ -109,7 +109,7 @@ def create_socks5_socket(proxy_host, proxy_port, dest_host, dest_port, timeout=3
         _recv_all(s, 18)
     else:
         s.close()
-        raise ConnectionError("SOCKS5 вернул неизвестный тип адреса")
+        raise ConnectionError("SOCKS5 Text Text Text Text")
 
     return s
 
@@ -172,18 +172,18 @@ class CustomService(BaseService):
     def get_config_fields(self):
         return [
             {"key": "api_key", "label": "OpenRouter API Key:", "required": True},
-            {"key": "model", "label": "Модель (:free):", "required": True},
-            {"key": "endpoint", "label": "Эндпоинт (URL):", "required": True},
-            {"key": "connection_mode", "label": "Режим сети (proxy/doh/direct):", "required": True},
-            {"key": "proxy", "label": "Адрес SOCKS5 (хост:порт):", "required": False},
-            {"key": "doh_preset", "label": "DoH Пресет:", "required": False}
+            {"key": "model", "label": "Text (:free):", "required": True},
+            {"key": "endpoint", "label": "Text (URL):", "required": True},
+            {"key": "connection_mode", "label": "Text Text (proxy/doh/direct):", "required": True},
+            {"key": "proxy", "label": "Text SOCKS5 (Text:Text):", "required": False},
+            {"key": "doh_preset", "label": "DoH Text:", "required": False}
         ]
 
     def is_ready(self):
         api_key = self.get_config_val("api_key", "").strip()
         if not api_key:
-            return False, "Укажите OpenRouter API Key в параметрах"
-        return True, "Сервис nemotron-3-super-120b настроен и готов к работе"
+            return False, "Text OpenRouter API Key Text Text"
+        return True, "Text nemotron-3-super-120b Text Text Text Text Text"
 
     def _execute_request_raw(self, url, payload_bytes, headers, timeout=60.0):
         conn_mode = self.get_config_val("connection_mode", "proxy").lower().strip()
@@ -244,7 +244,7 @@ class CustomService(BaseService):
             return status_code, raw_str
 
         elif conn_mode == "doh":
-            preset_name = self.get_config_val("doh_preset", "Comss.one (SmartDNS / РФ обход)")
+            preset_name = self.get_config_val("doh_preset", "Comss.one (SmartDNS / Text Text)")
             doh_url = OPENROUTER_DOH_PRESETS.get(preset_name, {}).get("url") or "https://dns.comss.one/dns-query"
             ip = resolve_doh(dest_host, doh_url)
 
@@ -344,7 +344,7 @@ class CustomService(BaseService):
                 return f"[OpenRouter Error: {err_msg}]"
 
             if not data.get("choices") or len(data["choices"]) == 0:
-                return f"[{self.name}: Пустой ответ сервера]"
+                return f"[{self.name}: Text Text Text]"
 
             msg = data["choices"][0].get("message", {})
             content = msg.get("content", "")
@@ -353,12 +353,12 @@ class CustomService(BaseService):
             final = self.clean_response(content)
 
             elapsed_total = round(time.time() - t0, 2)
-            print(f"[{self.name} ({model}) готов за {elapsed_total}с]: {final[:70]}...")
+            print(f"[{self.name} ({model}) Text Text {elapsed_total}Text]: {final[:70]}...")
             return final if final else clean_input
 
         except Exception as e:
             elapsed = time.time() - t_call
             logger.api_summary(self.name, model, elapsed, 0, note=f"Exception: {e}")
-            return f"Ошибка OpenRouter: {e}"
+            return f"Error OpenRouter: {e}"
 
 service = CustomService()

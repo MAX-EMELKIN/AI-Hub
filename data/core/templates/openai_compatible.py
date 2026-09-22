@@ -2,7 +2,7 @@
 # data/core/templates/openai_compatible.py
 
 PROVIDER_KEY = "openai_compatible"
-PROVIDER_NAME = "OpenAI-совместимый API (DeepSeek, Qwen, Groq и др.)"
+PROVIDER_NAME = "OpenAI-Text API (DeepSeek, Qwen, Groq Text Text.)"
 DEFAULT_MODEL = "deepseek-flash"
 DEFAULT_ENDPOINT = "https://api.deepseek.com/chat/completions"
 
@@ -16,7 +16,7 @@ def setup_config(api_config, slug, model_str):
     api_config.set_val(slug, "endpoint", DEFAULT_ENDPOINT)
     api_config.set_val(slug, "connection_mode", "direct")
     api_config.set_val(slug, "proxy", "213.165.38.49:1080")
-    api_config.set_val(slug, "doh_preset", "Comss.one (SmartDNS / РФ обход)")
+    api_config.set_val(slug, "doh_preset", "Comss.one (SmartDNS / Text Text)")
     api_config.set_val(slug, "temperature", "0.2")
     api_config.set_val(slug, "top_p", "0.3")
     api_config.set_val(slug, "max_tokens", "4096")
@@ -25,8 +25,8 @@ def setup_config(api_config, slug, model_str):
 
 PYTHON_TEMPLATE = """# -*- coding: utf-8 -*-
 \"\"\"
-Модуль: data/services/{SERVICE_ID_SLUG}/service.py
-Назначение: Плагин {SERVICE_NAME} via универсальный OpenAI-совместимый API.
+Text: data/services/{SERVICE_ID_SLUG}/service.py
+Text: Text {SERVICE_NAME} via Text OpenAI-Text API.
 \"\"\"
 
 import os
@@ -46,7 +46,7 @@ from data.services.base_service import BaseService
 from data.core.logger import logger
 
 UNIVERSAL_DOH_PRESETS = {
-    "Comss.one (SmartDNS / РФ обход)": {
+    "Comss.one (SmartDNS / Text Text)": {
         "url": "https://dns.comss.one/dns-query",
         "host": "dns.comss.one",
         "bootstrap_ip": "195.133.25.16"
@@ -99,7 +99,7 @@ def _recv_all(sock, n):
     while len(data) < n:
         packet = sock.recv(n - len(data))
         if not packet:
-            raise ConnectionError("Соединение закрыто сервером.")
+            raise ConnectionError("Text Text Text.")
         data.extend(packet)
     return bytes(data)
 
@@ -112,7 +112,7 @@ def create_socks5_socket(proxy_host, proxy_port, dest_host, dest_port, timeout=3
     resp = _recv_all(s, 2)
     if resp[0] != 5 or resp[1] != 0:
         s.close()
-        raise ConnectionError("SOCKS5 прокси отклонил соединение.")
+        raise ConnectionError("SOCKS5 Text Text Text.")
 
     dest_bytes = dest_host.encode("utf-8")
     req = b"\\x05\\x01\\x00\\x03" + bytes([len(dest_bytes)]) + dest_bytes + struct.pack("!H", dest_port)
@@ -121,7 +121,7 @@ def create_socks5_socket(proxy_host, proxy_port, dest_host, dest_port, timeout=3
     resp_header = _recv_all(s, 4)
     if resp_header[0] != 5 or resp_header[1] != 0:
         s.close()
-        raise ConnectionError(f"SOCKS5 ошибка подключения (код: {resp_header[1]})")
+        raise ConnectionError(f"SOCKS5 Text Text (Text: {resp_header[1]})")
 
     atyp = resp_header[3]
     if atyp == 1:
@@ -183,19 +183,19 @@ class CustomService(BaseService):
 
     def get_config_fields(self):
         return [
-            {"key": "api_key", "label": "API Ключ:", "required": True},
-            {"key": "model", "label": "Модель:", "required": True},
-            {"key": "endpoint", "label": "Эндпоинт (URL):", "required": True},
-            {"key": "connection_mode", "label": "Режим сети (direct/proxy/doh):", "required": True},
-            {"key": "proxy", "label": "Адрес SOCKS5 (хост:порт):", "required": False},
-            {"key": "doh_preset", "label": "DoH Пресет:", "required": False}
+            {"key": "api_key", "label": "API Text:", "required": True},
+            {"key": "model", "label": "Text:", "required": True},
+            {"key": "endpoint", "label": "Text (URL):", "required": True},
+            {"key": "connection_mode", "label": "Text Text (direct/proxy/doh):", "required": True},
+            {"key": "proxy", "label": "Text SOCKS5 (Text:Text):", "required": False},
+            {"key": "doh_preset", "label": "DoH Text:", "required": False}
         ]
 
     def is_ready(self):
         ep = self.get_config_val("endpoint", "").strip()
         if not ep:
-            return False, "Укажите URL эндпоинта в параметрах"
-        return True, "Сервис {SERVICE_NAME} настроен и готов к работе"
+            return False, "Text URL Text Text Text"
+        return True, "Text {SERVICE_NAME} Text Text Text Text Text"
 
     def _execute_request_raw(self, url, payload_bytes, headers, timeout=60.0):
         conn_mode = self.get_config_val("connection_mode", "direct").lower().strip()
@@ -236,7 +236,7 @@ class CustomService(BaseService):
                     if not chunk: break
                     response_bytes.extend(chunk)
                 except ConnectionResetError:
-                    # Игнорируем [WinError 10054], если мы уже получаем данные
+                    # info [WinError 10054], info info info info info
                     break
             sock.close()
 
@@ -257,7 +257,7 @@ class CustomService(BaseService):
             return status_code, raw_str
 
         elif conn_mode == "doh":
-            preset_name = self.get_config_val("doh_preset", "Comss.one (SmartDNS / РФ обход)")
+            preset_name = self.get_config_val("doh_preset", "Comss.one (SmartDNS / Text Text)")
             doh_url = UNIVERSAL_DOH_PRESETS.get(preset_name, {}).get("url") or "https://dns.comss.one/dns-query"
             ip = resolve_doh(dest_host, doh_url)
 
@@ -323,14 +323,14 @@ class CustomService(BaseService):
             "top_p": top_p_val
         }
 
-        # Универсальное отключение размышлений для совместимости с различными китайскими и открытыми моделями
+        # info info info info info info info info info info info
         if "deepseek" in endpoint.lower():
             payload["thinking"] = {"type": "enabled" if enable_think else "disabled"}
         elif "aliyuncs.com" in endpoint.lower() or "qwen" in model.lower():
             payload["enable_thinking"] = enable_think
         else:
             if not enable_think:
-                # Универсальный fallback для OpenRouter/Ollama и др.
+                # info fallback info OpenRouter/Ollama info info.
                 payload["include_reasoning"] = False
                 payload["reasoning"] = {"max_tokens": 0, "exclude": True}
 
@@ -369,7 +369,7 @@ class CustomService(BaseService):
                 return f"[API Error: {err_msg}]"
 
             if not data.get("choices") or len(data["choices"]) == 0:
-                return f"[{self.name}: Пустой ответ сервера]"
+                return f"[{self.name}: Text Text Text]"
 
             msg = data["choices"][0].get("message", {})
             content = msg.get("content", "")
@@ -378,13 +378,13 @@ class CustomService(BaseService):
             final = self.clean_response(content)
 
             elapsed_total = round(time.time() - t0, 2)
-            print(f"[{self.name} готов за {elapsed_total}с]: {final[:70]}...")
+            print(f"[{self.name} Text Text {elapsed_total}Text]: {final[:70]}...")
             return final if final else clean_input
 
         except Exception as e:
             elapsed = time.time() - t_call
             logger.api_summary(self.name, model, elapsed, 0, note=f"Exception: {e}")
-            return f"Ошибка API: {e}"
+            return f"Error API: {e}"
 
 service = CustomService()
 """

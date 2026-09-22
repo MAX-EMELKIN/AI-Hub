@@ -12,20 +12,20 @@ def get_base_dir ():
     return os .path .abspath (os .path .join (current_dir ,"..",".."))
 
 SAMPLE_GLOSSARY ="""# =============================================================================
-# Пользовательский словарь терминов (Глоссарий)
-# Формат: Оригинальное слово/фраза = Перевод
-# Строки со знаком # или // игнорируются
+# note note note (note)
+# note: note note/note = note
+# note note note # note // note
 # =============================================================================
 
-Sweetroll = Сладкий рулет
-Lockpick = Отмычка
-Power Armor = Силовая броня
-Stealth Boy = Стелс-бой
-Pip-Boy = Пип-бой
-Stimpak = Стимулятор
-RadAway = Антирадин
-V.A.T.S. = ВАТС
-Nuka-Cola = Ядер-Кола
+Sweetroll = Text Text
+Lockpick = Text
+Power Armor = Text Text
+Stealth Boy = Text-Text
+Pip-Boy = Text-Text
+Stimpak = Text
+RadAway = Text
+V.A.T.S. = Text
+Nuka-Cola = Text-Text
 """
 
 class GlossaryEngine :
@@ -138,16 +138,16 @@ class GlossaryEngine :
             return source_text ,""
 
         glossary_prompt_rule =(
-        "КРИТИЧЕСКОЕ ПРАВИЛО ГЛОССАРИЯ (ВЫСШИЙ ПРИОРИТЕТ НАД ДЕФОЛТНЫМИ ЗНАНИЯМИ):\n"
-        "В исходном тексте для терминов указаны обязательные подсказки в формате [[__GLOSS:Базовый_Перевод__]].\n"
-        "1. СТРОГИЙ ПРИОРИТЕТ: Ты ОБЯЗАН переводить термин ТОЛЬКО так, как указано в подсказке [[__GLOSS:...__]], "
-        "даже если в твоей памяти есть другой общепринятый перевод! Категорически запрещено заменять подсказку своим привычным переводом.\n"
-        "2. ОБЯЗАТЕЛЬНОЕ СКЛОНЕНИЕ И СОГЛАСОВАНИЕ (ИЗМЕНЕНИЕ ОКОНЧАНИЙ):\n"
-        "   Подсказка в [[__GLOSS:...__]] дана в начальной словарной форме (именительный падеж).\n"
-        "   Ты ОБЯЗАН САМОСТОЯТЕЛЬНО изменить падеж, род, число и окончания этого перевода под грамматику предложения!\n"
-        "   Пример принципа: если в тексте 'he found a magic apple [[__GLOSS:Золотое яблоко__]]', то глагол 'нашел' требует винительного падежа, "
-        "поэтому перевод ДОЛЖЕН БЫТЬ 'он нашел золотое яблоко', а для 'he has no magic apple [[__GLOSS:Золотое яблоко__]]' -> 'у него нет золотого яблока'.\n"
-        "3. ОЧИСТКА: Служебные маркеры [[__GLOSS:...__]] в финальный перевод НЕ ВЫВОДИ — удаляй их полностью!"
+        "Text Text Text (Text Text Text Text Text):\n"
+        "Text Text Text Text Text Text Text Text Text Text [[__GLOSS:Text_Text__]].\n"
+        "1. Text Text: Text Text Text Text Text Text, Text Text Text Text [[__GLOSS:...__]], "
+        "Text Text Text Text Text Text Text Text Text! Text Text Text Text Text Text Text.\n"
+        "2. Text Text Text Text (Text Text):\n"
+        "   Text Text [[__GLOSS:...__]] Text Text Text Text Text (Text Text).\n"
+        "   Text Text Text Text Text, Text, Text Text Text Text Text Text Text Text!\n"
+        "   Text Text: Text Text Text 'he found a magic apple [[__GLOSS:Text Text__]]', Text Text 'Text' Text Text Text, "
+        "Text Text Text Text 'Text Text Text Text', Text Text 'he has no magic apple [[__GLOSS:Text Text__]]' -> 'Text Text Text Text Text'.\n"
+        "3. Text: Text Text [[__GLOSS:...__]] Text Text Text Text Text — Text Text Text!"
         )
 
         return annotated_text ,glossary_prompt_rule
@@ -161,7 +161,7 @@ class GlossaryEngine :
             self .terms =dict (terms_dict )
             try :
                 with open (self .glossary_file ,"w",encoding ="utf-8")as f :
-                    f .write ("# Пользовательский словарь терминов (Глоссарий)\n\n")
+                    f .write ("# note note note (note)\n\n")
                     for k ,v in sorted (self .terms .items (),key =lambda x :str (x [0 ]).lower ()):
                         f .write (f"{k } = {v }\n")
                 return True
