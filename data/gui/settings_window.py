@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 # data/gui/settings_window.py
 
-import os, time
+import os, time, threading
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
+
 from data.core.config_manager import config
 from data.core.hotkey_manager import hotkey_manager
 from data.core.i18n import t, i18n
@@ -12,6 +13,16 @@ from data.gui.dialogs import attach_entry_context_menu
 from data.gui.theme_manager import theme
 from data.ocr.ocr_engine import ocr_engine
 from data.tts.tts_engine import tts_engine
+from data.gui.dialog_helpers import ToolTip
+
+SEARCH_ENGINE_DISPLAY = [
+    ("google", "Google (Supermium Browser, без ключей)"),
+    ("duckduckgo", "DuckDuckGo (без ключей, парсинг)"),
+    ("brave", "Brave Search API (2000 зап/мес бесплатно)"),
+    ("tavily", "Tavily AI Search (для нейросетей)"),
+    ("serper", "Serper (Google Search API)"),
+    ("searxng", "SearXNG (пользовательский инстанс)")
+]
 
 class SettingsWindow(tk.Toplevel):
     def __init__(self, parent, on_settings_updated=None):
@@ -23,8 +34,8 @@ class SettingsWindow(tk.Toplevel):
 
         bg_main = theme.get_color("bg_main")
         self.title(t("settings_title", "Настройки программы"))
-        self.geometry("660x600")
-        self.minsize(580, 500)
+        self.geometry("760x650")
+        self.minsize(700, 520)
         self.configure(bg=bg_main)
         self.transient(parent)
 
@@ -40,7 +51,7 @@ class SettingsWindow(tk.Toplevel):
         ph = self.parent.winfo_height() if self.parent else 400
         px = self.parent.winfo_rootx() if self.parent else 200
         py = self.parent.winfo_rooty() if self.parent else 150
-        w, h = 660, 600
+        w, h = 760, 650
         x = px + max(0, (pw - w) // 2)
         y = py + max(0, (ph - h) // 2)
         self.geometry(f"{w}x{h}+{x}+{y}")
@@ -58,8 +69,9 @@ class SettingsWindow(tk.Toplevel):
         nb = ttk.Notebook(pad)
         nb.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
 
+        # 1. Вкладка Основные
         tab_gen = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
-        nb.add(tab_gen, text=t("settings_tab_general", "Основные и Оформление"))
+        nb.add(tab_gen, text="Основные")
 
         self.var_autolaunch = tk.BooleanVar(value=config.get_bool("GENERAL", "AutoLaunchQTranslate", True))
         tk.Checkbutton(
@@ -138,8 +150,84 @@ class SettingsWindow(tk.Toplevel):
             relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, command=lambda: self._set_editor_value("auto")
         ).pack(side=tk.LEFT, padx=2)
 
+        # 2. Вкладка Поиск
+        tab_search = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
+        nb.add(tab_search, text="Поиск")
+
+        tk.Label(tab_search, text="Поисковые системы для агентов и чата:", font=theme.font(0, "bold"), fg=theme.get_color("accent"), bg=bg_card).pack(anchor="w", pady=(0, 6))
+
+        r_engine = tk.Frame(tab_search, bg=bg_card)
+        r_engine.pack(fill=tk.X, pady=4)
+        tk.Label(r_engine, text="Основной поисковик:", font=theme.font(0), bg=bg_card, fg=fg_pri, width=20, anchor="w").pack(side=tk.LEFT)
+
+        engine_titles = [title for _, title in SEARCH_ENGINE_DISPLAY]
+        self.combo_engine = ttk.Combobox(r_engine, values=engine_titles, state="readonly", width=38)
+
+        cur_engine = config.get_str("SEARCH", "engine", "google").lower()
+        cur_engine_title = next((title for eid, title in SEARCH_ENGINE_DISPLAY if eid == cur_engine), engine_titles[0])
+        self.combo_engine.set(cur_engine_title)
+        self.combo_engine.pack(side=tk.LEFT, padx=6)
+
+        f_keys = tk.LabelFrame(tab_search, text=" API-ключи и настройки внешних поисковиков ", font=theme.font(-1, "bold"), bg=bg_card, fg=fg_pri, padx=8, pady=6)
+        f_keys.pack(fill=tk.X, pady=(6, 6))
+
+        r_brave = tk.Frame(f_keys, bg=bg_card)
+        r_brave.pack(fill=tk.X, pady=2)
+        tk.Label(r_brave, text="Brave API Key:", font=theme.font(-1), bg=bg_card, fg=fg_pri, width=14, anchor="w").pack(side=tk.LEFT)
+        self.e_brave_key = tk.Entry(r_brave, font=theme.font(-1), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
+        self.e_brave_key.insert(0, config.get_str("SEARCH", "brave_key", ""))
+        self.e_brave_key.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
+        attach_entry_context_menu(self.e_brave_key)
+        tk.Button(r_brave, text="Получить ключ", font=theme.font(-2), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, command=lambda: os.startfile("https://brave.com/search/api/")).pack(side=tk.RIGHT)
+
+        r_tavily = tk.Frame(f_keys, bg=bg_card)
+        r_tavily.pack(fill=tk.X, pady=2)
+        tk.Label(r_tavily, text="Tavily API Key:", font=theme.font(-1), bg=bg_card, fg=fg_pri, width=14, anchor="w").pack(side=tk.LEFT)
+        self.e_tavily_key = tk.Entry(r_tavily, font=theme.font(-1), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
+        self.e_tavily_key.insert(0, config.get_str("SEARCH", "tavily_key", ""))
+        self.e_tavily_key.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
+        attach_entry_context_menu(self.e_tavily_key)
+        tk.Button(r_tavily, text="Получить ключ", font=theme.font(-2), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, command=lambda: os.startfile("https://tavily.com")).pack(side=tk.RIGHT)
+
+        r_serper = tk.Frame(f_keys, bg=bg_card)
+        r_serper.pack(fill=tk.X, pady=2)
+        tk.Label(r_serper, text="Serper API Key:", font=theme.font(-1), bg=bg_card, fg=fg_pri, width=14, anchor="w").pack(side=tk.LEFT)
+        self.e_serper_key = tk.Entry(r_serper, font=theme.font(-1), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
+        self.e_serper_key.insert(0, config.get_str("SEARCH", "serper_key", ""))
+        self.e_serper_key.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
+        attach_entry_context_menu(self.e_serper_key)
+        tk.Button(r_serper, text="Получить ключ", font=theme.font(-2), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, command=lambda: os.startfile("https://serper.dev")).pack(side=tk.RIGHT)
+
+        r_sx = tk.Frame(f_keys, bg=bg_card)
+        r_sx.pack(fill=tk.X, pady=2)
+        tk.Label(r_sx, text="SearXNG URL:", font=theme.font(-1), bg=bg_card, fg=fg_pri, width=14, anchor="w").pack(side=tk.LEFT)
+        self.e_searxng_url = tk.Entry(r_sx, font=theme.font(-1), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
+        self.e_searxng_url.insert(0, config.get_str("SEARCH", "searxng_url", "https://search.sapti.me/search"))
+        self.e_searxng_url.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
+        attach_entry_context_menu(self.e_searxng_url)
+        ToolTip(self.e_searxng_url, "URL локального или открытого инстанса SearXNG")
+
+        f_test = tk.LabelFrame(tab_search, text=" Экспресс-проверка поисковика ", font=theme.font(-1, "bold"), bg=bg_card, fg=fg_pri, padx=8, pady=6)
+        f_test.pack(fill=tk.BOTH, expand=True, pady=(4, 0))
+
+        r_tbar = tk.Frame(f_test, bg=bg_card)
+        r_tbar.pack(fill=tk.X, pady=(0, 4))
+        tk.Label(r_tbar, text="Запрос:", font=theme.font(-1), bg=bg_card, fg=fg_pri).pack(side=tk.LEFT)
+        self.e_test_query = tk.Entry(r_tbar, font=theme.font(-1), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1, width=28)
+        self.e_test_query.insert(0, "QTranslate AI Hub")
+        self.e_test_query.pack(side=tk.LEFT, padx=4)
+        attach_entry_context_menu(self.e_test_query)
+
+        btn_test_s = tk.Button(r_tbar, text="Тест поиска", font=theme.font(-1, "bold"), relief=tk.FLAT, bg=theme.get_color("accent"), fg=theme.get_color("accent_text"), padx=8, command=self._test_search)
+        btn_test_s.pack(side=tk.LEFT, padx=4)
+
+        self.txt_search_res = tk.Text(f_test, height=5, font=theme.font(-2), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1, wrap=tk.WORD)
+        self.txt_search_res.pack(fill=tk.BOTH, expand=True)
+        attach_entry_context_menu(self.txt_search_res)
+
+        # 3. Вкладка Клавиши
         tab_keys = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
-        nb.add(tab_keys, text=t("settings_tab_hotkeys", "Горячие клавиши"))
+        nb.add(tab_keys, text="Клавиши")
 
         tk.Label(tab_keys, text=t("settings_hk_header", "Глобальные клавиши AI Hub:"), font=theme.font(0, "bold"), fg=theme.get_color("accent"), bg=bg_card).pack(anchor="w", pady=(0, 6))
 
@@ -180,8 +268,9 @@ class SettingsWindow(tk.Toplevel):
             font=theme.font(-2, "italic"), fg=theme.get_color("fg_muted"), bg=bg_card
         ).pack(anchor="w", pady=(8, 0))
 
+        # 4. Вкладка Медиа
         tab_media = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
-        nb.add(tab_media, text=t("settings_tab_media", "OCR и Озвучка"))
+        nb.add(tab_media, text="Медиа")
 
         tk.Label(tab_media, text=t("settings_ocr_model_lbl", "Модель офлайн OCR:"), font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri).pack(anchor="w", pady=(0, 2))
         self.combo_ocr = ttk.Combobox(tab_media, values=ocr_engine.get_available_models(), state="readonly", width=14)
@@ -202,8 +291,9 @@ class SettingsWindow(tk.Toplevel):
             relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, command=self._test_tts
         ).pack(anchor="w")
 
+        # 5. Вкладка Логи
         tab_logs = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
-        nb.add(tab_logs, text="Отладка и Логи")
+        nb.add(tab_logs, text="Логи")
 
         f_con = tk.LabelFrame(tab_logs, text=" Вывод логов ", font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=8, pady=6)
         f_con.pack(fill=tk.X, pady=(0, 8))
@@ -286,6 +376,7 @@ class SettingsWindow(tk.Toplevel):
             variable=self.var_log_browser, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1)
         ).pack(anchor="w")
 
+        # Нижняя панель
         btn_bar = tk.Frame(pad, bg=bg_main)
         btn_bar.pack(fill=tk.X)
         tk.Button(btn_bar, text=t("btn_cancel", "Отмена"), font=theme.font(0), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, padx=12, command=self.destroy).pack(side=tk.RIGHT, padx=(6, 0))
@@ -304,6 +395,30 @@ class SettingsWindow(tk.Toplevel):
     def _set_editor_value(self, val):
         self.e_editor.delete(0, tk.END)
         self.e_editor.insert(0, val)
+
+    def _test_search(self):
+        q = self.e_test_query.get().strip()
+        if not q:
+            return
+
+        chosen_title = self.combo_engine.get()
+        engine_id = next((eid for eid, title in SEARCH_ENGINE_DISPLAY if title == chosen_title), "google")
+
+        self.txt_search_res.delete("1.0", tk.END)
+        self.txt_search_res.insert("1.0", f"Выполняется поиск через {chosen_title}... Пожалуйста, подождите.")
+
+        def _worker():
+            try:
+                from data.core.web_search import search_web
+                res = search_web(q, engine=engine_id, max_results=2)
+                def _update():
+                    self.txt_search_res.delete("1.0", tk.END)
+                    self.txt_search_res.insert("1.0", res)
+                self.after(0, _update)
+            except Exception as e:
+                self.after(0, lambda: self.txt_search_res.insert(tk.END, f"\nОшибка: {e}"))
+
+        threading.Thread(target=_worker, daemon=True).start()
 
     def _toggle_console_live(self):
         show = self.var_show_console.get()
@@ -385,6 +500,14 @@ class SettingsWindow(tk.Toplevel):
         chosen_lang_display = self.combo_lang.get()
         chosen_lang_code = next((k for k, name in self.lang_options if name == chosen_lang_display), "auto")
         i18n.set_language(chosen_lang_code)
+
+        chosen_engine_title = self.combo_engine.get()
+        chosen_engine_id = next((eid for eid, title in SEARCH_ENGINE_DISPLAY if title == chosen_engine_title), "google")
+        config.set_value("SEARCH", "engine", chosen_engine_id)
+        config.set_value("SEARCH", "searxng_url", self.e_searxng_url.get().strip() or "https://search.sapti.me/search")
+        config.set_value("SEARCH", "brave_key", self.e_brave_key.get().strip())
+        config.set_value("SEARCH", "tavily_key", self.e_tavily_key.get().strip())
+        config.set_value("SEARCH", "serper_key", self.e_serper_key.get().strip())
 
         config.set_value("HOTKEYS", "OCR", self.e_hk_ocr.get().strip())
         config.set_value("HOTKEYS", "ToggleWindow", self.e_hk_win.get().strip())

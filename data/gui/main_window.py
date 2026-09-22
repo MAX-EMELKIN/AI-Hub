@@ -1,39 +1,80 @@
 # -*- coding: utf-8 -*-
 # data/gui/main_window.py
 
-import os
-import sys
+import os, sys, time, threading
 import tkinter as tk
 from tkinter import ttk, messagebox
 
 from data.core.config_manager import config
-from data.core.i18n import t
-from data.services.base_service import LOADED_SERVICES
-from data.gui.service_card import ServiceCard
-from data.gui.theme_manager import theme
-from data.gui.dialogs import (
-    PresetEditorDialog, ServiceSettingsDialog,
-    OCRSettingsDialog, ToolTip, AddServiceWizardDialog
-)
-from data.gui.tool_windows import BatchWindow, GlossaryWindow, SettingsWindow, ChatWindow
-from data.ocr.ocr_engine import ocr_engine
-from data.core.service_generator import delete_service_completely
 from data.core.logger import logger
+from data.core.i18n import t, i18n
+from data.core.launcher import launch_qtranslate, restart_qtranslate, check_and_autostart_qtranslate, is_qtranslate_running
+from data.gui.theme_manager import theme
+from data.gui.service_card import ServiceCard
+from data.gui.dialog_helpers import ToolTip
+from data.gui.tool_windows import BatchWindow, GlossaryWindow, SettingsWindow, ChatWindow
+from data.gui.wizard_dialog import AddServiceWizardDialog
+from data.services.base_service import LOADED_SERVICES
 
 def get_base_dir():
     if getattr(sys, 'frozen', False):
         return os.path.dirname(sys.executable)
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    return os.path.abspath(os.path.join(current_dir, "..", ".."))
+    return os.path.abspath(os.path.join(current_dir, '..', '..'))
 
 MT_SERVICE_IDS = {"bing", "yandex", "yandex_inl", "webtran", "freetranslations", "google_web"}
+
+class SafeTooltip:
+    def __init__(self, widget, text):
+        self.widget = widget
+        self.text = text
+        self.tip = None
+        self.widget.bind("<Enter>", self._schedule, add="+")
+        self.widget.bind("<Leave>", self._hide, add="+")
+        self.widget.bind("<ButtonPress>", self._hide, add="+")
+        self._after_id = None
+
+    def _schedule(self, event=None):
+        self._after_id = self.widget.after(400, self._show)
+
+    def _show(self):
+        if self.tip or not self.text:
+            return
+        x = self.widget.winfo_rootx()
+        y = self.widget.winfo_rooty() + self.widget.winfo_height() + 6
+
+        self.tip = tk.Toplevel(self.widget)
+        self.tip.wm_overrideredirect(True)
+        self.tip.wm_geometry(f"+{x}+{y}")
+
+        lbl = tk.Label(
+            self.tip,
+            text=self.text,
+            justify=tk.LEFT,
+            background="#1E232A",
+            foreground="#E2E8F0",
+            font=("Segoe UI", 9),
+            relief="solid",
+            borderwidth=1,
+            padx=8,
+            pady=6
+        )
+        lbl.pack()
+
+    def _hide(self, event=None):
+        if self._after_id:
+            self.widget.after_cancel(self._after_id)
+            self._after_id = None
+        if self.tip:
+            self.tip.destroy()
+            self.tip = None
 
 class MainWindow(tk.Tk):
     def __init__(self, on_hide_to_tray_callback=None):
         super().__init__()
         self.on_hide_to_tray = on_hide_to_tray_callback
 
-        self.title(t("app_title", "QTranslate AI Hub"))
+        self.title("QTranslate AI Hub v2.0 RC")
         self.minsize(560, 380)
 
         self.service_cards = {}
@@ -164,24 +205,29 @@ class MainWindow(tk.Tk):
             font=theme.font(0, "bold"), fg=accent, bg=bg_hdr
         ).pack(side=tk.LEFT)
 
-        btn_add = tk.Button(
-            header_frame, text=t("add_service", "Студия подключения и настройки сервисов"),
-            font=theme.font(-1, "bold"), relief=tk.FLAT, bg=theme.get_color("help_btn_bg"),
-            fg=theme.get_color("help_btn_fg"), cursor="hand2", padx=8, pady=2,
+        self.btn_add = tk.Button(
+            header_frame,
+            text="Студия подключения и настройки сервисов",
+            font=theme.font(-1, "bold"),
+            relief=tk.FLAT,
+            bg=theme.get_color("help_btn_bg"),
+            fg=theme.get_color("help_btn_fg"),
+            cursor="hand2",
+            padx=10,
+            pady=3,
             command=self._on_add_custom_service
         )
-        btn_add.pack(side=tk.RIGHT)
+        self.btn_add.pack(side=tk.RIGHT)
 
-        tooltip_studio = (
-            "Студия подключения и настройки сервисов (Мастер плагинов):\n"
-            "- Подключение моделей по готовым шаблонам (OpenRouter, Qwen, DeepSeek, Gemini и др.)\n"
+        tooltip_text = (
+            "Студия подключения и настройки сервисов:\n"
+            "- Подключение моделей по шаблонам (OpenRouter, Qwen, DeepSeek, Gemini и др.)\n"
             "- Онлайн-запрос списка моделей, лимитов контекста и цен через API\n"
-            "- Встроенная проверка методов сервера (OPTIONS) и ручная отправка запросов\n"
-            "- Генерация плагинов QTranslate (service.js) и скриптов Хаба (service.py)\n"
-            "- Настройка генерации, рассуждений (thinking) и сетевых режимов (SOCKS5, DoH)\n"
-            "- Быстрый и полный тестовый стенд созданного сервиса"
+            "- Проверка методов сервера (OPTIONS) и ручная отправка запросов\n"
+            "- Быстрый пинг и тестирование модели до создания файлов\n"
+            "- Генерация кнопок QTranslate (service.js) и скриптов Хаба (service.py)"
         )
-        ToolTip(btn_add, tooltip_studio)
+        SafeTooltip(self.btn_add, tooltip_text)
 
         list_outer = tk.Frame(self, bg=bg_main, padx=8, pady=6)
         list_outer.pack(fill=tk.BOTH, expand=True)

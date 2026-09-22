@@ -1,247 +1,323 @@
 # -*- coding: utf-8 -*-
 # data/core/service_generator.py
 
-import os, re, shutil, sys, time
-import importlib
+import os, sys, re, shutil, importlib.util
 from data.core.api_config import api_config
-from data.core.launcher import restart_qtranslate
 from data.core.logger import logger
-from data.core.templates.common_js import JS_SERVICE_TEMPLATE
-from data.core.templates.unified_engine import UNIFIED_PYTHON_TEMPLATE
-__all__ =[
-"slugify",
-"get_next_available_qt_id",
-"get_known_providers",
-"get_provider_spec",
-"create_unified_service",
-"delete_service_completely",
-"test_ping_service",
-]
+from data.core.launcher import restart_qtranslate
 
-def get_base_dir ():
-    if getattr (sys ,'frozen',False ):
-        return os .path .dirname (sys .executable )
-    current_dir =os .path .dirname (os .path .abspath (__file__ ))
-    return os .path .abspath (os .path .join (current_dir ,"..",".."))
+def get_base_dir():
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.abspath(os.path.join(current_dir, "..", ".."))
 
-def slugify (text ):
-    text =re .sub (r'[^a-zA-Z0-9_]','_',text .lower ()).strip ('_')
-    return re .sub (r'_+','_',text )
+DEFAULT_DOCS = {
+    "openrouter": "https://openrouter.ai/docs",
+    "dashscope": "https://help.aliyun.com/zh/model-studio/developer-reference/compatibility-of-openai-with-dashscope",
+    "gemini": "https://ai.google.dev/gemini-api/docs",
+    "cloudflare": "https://developers.cloudflare.com/workers-ai/",
+    "boltch": "https://boltch.cloud",
+    "deepseek": "https://api-docs.deepseek.com/",
+    "siliconflow": "https://docs.siliconflow.cn/",
+    "cerebras": "https://inference-docs.cerebras.net/",
+    "mistral": "https://docs.mistral.ai/",
+    "pollinations": "https://pollinations.ai/",
+    "openai_compatible": "https://platform.openai.com/docs/api-reference"
+}
 
-def get_next_available_qt_id ():
-    base_dir =get_base_dir ()
-    used_ids ={675 ,681 ,685 ,686 ,694 ,696 ,698 ,700 ,701 ,702 ,703 ,704 ,705 ,706 ,707 ,708 ,709 ,710 ,103 ,111 ,11 ,118 ,119 }
+class ServiceGenerator:
+    def __init__(self):
+        self.base_dir = get_base_dir()
+        self.templates_dir = os.path.join(self.base_dir, "data", "core", "templates")
+        self.services_qt_dir = os.path.join(self.base_dir, "Services")
+        self.services_hub_dir = os.path.join(self.base_dir, "data", "services")
+        self.presets_dir = os.path.join(self.base_dir, "data", "presets")
 
-    services_dir =os .path .join (base_dir ,"Services")
-    if os .path .exists (services_dir ):
-        for root ,_ ,files in os .walk (services_dir ):
-            for file in files :
-                if file .lower ()=="service.js":
-                    try :
-                        with open (os .path .join (root ,file ),"r",encoding ="utf-8")as f :
-                            content =f .read ()
-                            m =re .search (r'SERVICE_ID\s*=\s*(\d+)',content )
-                            if m :
-                                used_ids .add (int (m .group (1 )))
-                    except Exception :
+    def sanitize_id(self, name):
+        if not name:
+            return "service_custom"
+        s = name.strip().lower()
+        s = re.sub(r'[\s\-_\.]+', '_', s)
+        s = re.sub(r'[^a-z0-9_]', '', s)
+        s = s.strip('_')
+        return s if s else "service_custom"
+
+    def sanitize_folder_name(self, name):
+        if not name:
+            return "Custom Service"
+        clean = re.sub(r'[\\/*?:"<>|]', '', name.strip())
+        return clean if clean else "Custom Service"
+
+    def get_available_templates(self):
+        templates = []
+        if not os.path.exists(self.templates_dir):
+            return templates
+
+        system_files = {"__init__.py", "unified_engine.py", "common_js.py"}
+        for fname in sorted(os.listdir(self.templates_dir)):
+            if fname.endswith(".py") and fname not in system_files:
+                template_id = fname[:-3]
+                meta = self._load_template_metadata(template_id, os.path.join(self.templates_dir, fname))
+                if meta:
+                    templates.append(meta)
+        return templates
+
+    def _load_template_metadata(self, template_id, file_path):
+        try:
+            spec = importlib.util.spec_from_file_location(f"template_{template_id}", file_path)
+            if not spec or not spec.loader:
+                return None
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+
+            docs = getattr(module, "DOCS_URL", DEFAULT_DOCS.get(template_id, ""))
+
+            return {
+                "id": template_id,
+                "name": getattr(module, "TEMPLATE_NAME", template_id.capitalize()),
+                "provider": getattr(module, "PROVIDER_ID", template_id),
+                "description": getattr(module, "TEMPLATE_DESC", ""),
+                "docs_url": docs,
+                "default_endpoint": getattr(module, "DEFAULT_ENDPOINT", ""),
+                "default_model": getattr(module, "DEFAULT_MODEL", ""),
+                "default_connection_mode": getattr(module, "DEFAULT_CONNECTION_MODE", "direct"),
+                "default_proxy": getattr(module, "DEFAULT_PROXY", "213.165.38.49:1080"),
+                "default_doh": getattr(module, "DEFAULT_DOH", "smartdns"),
+                "supports_thinking": getattr(module, "SUPPORTS_THINKING", False),
+                "thinking_policy": getattr(module, "DEFAULT_THINKING_POLICY", "strip"),
+                "auth_header_format": getattr(module, "AUTH_HEADER_FORMAT", "Bearer {api_key}"),
+                "extra_headers": getattr(module, "EXTRA_HEADERS", {}),
+                "module": module
+            }
+        except Exception as e:
+            logger.error(f"Ошибка загрузки метаданных шаблона {template_id}: {e}")
+            return None
+
+    def get_template_docs_url(self, template_id):
+        meta = self._load_template_metadata(template_id, os.path.join(self.templates_dir, f"{template_id}.py"))
+        if meta and meta.get("docs_url"):
+            return meta["docs_url"]
+        return DEFAULT_DOCS.get(template_id, "https://openrouter.ai/docs")
+
+    def generate(self, display_name, template_id, api_key="", model_name="",
+                 endpoint="", connection_mode=None, proxy="", doh_preset="smartdns",
+                 temperature="0.3", top_p="0.9", max_tokens="2048",
+                 thinking_policy="strip", restart_qt=True):
+        templates = {t["id"]: t for t in self.get_available_templates()}
+        tmpl = templates.get(template_id)
+        if not tmpl:
+            raise ValueError(f"Шаблон '{template_id}' не найден.")
+
+        service_id = self.sanitize_id(display_name)
+        folder_name = self.sanitize_folder_name(display_name)
+        provider_id = tmpl["provider"].lower().strip()
+
+        final_endpoint = endpoint.strip() if endpoint.strip() else tmpl["default_endpoint"]
+        final_model = model_name.strip() if model_name.strip() else tmpl["default_model"]
+        final_conn_mode = connection_mode if connection_mode is not None else tmpl["default_connection_mode"]
+        final_proxy = proxy.strip() if proxy.strip() else tmpl["default_proxy"]
+        final_api_key = api_key.strip()
+
+        if not api_config.models.has_section(service_id):
+            api_config.models.add_section(service_id)
+
+        api_config.models.set(service_id, "provider", provider_id)
+        api_config.models.set(service_id, "endpoint", final_endpoint)
+        api_config.models.set(service_id, "model", final_model)
+        api_config.models.set(service_id, "display_name", folder_name)
+        api_config.models.set(service_id, "temperature", str(temperature))
+        api_config.models.set(service_id, "top_p", str(top_p))
+        api_config.models.set(service_id, "max_tokens", str(max_tokens))
+        api_config.models.set(service_id, "thinking_policy", str(thinking_policy))
+        api_config.models.set(service_id, "connection_mode", str(final_conn_mode))
+        api_config.models.set(service_id, "proxy", str(final_proxy))
+        api_config.models.set(service_id, "doh_preset", str(doh_preset))
+
+        if provider_id == "custom":
+            api_config.models.set(service_id, "api_key", final_api_key)
+        else:
+            existing_prov_key = api_config.get_provider_val(provider_id, "api_key", "")
+            if not existing_prov_key and final_api_key:
+                api_config.set_provider_val(provider_id, "api_key", final_api_key)
+                api_config.set_provider_val(provider_id, "connection_mode", final_conn_mode)
+                api_config.set_provider_val(provider_id, "proxy", final_proxy)
+                api_config.set_provider_val(provider_id, "doh_preset", doh_preset)
+            elif final_api_key and final_api_key != existing_prov_key:
+                api_config.models.set(service_id, "api_key", final_api_key)
+            else:
+                api_config.models.set(service_id, "api_key", "")
+
+        api_config.save_models()
+        api_config.save_providers()
+
+        self._setup_service_presets(service_id)
+
+        hub_service_dir = os.path.join(self.services_hub_dir, service_id)
+        os.makedirs(hub_service_dir, exist_ok=True)
+        hub_service_file = os.path.join(hub_service_dir, "service.py")
+        self._write_hub_service_file(hub_service_file, service_id, template_id)
+
+        qt_service_dir = os.path.join(self.services_qt_dir, folder_name)
+        os.makedirs(qt_service_dir, exist_ok=True)
+        qt_service_file = os.path.join(qt_service_dir, "service.js")
+        self._write_qt_service_file(qt_service_file, folder_name, service_id)
+
+        self._setup_service_icons(tmpl, hub_service_dir, qt_service_dir)
+
+        logger.system(f"Сервис '{folder_name}' (ID: {service_id}) успешно сгенерирован.")
+
+        if restart_qt:
+            try:
+                restart_qtranslate()
+                logger.system("QTranslate успешно перезапущен с новым сервисом.")
+            except Exception as e:
+                logger.error(f"Не удалось перезапустить QTranslate: {e}")
+
+        return service_id
+
+    def _setup_service_presets(self, service_id):
+        target_preset_dir = os.path.join(self.presets_dir, service_id)
+        os.makedirs(target_preset_dir, exist_ok=True)
+
+        styles = ["academic", "code", "default", "games", "literary"]
+        source_dir = os.path.join(self.presets_dir, "qwen_turbo")
+        if not os.path.exists(source_dir):
+            source_dir = self.presets_dir
+
+        for style in styles:
+            target_file = os.path.join(target_preset_dir, f"{style}.txt")
+            if not os.path.exists(target_file):
+                src_file = os.path.join(source_dir, f"{style}.txt")
+                if os.path.exists(src_file):
+                    try:
+                        shutil.copy2(src_file, target_file)
+                    except Exception:
                         pass
+                else:
+                    with open(target_file, "w", encoding="utf-8") as f:
+                        f.write(f"Ты — профессиональный переводчик. Выполни перевод на целевой язык в стиле {style}.")
 
-    candidate =711
-    while candidate in used_ids :
-        candidate +=1
-    return candidate
+    def _write_hub_service_file(self, target_path, service_id, template_id):
+        content = f"""# -*- coding: utf-8 -*-
+# data/services/{service_id}/service.py
 
-def get_known_providers ():
-    base_dir =get_base_dir ()
-    tpl_dir =os .path .join (base_dir ,"data","core","templates")
-    providers =[]
+import sys, os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+base_dir = os.path.abspath(os.path.join(current_dir, "..", "..", ".."))
+if base_dir not in sys.path:
+    sys.path.insert(0, base_dir)
 
-    if os .path .exists (tpl_dir ):
-        ignore_files ={"common_js.py","unified_engine.py","__init__.py"}
-        for item in sorted (os .listdir (tpl_dir )):
-            if item .endswith (".py")and item not in ignore_files :
-                mod_name =item [:-3 ]
-                try :
-                    mod =importlib .import_module (f"data.core.templates.{mod_name }")
-                    p_key =getattr (mod ,"PROVIDER_KEY",mod_name )
-                    p_name =getattr (mod ,"PROVIDER_NAME",mod_name .capitalize ())
-                    providers .append ((p_key ,p_name ))
-                except Exception as e :
-                    logger .system (f"Генератор: сбой импорта шаблона '{item }': {e }")
+from data.core.templates.unified_engine import execute_request
 
-    has_custom =any (k =="custom"for k ,_ in providers )
-    if not has_custom :
-        providers .append (("custom","Пользовательский шаблон (С нуля...)"))
+SERVICE_ID = "{service_id}"
+TEMPLATE_ID = "{template_id}"
 
-    return providers
+def translate(text, from_lang="auto", to_lang="ru", preset_name="default", **kwargs):
+    return execute_request(SERVICE_ID, TEMPLATE_ID, text, from_lang, to_lang, preset_name, **kwargs)
+"""
+        with open(target_path, "w", encoding="utf-8") as f:
+            f.write(content)
 
-def get_provider_spec (provider_key ):
-    if provider_key =="custom":
-        return {
-        "name":"Пользовательский шаблон (С нуля...)",
-        "endpoint":"https://api.example.com/v1/chat/completions",
-        "default_model":"custom-model",
-        "auth_header_type":"Bearer",
-        "thinking_policy":"none",
-        "response_path":"choices.0.message.content",
-        "connection_mode":"direct",
-        "proxy":"127.0.0.1:10808",
-        "extra_headers":{}
-        }
+    def _write_qt_service_file(self, target_path, display_name, service_id):
+        content = f"""// QTranslate Service Script: {display_name}
+// Generated by QTranslate AI Hub Studio
+var name = "{display_name}";
+var hub_service_id = "{service_id}";
 
-    try :
-        mod =importlib .import_module (f"data.core.templates.{provider_key }")
-        return {
-        "name":getattr (mod ,"PROVIDER_NAME",provider_key .capitalize ()),
-        "endpoint":getattr (mod ,"DEFAULT_ENDPOINT","https://api.example.com/v1/chat/completions"),
-        "default_model":getattr (mod ,"DEFAULT_MODEL","model-id"),
-        "auth_header_type":getattr (mod ,"AUTH_HEADER_TYPE","Bearer"),
-        "thinking_policy":getattr (mod ,"THINKING_POLICY","none"),
-        "response_path":getattr (mod ,"RESPONSE_PATH","choices.0.message.content"),
-        "connection_mode":getattr (mod ,"CONNECTION_MODE","direct"),
-        "proxy":getattr (mod ,"DEFAULT_PROXY","127.0.0.1:10808"),
-        "extra_headers":getattr (mod ,"EXTRA_HEADERS",{})
-        }
-    except Exception as e :
-        logger .system (f"Генератор: сбой чтения параметров шаблона '{provider_key }': {e }")
-        return get_provider_spec ("custom")
+function getRequest(text, from, to) {{
+    var url = "http://127.0.0.1:8080/translate";
+    var escapedText = text.replace(/\\\\/g, "\\\\\\\\")
+                          .replace(/\"/g, "\\\\\"")
+                          .replace(/\\r/g, "\\\\r")
+                          .replace(/\\n/g, "\\\\n")
+                          .replace(/\\t/g, "\\\\t");
 
-def create_unified_service (
-provider_key ,service_name ,service_slug ="",model_id ="",
-endpoint ="",qt_id =None ,auth_header_type ="Bearer",
-thinking_policy ="none",response_path ="choices.0.message.content",
-extra_headers_json ="{}",api_key ="",connection_mode ="direct",
-proxy ="",doh_preset ="Comss.one (SmartDNS / РФ обход)"
-):
-    base_dir =get_base_dir ()
-    slug =slugify (service_slug or service_name )
-    if not slug :
-        slug ="custom_service"
+    var jsonBody = '{{"service":"' + hub_service_id + '","from":"' + from + '","to":"' + to + '","text":"' + escapedText + '"}}';
 
-    target_qt_id =int (qt_id )if qt_id else get_next_available_qt_id ()
+    return {{
+        url: url,
+        postData: jsonBody,
+        headers: {{
+            "Content-Type": "application/json; charset=utf-8"
+        }}
+    }};
+}}
 
-    py_code =(
-    UNIFIED_PYTHON_TEMPLATE
-    .replace ("{SERVICE_NAME}",service_name )
-    .replace ("{SERVICE_ID_SLUG}",slug )
-    .replace ("{MODEL_ID}",model_id )
-    .replace ("{ENDPOINT}",endpoint )
-    .replace ("{PROVIDER_KEY}",provider_key )
-    .replace ("{AUTH_HEADER_TYPE}",auth_header_type )
-    .replace ("{THINKING_POLICY}",thinking_policy )
-    .replace ("{RESPONSE_PATH}",response_path )
-    .replace ("{EXTRA_HEADERS_JSON}",extra_headers_json )
-    )
+function getResponse(text) {{
+    if (!text || text.length === 0) {{
+        return "Ошибка: пустой ответ от AI Hub";
+    }}
+    try {{
+        if (text.indexOf('{{"result":') === 0 || text.indexOf('{{"error":') === 0) {{
+            var res = eval("(" + text + ")");
+            if (res.error) {{
+                return "Ошибка AI Hub: " + res.error;
+            }}
+            return res.result;
+        }}
+    }} catch (e) {{
+    }}
+    return text;
+}}
+"""
+        with open(target_path, "w", encoding="utf-8") as f:
+            f.write(content)
 
-    py_dir =os .path .join (base_dir ,"data","services",slug )
-    os .makedirs (py_dir ,exist_ok =True )
-    py_file =os .path .join (py_dir ,"service.py")
-    with open (py_file ,"w",encoding ="utf-8")as f :
-        f .write (py_code )
+    def _setup_service_icons(self, tmpl, hub_service_dir, qt_service_dir):
+        template_id = tmpl["id"]
+        source_ico = os.path.join(self.templates_dir, f"{template_id}.ico")
+        source_png = os.path.join(self.templates_dir, f"{template_id}.png")
+        default_ico = os.path.join(self.base_dir, "data", "gui", "AI_Hub.ico")
 
-    js_folder_name =re .sub (r'[^a-zA-Z0-9_\- ]','',service_name ).strip ()or slug
-    js_dir =os .path .join (base_dir ,"Services",js_folder_name )
-    os .makedirs (js_dir ,exist_ok =True )
-    js_file =os .path .join (js_dir ,"service.js")
+        target_ico = os.path.join(qt_service_dir, "service.ico")
+        if os.path.exists(source_ico):
+            shutil.copy2(source_ico, target_ico)
+        elif os.path.exists(default_ico):
+            shutil.copy2(default_ico, target_ico)
 
-    js_code =(
-    JS_SERVICE_TEMPLATE
-    .replace ("{SERVICE_NAME}",service_name )
-    .replace ("{SERVICE_ID_SLUG}",slug )
-    .replace ("{QT_ID}",str (target_qt_id ))
-    )
-    with open (js_file ,"w",encoding ="utf-8")as f :
-        f .write (js_code )
+        target_png = os.path.join(hub_service_dir, "service.png")
+        if os.path.exists(source_png):
+            shutil.copy2(source_png, target_png)
 
-    if api_key :
-        api_config .set_provider_val (provider_key ,"api_key",api_key )
-    if connection_mode :
-        api_config .set_provider_val (provider_key ,"connection_mode",connection_mode )
-    if proxy :
-        api_config .set_provider_val (provider_key ,"proxy",proxy )
-    if doh_preset :
-        api_config .set_provider_val (provider_key ,"doh_preset",doh_preset )
+    def delete_service(self, service_id_or_name):
+        sec = api_config._resolve_section(service_id_or_name)
+        display_name = ""
+        if api_config.models.has_section(sec) and api_config.models.has_option(sec, "display_name"):
+            display_name = api_config.models.get(sec, "display_name")
+        if not display_name:
+            display_name = service_id_or_name
 
-    api_config .set_val (slug ,"provider",provider_key )
-    api_config .set_val (slug ,"model",model_id )
-    api_config .set_val (slug ,"endpoint",endpoint )
-    api_config .set_val (slug ,"temperature","0.2")
-    api_config .set_val (slug ,"top_p","0.3")
-    api_config .set_val (slug ,"max_tokens","4096")
-    api_config .set_val (slug ,"enable_thinking","0")
-    api_config .set_val (slug ,"enable_glossary","1")
+        qt_dir = os.path.join(self.services_qt_dir, display_name)
+        if os.path.exists(qt_dir):
+            try:
+                shutil.rmtree(qt_dir, ignore_errors=True)
+            except Exception as e:
+                logger.error(f"Не удалось удалить папку QTranslate {qt_dir}: {e}")
 
-    preset_dir =os .path .join (base_dir ,"data","presets",slug )
-    os .makedirs (preset_dir ,exist_ok =True )
-    def_preset =os .path .join (preset_dir ,"default.txt")
-    if not os .path .exists (def_preset ):
-        with open (def_preset ,"w",encoding ="utf-8")as f :
-            f .write (
-            "Сделай профессиональный перевод на {TARGET_LANG} с точной передачей стиля оригинала.\n"
-            "ПРАВИЛА:\n"
-            "1. Стиль и мимикрия: точно воспроизводи стиль, регистр и тональность источника.\n"
-            "2. Терминология: устоявшиеся официальные термины пиши на целевом языке, уникальные бренды — в оригинале."
-            )
+        hub_dir = os.path.join(self.services_hub_dir, sec)
+        if os.path.exists(hub_dir):
+            try:
+                shutil.rmtree(hub_dir, ignore_errors=True)
+            except Exception as e:
+                logger.error(f"Не удалось удалить папку Hub {hub_dir}: {e}")
 
-    from data .services .base_service import load_all_services
-    load_all_services ()
+        preset_dir = os.path.join(self.presets_dir, sec)
+        if os.path.exists(preset_dir):
+            try:
+                shutil.rmtree(preset_dir, ignore_errors=True)
+            except Exception as e:
+                logger.error(f"Не удалось удалить папку пресетов {preset_dir}: {e}")
 
-    restart_qtranslate ()
+        if api_config.models.has_section(sec):
+            api_config.models.remove_section(sec)
+            api_config.save_models()
 
-    logger .system (f"Генератор: создан единый сервис '{service_name }' ({slug }) [QT_ID: {target_qt_id }]")
-    return True ,slug ,py_file ,js_file
+        logger.system(f"Сервис '{display_name}' ({sec}) успешно удален.")
+        try:
+            restart_qtranslate()
+        except Exception:
+            pass
 
-def test_ping_service (service_slug ,text =None ,src ="en",trg ="ru"):
-    from data .services .base_service import LOADED_SERVICES
-
-    srv =LOADED_SERVICES .get (service_slug )
-    if not srv :
-        return False ,f"Сервис '{service_slug }' не найден среди загруженных плагинов.",0.0
-
-    if not text :
-        text ="Connection test:\nVerifying remote model response, API status and network latency."
-
-    t0 =time .time ()
-    try :
-        res =srv .translate (text ,src_lang =src ,trg_lang =trg )
-        elapsed =round (time .time ()-t0 ,2 )
-        if res and not str (res ).startswith ("Ошибка")and not str (res ).startswith ("[")and not "HTTP "in str (res ):
-            return True ,str (res ),elapsed
-        return False ,str (res ),elapsed
-    except Exception as e :
-        elapsed =round (time .time ()-t0 ,2 )
-        return False ,f"Исключение при вызове: {e }",elapsed
-
-def delete_service_completely (service_id ,service_name ):
-    base_dir =get_base_dir ()
-    slug =slugify (service_id )
-
-    py_dir =os .path .join (base_dir ,"data","services",slug )
-    if os .path .exists (py_dir ):
-        shutil .rmtree (py_dir ,ignore_errors =True )
-
-    js_candidates =[
-    os .path .join (base_dir ,"Services",service_name ),
-    os .path .join (base_dir ,"Services",slug ),
-    os .path .join (base_dir ,"Services",slug .capitalize ())
-    ]
-    for p in js_candidates :
-        if os .path .exists (p ):
-            shutil .rmtree (p ,ignore_errors =True )
-
-    preset_dir =os .path .join (base_dir ,"data","presets",slug )
-    if os .path .exists (preset_dir ):
-        shutil .rmtree (preset_dir ,ignore_errors =True )
-
-    if api_config .models .has_section (slug ):
-        api_config .models .remove_section (slug )
-        api_config .save_models ()
-
-    from data .services .base_service import LOADED_SERVICES ,load_all_services
-    if slug in LOADED_SERVICES :
-        del LOADED_SERVICES [slug ]
-    load_all_services ()
-
-    restart_qtranslate ()
-    logger .system (f"Генератор: сервис '{service_name }' ({slug }) полностью удален")
-    return True
+service_generator = ServiceGenerator()
+delete_service_completely = service_generator.delete_service

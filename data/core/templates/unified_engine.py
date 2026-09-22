@@ -1,6 +1,312 @@
 # -*- coding: utf-8 -*-
 # data/core/templates/unified_engine.py
 
+import os, sys, time, json, socket, ssl, struct, re, threading
+import urllib.request, urllib.parse, urllib.error
+
+UNIFIED_DOH_PRESETS = {
+    "Comss.one (SmartDNS / РФ обход)": {
+        "url": "https://dns.comss.one/dns-query",
+        "host": "dns.comss.one",
+        "bootstrap_ip": "195.133.25.16"
+    },
+    "Control D (Uncensored)": {
+        "url": "https://freedns.controld.com/uncensored",
+        "host": "freedns.controld.com",
+        "bootstrap_ip": "76.76.2.11"
+    },
+    "Cloudflare (1.1.1.1)": {
+        "url": "https://cloudflare-dns.com/dns-query",
+        "host": "cloudflare-dns.com",
+        "bootstrap_ip": "1.1.1.1"
+    },
+    "Google (8.8.8.8)": {
+        "url": "https://dns.google/dns-query",
+        "host": "dns.google",
+        "bootstrap_ip": "8.8.8.8"
+    }
+}
+
+_doh_dns_cache = {}
+_doh_dns_lock = threading.Lock()
+
+def resolve_doh(hostname, doh_url):
+    with _doh_dns_lock:
+        if hostname in _doh_dns_cache:
+            return _doh_dns_cache[hostname]
+
+    try:
+        url = f"{doh_url}?name={hostname}&type=A"
+        req = urllib.request.Request(
+            url,
+            headers={"Accept": "application/dns-json", "User-Agent": "Mozilla/5.0"}
+        )
+        with urllib.request.urlopen(req, timeout=3.5) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            for ans in data.get("Answer", []):
+                if ans.get("type") == 1:
+                    ip = ans.get("data")
+                    with _doh_dns_lock:
+                        _doh_dns_cache[hostname] = ip
+                    return ip
+    except Exception:
+        pass
+    return None
+
+def _recv_all(sock, n):
+    data = bytearray()
+    while len(data) < n:
+        packet = sock.recv(n - len(data))
+        if not packet:
+            raise ConnectionError("Соединение разорвано удаленной стороной.")
+        data.extend(packet)
+    return bytes(data)
+
+def create_socks5_socket(proxy_host, proxy_port, dest_host, dest_port, timeout=8.0):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(timeout)
+    s.connect((proxy_host, proxy_port))
+
+    s.sendall(b"\x05\x01\x00")
+    resp = _recv_all(s, 2)
+    if resp[0] != 5 or resp[1] != 0:
+        s.close()
+        raise ConnectionError("SOCKS5 прокси отклонил соединение без пароля.")
+
+    dest_bytes = dest_host.encode("utf-8")
+    req = b"\x05\x01\x00\x03" + bytes([len(dest_bytes)]) + dest_bytes + struct.pack("!H", dest_port)
+    s.sendall(req)
+
+    resp_header = _recv_all(s, 4)
+    if resp_header[0] != 5 or resp_header[1] != 0:
+        s.close()
+        raise ConnectionError(f"SOCKS5 ошибка подключения (код: {resp_header[1]})")
+
+    atyp = resp_header[3]
+    if atyp == 1:
+        _recv_all(s, 6)
+    elif atyp == 3:
+        length = _recv_all(s, 1)[0]
+        _recv_all(s, length + 2)
+    elif atyp == 4:
+        _recv_all(s, 18)
+
+    return s
+
+def parse_proxy_string(proxy_str):
+    clean = re.sub(r'^(?:socks5h?|https?|socks)://', '', str(proxy_str).strip(), flags=re.IGNORECASE)
+    parts = clean.split(':')
+    if len(parts) >= 2:
+        try:
+            return parts[0].strip(), int(parts[1].strip())
+        except ValueError:
+            pass
+    return "127.0.0.1", 10808
+
+def dechunk_http_body(raw_bytes):
+    pos = 0
+    decoded = bytearray()
+    length = len(raw_bytes)
+
+    while pos < length:
+        crlf_idx = raw_bytes.find(b"\r\n", pos)
+        if crlf_idx == -1:
+            break
+        chunk_header = raw_bytes[pos:crlf_idx].strip()
+        if not chunk_header:
+            pos = crlf_idx + 2
+            continue
+
+        hex_len = chunk_header.split(b";")[0].strip()
+        try:
+            chunk_size = int(hex_len, 16)
+        except ValueError:
+            return raw_bytes
+
+        if chunk_size == 0:
+            break
+
+        data_start = crlf_idx + 2
+        data_end = data_start + chunk_size
+        decoded.extend(raw_bytes[data_start:data_end])
+        pos = data_end + 2
+
+    return bytes(decoded) if decoded else raw_bytes
+
+def extract_clean_json_body(raw_str):
+    start = raw_str.find('{')
+    end = raw_str.rfind('}')
+    if start != -1 and end != -1 and end > start:
+        return raw_str[start:end + 1]
+    return raw_str
+
+def execute_test_ping(service_id, test_data, quick_mode=True):
+    endpoint = str(test_data.get("endpoint", "")).strip()
+    model = str(test_data.get("model", "")).strip()
+    api_key = str(test_data.get("api_key", "")).strip()
+    account_id = str(test_data.get("account_id", "")).strip()
+    conn_mode = str(test_data.get("connection_mode", "direct")).lower().strip()
+    proxy_val = str(test_data.get("proxy", "213.165.38.49:1080")).strip()
+    doh_preset = str(test_data.get("doh_preset", "smartdns")).strip()
+
+    if not endpoint or not model:
+        return False, "Не указан URL эндпоинта или идентификатор модели."
+
+    if "{account_id}" in endpoint:
+        aid = account_id if account_id else "b53d06890fe315cfac0a5e6c074f99b4"
+        endpoint = endpoint.replace("{account_id}", aid)
+    if "{model}" in endpoint:
+        endpoint = endpoint.replace("{model}", model)
+
+    prompt = "Ping. Answer with only: OK" if quick_mode else "Translate to Russian: Hello world"
+    max_tokens = 16 if quick_mode else 128
+
+    if "cloudflare" in endpoint:
+        payload = {"prompt": prompt, "max_tokens": max_tokens}
+    else:
+        payload = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": max_tokens,
+            "temperature": 0.1
+        }
+
+    headers = {
+        "Content-Type": "application/json; charset=utf-8",
+        "User-Agent": "QTranslate-AI-Hub/2.0"
+    }
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    if "openrouter" in endpoint:
+        headers["HTTP-Referer"] = "https://github.com/MAX-EMELKIN/AI-Hub"
+        headers["X-Title"] = "QTranslate AI Hub"
+
+    payload_bytes = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    timeout = 8.0
+    t0 = time.time()
+
+    try:
+        parsed = urllib.parse.urlparse(endpoint)
+        dest_host = parsed.hostname or "localhost"
+        dest_port = parsed.port or (443 if parsed.scheme == "https" else 80)
+        path = (parsed.path or "/") + (("?" + parsed.query) if parsed.query else "")
+
+        if conn_mode == "socks5":
+            p_host, p_port = parse_proxy_string(proxy_val)
+            sock = create_socks5_socket(p_host, p_port, dest_host, dest_port, timeout=timeout)
+            if parsed.scheme == "https":
+                ctx = ssl.create_default_context()
+                client_sock = ctx.wrap_socket(sock, server_hostname=dest_host)
+            else:
+                client_sock = sock
+
+            lines = [f"POST {path} HTTP/1.1", f"Host: {dest_host}", f"Content-Length: {len(payload_bytes)}", "Connection: close"]
+            for k, v in headers.items():
+                lines.append(f"{k}: {v}")
+            client_sock.sendall("\r\n".join(lines).encode("utf-8") + b"\r\n\r\n" + payload_bytes)
+
+            chunks = []
+            while True:
+                try:
+                    c = client_sock.recv(8192)
+                    if not c: break
+                    chunks.append(c)
+                except socket.timeout:
+                    break
+            client_sock.close()
+
+            raw_resp = b"".join(chunks)
+            sep = raw_resp.find(b"\r\n\r\n")
+            if sep == -1:
+                return False, "Сервер вернул некорректный ответ."
+            h_part = raw_resp[:sep].decode("latin1", errors="replace")
+            b_part = raw_resp[sep+4:]
+
+            if "chunked" in h_part.lower():
+                b_part = dechunk_http_body(b_part)
+
+            body_str = b_part.decode("utf-8", errors="replace")
+            status = 200
+            m_code = re.search(r'HTTP/\S+\s+(\d+)', h_part)
+            if m_code:
+                status = int(m_code.group(1))
+
+            if status >= 400:
+                return False, f"HTTP {status}: {body_str[:200]}"
+            raw_text = body_str
+
+        else:
+            target_url = endpoint
+            if conn_mode == "doh":
+                preset_info = UNIFIED_DOH_PRESETS.get(doh_preset, {})
+                doh_url = preset_info.get("url", "https://dns.comss.one/dns-query")
+                ip = resolve_doh(dest_host, doh_url)
+                if ip and ip != dest_host:
+                    headers["Host"] = dest_host
+                    port_str = f":{dest_port}" if parsed.port else ""
+                    target_url = urllib.parse.urlunparse((parsed.scheme, f"{ip}{port_str}", parsed.path, parsed.params, parsed.query, parsed.fragment))
+
+            req = urllib.request.Request(target_url, data=payload_bytes, headers=headers, method="POST")
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+
+            with urllib.request.urlopen(req, context=ctx, timeout=timeout) as resp:
+                raw_text = resp.read().decode("utf-8", errors="replace")
+
+        elapsed = round(time.time() - t0, 2)
+        clean_json = extract_clean_json_body(raw_text)
+
+        try:
+            data = json.loads(clean_json)
+        except Exception:
+            data = None
+
+        if data and isinstance(data, dict) and data.get("error"):
+            err_msg = data["error"].get("message", str(data["error"]))
+            return False, f"Ошибка API: {err_msg}"
+
+        if not quick_mode:
+            if data:
+                try:
+                    pretty = json.dumps(data, indent=2, ensure_ascii=False)
+                    return True, f"HTTP 200 OK | Время отклика: {elapsed}с\n{pretty}"
+                except Exception:
+                    pass
+            return True, f"HTTP 200 OK | Время отклика: {elapsed}с\n{raw_text}"
+
+        result = ""
+        if data:
+            if "choices" in data and len(data["choices"]) > 0:
+                c = data["choices"][0]
+                result = c.get("message", {}).get("content") or c.get("text", "")
+            elif "result" in data and isinstance(data["result"], dict):
+                result = data["result"].get("response", "")
+            elif "candidates" in data and len(data["candidates"]) > 0:
+                parts = data["candidates"][0].get("content", {}).get("parts", [])
+                if parts:
+                    result = parts[0].get("text", "")
+
+        if not result:
+            result = raw_text[:120]
+
+        result = re.sub(r'<think>[\s\S]*?</think>', '', str(result), flags=re.IGNORECASE).strip()
+        ans_clean = result if result else "OK"
+        return True, f"Ответ: {ans_clean} | Задержка: {elapsed}с"
+
+    except socket.timeout:
+        return False, "Превышен таймаут ожидания сервера (8 сек)."
+    except urllib.error.HTTPError as he:
+        try:
+            err_body = he.read().decode("utf-8", errors="replace")
+            err_json = json.loads(extract_clean_json_body(err_body))
+            msg = err_json.get("error", {}).get("message", err_body[:180])
+        except Exception:
+            msg = str(he)
+        return False, f"HTTP {he.code}: {msg}"
+    except Exception as ex:
+        return False, f"Сбой соединения: {ex}"
+
 UNIFIED_PYTHON_TEMPLATE = """# -*- coding: utf-8 -*-
 \"\"\"
 Модуль: data/services/{SERVICE_ID_SLUG}/service.py
@@ -221,7 +527,6 @@ class UnifiedService(BaseService):
         dest_port = parsed.port or (443 if parsed.scheme == "https" else 80)
         path = (parsed.path or "/") + (("?" + parsed.query) if parsed.query else "")
 
-        # 1. Режим SOCKS5 прокси
         if conn_mode == "proxy":
             p_host, p_port = parse_proxy_string(proxy_val)
             raw_sock = create_socks5_socket(p_host, p_port, dest_host, dest_port, timeout=timeout)
@@ -272,7 +577,6 @@ class UnifiedService(BaseService):
 
             return status_code, raw_str
 
-        # 2. Режим DoH SmartDNS
         elif conn_mode == "doh":
             preset_name = self.get_config_val("doh_preset", "Comss.one (SmartDNS / РФ обход)")
             doh_url = UNIFIED_DOH_PRESETS.get(preset_name, {}).get("url") or "https://dns.comss.one/dns-query"
@@ -287,7 +591,6 @@ class UnifiedService(BaseService):
                 err_str = he.read().decode("utf-8", errors="replace")
                 return he.code, err_str
 
-        # 3. Прямое соединение
         else:
             req = urllib.request.Request(url, data=payload_bytes, headers=headers)
             try:
@@ -301,7 +604,7 @@ class UnifiedService(BaseService):
     def translate(self, text, src_lang="auto", trg_lang="ru", preset=None):
         ok, reason = self.is_ready()
         if not ok:
-            return f"[{self.name}]: {reason}"
+            return f"[{self.name}]: {reason}\"
 
         raw_api_key = self.get_config_val("api_key", "")
         api_key = re.sub(r'^(?:Key|Token|Bearer)\\s+', '', str(raw_api_key), flags=re.IGNORECASE).strip()
@@ -345,7 +648,6 @@ class UnifiedService(BaseService):
             "top_p": top_p_val
         }
 
-        # Адаптация политики размышлений (Thinking Policy)
         policy = self.thinking_policy.lower().strip()
         if policy == "disabled_type":
             payload["thinking"] = {"type": "enabled" if enable_think else "disabled"}
@@ -362,7 +664,6 @@ class UnifiedService(BaseService):
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         }
 
-        # Адаптация заголовков авторизации
         auth_type = self.auth_header_type.strip()
         if auth_type == "Bearer" and api_key:
             headers["Authorization"] = f"Bearer {api_key}"
@@ -371,7 +672,6 @@ class UnifiedService(BaseService):
         elif auth_type == "x-goog-api-key" and api_key:
             headers["x-goog-api-key"] = api_key
 
-        # Подключение дополнительных заголовков (например, для OpenRouter)
         if self.extra_headers_json:
             try:
                 extra = json.loads(self.extra_headers_json)
@@ -406,11 +706,9 @@ class UnifiedService(BaseService):
                 err_msg = data["error"].get("message", str(data["error"]))
                 return f"[{self.name} Error: {err_msg}]"
 
-            # Извлечение текста по указанному JSON Path
             path_to_use = self.response_path or "choices.0.message.content"
             extracted_val = _get_nested_value(data, path_to_use)
 
-            # Fallback к стандартным форматам, если кастомный путь не сработал
             if extracted_val is None:
                 if data.get("choices") and len(data["choices"]) > 0:
                     c = data["choices"][0]
