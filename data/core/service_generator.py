@@ -107,7 +107,7 @@ class ServiceGenerator:
         templates = {t["id"]: t for t in self.get_available_templates()}
         tmpl = templates.get(template_id)
         if not tmpl:
-            raise ValueError(f"Text '{template_id}' Text Text.")
+            raise ValueError(f"Template '{template_id}' not found.")
 
         service_id = self.sanitize_id(display_name)
         folder_name = self.sanitize_folder_name(display_name)
@@ -172,7 +172,7 @@ class ServiceGenerator:
                 restart_qtranslate()
                 logger.system("QTranslate Text Text Text Text Text.")
             except Exception as e:
-                logger.error(f"Text Text Text QTranslate: {e}")
+                logger.error(f"Failed to restart QTranslate: {e}")
 
         return service_id
 

@@ -54,7 +54,7 @@ class AddServiceWizardDialog(tk.Toplevel):
 
         theme.apply_ttk_theme(self)
 
-        self.title("Text")
+        self.title(t("wizard_title", "Service Creation Wizard"))
         self.geometry("740x800")
         self.minsize(660, 680)
         self.configure(bg=theme.get_color("bg_main"))
@@ -138,7 +138,7 @@ class AddServiceWizardDialog(tk.Toplevel):
         form_box.pack(fill=tk.X, pady=(0, 6))
 
         # 1. note
-        r_tmpl = self._make_field_row(form_box, "Text", "tmpl")
+        r_tmpl = self._make_field_row(form_box, t("wizard_provider", "API Provider:"), "tmpl")
         tmpl_titles = [f"{t['name']} ({t['id']})" for t in self.available_templates]
         self.cb_templates = ttk.Combobox(r_tmpl, values=tmpl_titles, state="readonly", width=26)
         self.cb_templates.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 6))
@@ -159,21 +159,21 @@ class AddServiceWizardDialog(tk.Toplevel):
         ToolTip(btn_ai_help, "Text")
 
         # 2. note note
-        r_name = self._make_field_row(form_box, "Text", "name")
+        r_name = self._make_field_row(form_box, t("wizard_name", "Service Name:"), "name")
         self.ent_name = tk.Entry(r_name, textvariable=self.var_display_name, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_name.pack(side=tk.LEFT, fill=tk.X, expand=True)
         self.ent_name.bind("<KeyRelease>", self._on_display_name_typed)
         attach_entry_context_menu(self.ent_name)
 
         # 3. ID note
-        r_id = self._make_field_row(form_box, "Text", "id")
+        r_id = self._make_field_row(form_box, t("wizard_id", "Service ID:"), "id")
         self.ent_id = tk.Entry(r_id, textvariable=self.var_service_id, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_id.pack(side=tk.LEFT, fill=tk.X, expand=True)
         self.ent_id.bind("<Key>", lambda e: setattr(self, "_manual_id_edit", True))
         attach_entry_context_menu(self.ent_id)
 
         # 4. note + note
-        r_model = self._make_field_row(form_box, "Text", "model")
+        r_model = self._make_field_row(form_box, t("wizard_model", "Model:"), "model")
         self.ent_model = tk.Entry(r_model, textvariable=self.var_model, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_model.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 6))
         attach_entry_context_menu(self.ent_model)
@@ -187,25 +187,25 @@ class AddServiceWizardDialog(tk.Toplevel):
         ToolTip(btn_select_model, "Text")
 
         # 5. note
-        r_end = self._make_field_row(form_box, "Text", "endpoint")
+        r_end = self._make_field_row(form_box, t("wizard.lbl_endpoint", "API Endpoint URL:"), "endpoint")
         self.ent_endpoint = tk.Entry(r_end, textvariable=self.var_endpoint, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_endpoint.pack(side=tk.LEFT, fill=tk.X, expand=True)
         attach_entry_context_menu(self.ent_endpoint)
 
         # 6. Account ID
-        r_acc = self._make_field_row(form_box, "Text", "account_id")
+        r_acc = self._make_field_row(form_box, t("wizard.lbl_account_id", "Account ID:"), "account_id")
         self.ent_acc = tk.Entry(r_acc, textvariable=self.var_account_id, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_acc.pack(side=tk.LEFT, fill=tk.X, expand=True)
         attach_entry_context_menu(self.ent_acc)
 
         # 7. API note (note note)
-        r_key = self._make_field_row(form_box, "Text", "key")
+        r_key = self._make_field_row(form_box, t("wizard.lbl_api_key", "API Key:"), "key")
         self.ent_key = tk.Entry(r_key, textvariable=self.var_api_key, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_key.pack(side=tk.LEFT, fill=tk.X, expand=True)
         attach_entry_context_menu(self.ent_key)
 
         # 8. note note
-        r_net = self._make_field_row(form_box, "Text", "net")
+        r_net = self._make_field_row(form_box, t("wizard.lbl_service_type", "Connection Mode:"), "net")
         self.cb_net = ttk.Combobox(r_net, textvariable=self.var_connection_mode, values=("direct", "socks5", "doh"), state="readonly", width=16)
         self.cb_net.pack(side=tk.LEFT, padx=(0, 8))
 
@@ -214,7 +214,7 @@ class AddServiceWizardDialog(tk.Toplevel):
         self.ent_proxy.pack(side=tk.LEFT, padx=(4, 0))
 
         # 9. note (Thinking)
-        r_th = self._make_field_row(form_box, "Text", "thinking")
+        r_th = self._make_field_row(form_box, t("param_thinking", "Reasoning / Thinking:"), "thinking")
         self.cb_th = ttk.Combobox(r_th, textvariable=self.var_thinking_policy, values=("strip", "keep", "disable"), state="readonly")
         self.cb_th.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
@@ -231,7 +231,7 @@ class AddServiceWizardDialog(tk.Toplevel):
         self.ent_btn_id.pack(side=tk.LEFT, padx=(4, 0))
 
         # note note
-        box_stand = tk.LabelFrame(pad, text="Text", font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=10, pady=6)
+        box_stand = tk.LabelFrame(pad, text=t("wizard.box_stand", "API Test Stand"), font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=10, pady=6)
         box_stand.pack(fill=tk.BOTH, expand=True, pady=(0, 6))
 
         self.lbl_status_test = tk.Label(box_stand, textvariable=self.var_status_msg, font=theme.font(-1, "bold"), bg=bg_card, fg=theme.get_color("status_ready"), anchor="w")

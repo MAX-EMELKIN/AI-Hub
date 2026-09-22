@@ -71,7 +71,7 @@ class SettingsWindow(tk.Toplevel):
 
         # 1. note note
         tab_gen = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
-        nb.add(tab_gen, text="Text")
+        nb.add(tab_gen, text=t("settings_tab_general", "General & Appearance"))
 
         self.var_autolaunch = tk.BooleanVar(value=config.get_bool("GENERAL", "AutoLaunchQTranslate", True))
         tk.Checkbutton(
@@ -152,7 +152,7 @@ class SettingsWindow(tk.Toplevel):
 
         # 2. note note
         tab_search = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
-        nb.add(tab_search, text="Text")
+        nb.add(tab_search, text=t("settings.tab_search", "Search"))
 
         tk.Label(tab_search, text="Text", font=theme.font(0, "bold"), fg=theme.get_color("accent"), bg=bg_card).pack(anchor="w", pady=(0, 6))
 
@@ -227,7 +227,7 @@ class SettingsWindow(tk.Toplevel):
 
         # 3. note note
         tab_keys = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
-        nb.add(tab_keys, text="Text")
+        nb.add(tab_keys, text=t("settings_tab_hotkeys", "Hotkeys"))
 
         tk.Label(tab_keys, text=t("settings_hk_header", "Text"), font=theme.font(0, "bold"), fg=theme.get_color("accent"), bg=bg_card).pack(anchor="w", pady=(0, 6))
 
@@ -270,7 +270,7 @@ class SettingsWindow(tk.Toplevel):
 
         # 4. note note
         tab_media = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
-        nb.add(tab_media, text="Text")
+        nb.add(tab_media, text=t("settings_tab_media", "OCR & Audio"))
 
         tk.Label(tab_media, text=t("settings_ocr_model_lbl", "Text"), font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri).pack(anchor="w", pady=(0, 2))
         self.combo_ocr = ttk.Combobox(tab_media, values=ocr_engine.get_available_models(), state="readonly", width=14)
@@ -293,7 +293,7 @@ class SettingsWindow(tk.Toplevel):
 
         # 5. note note
         tab_logs = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
-        nb.add(tab_logs, text="Text")
+        nb.add(tab_logs, text=t("settings.tab_logs", "Logs"))
 
         f_con = tk.LabelFrame(tab_logs, text="Text", font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=8, pady=6)
         f_con.pack(fill=tk.X, pady=(0, 8))
