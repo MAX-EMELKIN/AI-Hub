@@ -9,11 +9,16 @@ from data.core.config_manager import config
 from data.core.logger import logger
 from data.core.i18n import t, i18n
 from data.core.launcher import launch_qtranslate, restart_qtranslate, check_and_autostart_qtranslate, is_qtranslate_running
+from data.core.service_generator import delete_service_completely
 from data.gui.theme_manager import theme
 from data.gui.service_card import ServiceCard
 from data.gui.dialog_helpers import ToolTip
 from data.gui.tool_windows import BatchWindow, GlossaryWindow, SettingsWindow, ChatWindow
 from data.gui.wizard_dialog import AddServiceWizardDialog
+from data.gui.service_settings_dialog import ServiceSettingsDialog
+from data.gui.preset_dialog import PresetEditorDialog
+from data.gui.ocr_dialog import OCRSettingsDialog
+from data.ocr.ocr_engine import ocr_engine
 from data.services.base_service import LOADED_SERVICES
 
 def get_base_dir():
@@ -74,7 +79,7 @@ class MainWindow(tk.Tk):
         super().__init__()
         self.on_hide_to_tray = on_hide_to_tray_callback
 
-        self.title("QTranslate AI Hub v2.0 RC")
+        self.title(t("app_title"))
         self.minsize(560, 380)
 
         self.service_cards = {}
@@ -104,7 +109,7 @@ class MainWindow(tk.Tk):
 
         self.bind("<Configure>", self._on_window_configure)
         self.protocol("WM_DELETE_WINDOW", self._on_close_clicked)
-        logger.system("Text")
+        logger.system("MainWindow initialized")
 
     def _apply_theme_colors(self):
         self.configure(bg=theme.get_color("bg_main"))
@@ -201,13 +206,13 @@ class MainWindow(tk.Tk):
         header_frame.pack(fill=tk.X)
 
         tk.Label(
-            header_frame, text=t("services_title", "Text"),
+            header_frame, text=t("services_title"),
             font=theme.font(0, "bold"), fg=accent, bg=bg_hdr
         ).pack(side=tk.LEFT)
 
         self.btn_add = tk.Button(
             header_frame,
-            text="Text",
+            text=t("add_service"),
             font=theme.font(-1, "bold"),
             relief=tk.FLAT,
             bg=theme.get_color("help_btn_bg"),
@@ -219,15 +224,7 @@ class MainWindow(tk.Tk):
         )
         self.btn_add.pack(side=tk.RIGHT)
 
-        tooltip_text = (
-            "Text"
-            "Text"
-            "Text"
-            "Text"
-            "Text"
-            "Text"
-        )
-        SafeTooltip(self.btn_add, tooltip_text)
+        SafeTooltip(self.btn_add, t("tip_service_studio"))
 
         list_outer = tk.Frame(self, bg=bg_main, padx=8, pady=6)
         list_outer.pack(fill=tk.BOTH, expand=True)
@@ -259,7 +256,7 @@ class MainWindow(tk.Tk):
 
         self.browser_icon_photo = self._extract_chrome_icon(target_size=18)
         btn_browser_opts = {
-            "text": " " + t("btn_browser", "Text"),
+            "text": " " + t("btn_browser"),
             "font": theme.font(-1, "bold"),
             "relief": tk.FLAT,
             "bg": btn_bg,
@@ -277,58 +274,58 @@ class MainWindow(tk.Tk):
         if self.browser_icon_photo:
             self.btn_browser.image = self.browser_icon_photo
         self.btn_browser.pack(side=tk.LEFT, padx=2)
-        ToolTip(self.btn_browser, t("tip_browser", "Text"))
+        ToolTip(self.btn_browser, t("tip_browser"))
 
         ocr_frame = tk.Frame(bottom_toolbar, bg=bg_tool)
         ocr_frame.pack(side=tk.LEFT, padx=2)
 
         btn_ocr = tk.Button(
-            ocr_frame, text=t("btn_ocr", "Text"), font=theme.font(-1, "bold"),
+            ocr_frame, text=t("btn_ocr"), font=theme.font(-1, "bold"),
             relief=tk.FLAT, bg=btn_bg, fg=fg_pri, cursor="hand2", padx=6, pady=2,
             command=self._on_ocr_snip_click
         )
         btn_ocr.pack(side=tk.LEFT)
-        ToolTip(btn_ocr, t("tip_ocr", "Text"))
+        ToolTip(btn_ocr, t("tip_ocr"))
 
         btn_ocr_settings = tk.Button(
-            ocr_frame, text="⚙", font=theme.font(0, "bold"), relief=tk.FLAT,
+            ocr_frame, text="*", font=theme.font(0, "bold"), relief=tk.FLAT,
             bg=btn_bg, fg=fg_pri, activebackground=theme.get_color("btn_hover"),
             cursor="hand2", padx=3, pady=2, command=self._on_ocr_settings_click
         )
         btn_ocr_settings.pack(side=tk.LEFT, padx=(1, 0))
-        ToolTip(btn_ocr_settings, t("tip_ocr_settings", "Text"))
+        ToolTip(btn_ocr_settings, t("tip_ocr_settings"))
 
         btn_chat = tk.Button(
-            bottom_toolbar, text=t("btn_chat", "Text"), font=theme.font(-1, "bold"),
+            bottom_toolbar, text=t("btn_chat"), font=theme.font(-1, "bold"),
             relief=tk.FLAT, bg=theme.get_color("help_btn_bg"), fg=theme.get_color("help_btn_fg"),
             cursor="hand2", padx=6, pady=2, command=self._on_chat_click
         )
         btn_chat.pack(side=tk.LEFT, padx=(8, 2))
-        ToolTip(btn_chat, t("tip_chat", "Text"))
+        ToolTip(btn_chat, t("tip_chat"))
 
         btn_dict = tk.Button(
-            bottom_toolbar, text=t("btn_dict", "Text"), font=theme.font(-1, "bold"),
+            bottom_toolbar, text=t("btn_dict"), font=theme.font(-1, "bold"),
             relief=tk.FLAT, bg=btn_bg, fg=fg_pri, cursor="hand2", padx=6, pady=2,
             command=self._on_dict_click
         )
         btn_dict.pack(side=tk.LEFT, padx=2)
-        ToolTip(btn_dict, t("tip_dict", "Text"))
+        ToolTip(btn_dict, t("tip_dict"))
 
         btn_batch = tk.Button(
-            bottom_toolbar, text=t("btn_batch", "Text"), font=theme.font(-1, "bold"),
+            bottom_toolbar, text=t("btn_batch"), font=theme.font(-1, "bold"),
             relief=tk.FLAT, bg=btn_bg, fg=fg_pri, cursor="hand2", padx=6, pady=2,
             command=self._on_batch_click
         )
         btn_batch.pack(side=tk.LEFT, padx=2)
-        ToolTip(btn_batch, t("tip_batch", "Text"))
+        ToolTip(btn_batch, t("tip_batch"))
 
         btn_settings = tk.Button(
-            bottom_toolbar, text=t("btn_settings", "Text"), font=theme.font(-1, "bold"),
+            bottom_toolbar, text=t("btn_settings"), font=theme.font(-1, "bold"),
             relief=tk.FLAT, bg=btn_bg, fg=fg_pri, cursor="hand2", padx=6, pady=2,
             command=self._on_global_settings_click
         )
         btn_settings.pack(side=tk.RIGHT, padx=2)
-        ToolTip(btn_settings, t("tip_settings", "Text"))
+        ToolTip(btn_settings, t("tip_settings"))
 
     def _load_services_list(self):
         saved_order = config.get_service_order()
@@ -388,22 +385,22 @@ class MainWindow(tk.Tk):
 
     def _on_card_drag_end(self, service_id):
         config.save_service_order(self.ordered_service_ids)
-        logger.system(f"Text")
+        logger.system(f"Service order saved: {service_id}")
 
     def _on_delete_service_click(self, service):
-        msg = t("confirm_delete_msg", f"Text", name=service.name, id=service.service_id)
-        if messagebox.askyesno(t("confirm_delete_title", "Text"), msg, icon="warning", parent=self):
+        msg = t("confirm_delete_msg", name=service.name, id=service.service_id)
+        if messagebox.askyesno(t("confirm_delete_title"), msg, icon="warning", parent=self):
             delete_service_completely(service.service_id, service.name)
-            logger.system(f"Text")
+            logger.system(f"Service deleted: {service.name}")
             self._load_services_list()
-            messagebox.showinfo(t("deleted_title", "Text"), t("deleted_msg", f"Text", name=service.name), parent=self)
+            messagebox.showinfo(t("deleted_title"), t("deleted_msg", name=service.name), parent=self)
 
     def reload_entire_gui(self):
         self._apply_theme_colors()
-        self.title(t("app_title", "QTranslate AI Hub"))
+        self.title(t("app_title"))
         self._build_ui()
         self._load_services_list()
-        logger.system("Text")
+        logger.system("GUI reloaded")
 
     def _open_service_settings(self, service, on_saved=None):
         ServiceSettingsDialog(self, service, on_saved_callback=on_saved)
@@ -428,7 +425,7 @@ class MainWindow(tk.Tk):
             from data.core.cdp_client import browser_cdp
             browser_cdp.toggle_browser_window()
         except Exception as e:
-            messagebox.showerror(t("status_error", "Text"), str(e), parent=self)
+            messagebox.showerror(t("common.error"), str(e), parent=self)
 
     def _on_ocr_settings_click(self):
         OCRSettingsDialog(self)

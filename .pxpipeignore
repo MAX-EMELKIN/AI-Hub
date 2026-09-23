@@ -1,0 +1,14 @@
+(
+echo .git/
+echo __pycache__/
+echo *.pyc
+echo *.exe
+echo *.mnn
+echo *.qdx
+echo *.ico
+echo *.png
+echo *.log
+echo data/ocr/models/
+echo data/ocr/bin/
+echo data/Dictionaries/
+) > "C:\Users\MAX\Desktop\AI Hub\.pxpipeignore"

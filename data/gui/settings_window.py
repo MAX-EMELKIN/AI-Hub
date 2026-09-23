@@ -16,12 +16,12 @@ from data.tts.tts_engine import tts_engine
 from data.gui.dialog_helpers import ToolTip
 
 SEARCH_ENGINE_DISPLAY = [
-    ("google", "Text"),
-    ("duckduckgo", "Text"),
-    ("brave", "Text"),
-    ("tavily", "Text"),
+    ("google", "Google (Supermium)"),
+    ("duckduckgo", "DuckDuckGo Lite"),
+    ("brave", "Brave Search API"),
+    ("tavily", "Tavily Search API"),
     ("serper", "Serper (Google Search API)"),
-    ("searxng", "Text")
+    ("searxng", "SearXNG (Meta Search)")
 ]
 
 class SettingsWindow(tk.Toplevel):
@@ -33,7 +33,7 @@ class SettingsWindow(tk.Toplevel):
         theme.apply_ttk_theme(self)
 
         bg_main = theme.get_color("bg_main")
-        self.title(t("settings_title", "Text"))
+        self.title(t("settings_title"))
         self.geometry("760x650")
         self.minsize(700, 520)
         self.configure(bg=bg_main)
@@ -69,25 +69,25 @@ class SettingsWindow(tk.Toplevel):
         nb = ttk.Notebook(pad)
         nb.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
 
-        # 1. note note
+        # 1. General tab
         tab_gen = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
-        nb.add(tab_gen, text=t("settings_tab_general", "General & Appearance"))
+        nb.add(tab_gen, text=t("settings_tab_general"))
 
         self.var_autolaunch = tk.BooleanVar(value=config.get_bool("GENERAL", "AutoLaunchQTranslate", True))
         tk.Checkbutton(
-            tab_gen, text=t("settings_chk_autolaunch", "Text"),
+            tab_gen, text=t("settings_chk_autolaunch"),
             variable=self.var_autolaunch, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(0)
         ).pack(anchor="w", pady=4)
 
         self.var_minimized = tk.BooleanVar(value=config.get_bool("GENERAL", "StartMinimized", True))
         tk.Checkbutton(
-            tab_gen, text=t("settings_chk_minimized", "Text"),
+            tab_gen, text=t("settings_chk_minimized"),
             variable=self.var_minimized, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(0)
         ).pack(anchor="w", pady=4)
 
         r_theme = tk.Frame(tab_gen, bg=bg_card)
         r_theme.pack(fill=tk.X, pady=6)
-        tk.Label(r_theme, text=t("settings_lbl_theme", "Text"), bg=bg_card, fg=fg_pri, font=theme.font(0, "bold"), width=18, anchor="w").pack(side=tk.LEFT)
+        tk.Label(r_theme, text=t("settings_lbl_theme"), bg=bg_card, fg=fg_pri, font=theme.font(0, "bold"), width=18, anchor="w").pack(side=tk.LEFT)
 
         self.theme_options = theme.get_theme_display_options()
         theme_names = [name for _, name in self.theme_options]
@@ -100,7 +100,7 @@ class SettingsWindow(tk.Toplevel):
 
         r_font = tk.Frame(tab_gen, bg=bg_card)
         r_font.pack(fill=tk.X, pady=6)
-        tk.Label(r_font, text=t("settings_lbl_fontsize", "Text"), bg=bg_card, fg=fg_pri, font=theme.font(0, "bold"), width=18, anchor="w").pack(side=tk.LEFT)
+        tk.Label(r_font, text=t("settings_lbl_fontsize"), bg=bg_card, fg=fg_pri, font=theme.font(0, "bold"), width=18, anchor="w").pack(side=tk.LEFT)
 
         self.font_options = theme.get_font_display_options()
         font_names = [name for _, name in self.font_options]
@@ -113,7 +113,7 @@ class SettingsWindow(tk.Toplevel):
 
         r_lang = tk.Frame(tab_gen, bg=bg_card)
         r_lang.pack(fill=tk.X, pady=6)
-        tk.Label(r_lang, text=t("settings_lbl_lang", "Text"), bg=bg_card, fg=fg_pri, font=theme.font(0), width=18, anchor="w").pack(side=tk.LEFT)
+        tk.Label(r_lang, text=t("settings_lbl_lang"), bg=bg_card, fg=fg_pri, font=theme.font(0), width=18, anchor="w").pack(side=tk.LEFT)
 
         self.lang_options = i18n.get_available_languages()
         lang_display_names = [name for _, name in self.lang_options]
@@ -126,7 +126,7 @@ class SettingsWindow(tk.Toplevel):
 
         r_port = tk.Frame(tab_gen, bg=bg_card)
         r_port.pack(fill=tk.X, pady=6)
-        tk.Label(r_port, text=t("settings_lbl_port", "Text"), bg=bg_card, fg=fg_pri, font=theme.font(0), width=18, anchor="w").pack(side=tk.LEFT)
+        tk.Label(r_port, text=t("settings_lbl_port"), bg=bg_card, fg=fg_pri, font=theme.font(0), width=18, anchor="w").pack(side=tk.LEFT)
         self.e_port = tk.Entry(r_port, width=8, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.e_port.insert(0, str(config.get_int("GENERAL", "ServerPort", 8080)))
         self.e_port.pack(side=tk.LEFT, padx=6)
@@ -134,31 +134,31 @@ class SettingsWindow(tk.Toplevel):
 
         r_editor = tk.Frame(tab_gen, bg=bg_card)
         r_editor.pack(fill=tk.X, pady=6)
-        tk.Label(r_editor, text=t("settings_lbl_editor", "Text"), bg=bg_card, fg=fg_pri, font=theme.font(0), width=18, anchor="w").pack(side=tk.LEFT)
+        tk.Label(r_editor, text=t("settings.tab_editor"), bg=bg_card, fg=fg_pri, font=theme.font(0), width=18, anchor="w").pack(side=tk.LEFT)
         self.e_editor = tk.Entry(r_editor, width=28, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.e_editor.insert(0, config.get_str("GENERAL", "CodeEditor", "auto"))
         self.e_editor.pack(side=tk.LEFT, padx=6)
         attach_entry_context_menu(self.e_editor)
 
         tk.Button(
-            r_editor, text=t("settings_btn_browse", "Text"), font=theme.font(-1),
+            r_editor, text=t("btn_browse"), font=theme.font(-1),
             relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, command=self._browse_editor
         ).pack(side=tk.LEFT, padx=2)
 
         tk.Button(
-            r_editor, text=t("settings_btn_reset_editor", "Text"), font=theme.font(-1),
+            r_editor, text="Auto", font=theme.font(-1),
             relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, command=lambda: self._set_editor_value("auto")
         ).pack(side=tk.LEFT, padx=2)
 
-        # 2. note note
+        # 2. Search tab
         tab_search = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
-        nb.add(tab_search, text=t("settings.tab_search", "Search"))
+        nb.add(tab_search, text=t("common.search"))
 
-        tk.Label(tab_search, text="Text", font=theme.font(0, "bold"), fg=theme.get_color("accent"), bg=bg_card).pack(anchor="w", pady=(0, 6))
+        tk.Label(tab_search, text=t("common.search"), font=theme.font(0, "bold"), fg=theme.get_color("accent"), bg=bg_card).pack(anchor="w", pady=(0, 6))
 
         r_engine = tk.Frame(tab_search, bg=bg_card)
         r_engine.pack(fill=tk.X, pady=4)
-        tk.Label(r_engine, text="Text", font=theme.font(0), bg=bg_card, fg=fg_pri, width=20, anchor="w").pack(side=tk.LEFT)
+        tk.Label(r_engine, text=t("wizard.lbl_service_type"), font=theme.font(0), bg=bg_card, fg=fg_pri, width=20, anchor="w").pack(side=tk.LEFT)
 
         engine_titles = [title for _, title in SEARCH_ENGINE_DISPLAY]
         self.combo_engine = ttk.Combobox(r_engine, values=engine_titles, state="readonly", width=38)
@@ -168,7 +168,7 @@ class SettingsWindow(tk.Toplevel):
         self.combo_engine.set(cur_engine_title)
         self.combo_engine.pack(side=tk.LEFT, padx=6)
 
-        f_keys = tk.LabelFrame(tab_search, text="Text", font=theme.font(-1, "bold"), bg=bg_card, fg=fg_pri, padx=8, pady=6)
+        f_keys = tk.LabelFrame(tab_search, text=t("wizard.lbl_api_key"), font=theme.font(-1, "bold"), bg=bg_card, fg=fg_pri, padx=8, pady=6)
         f_keys.pack(fill=tk.X, pady=(6, 6))
 
         r_brave = tk.Frame(f_keys, bg=bg_card)
@@ -178,7 +178,7 @@ class SettingsWindow(tk.Toplevel):
         self.e_brave_key.insert(0, config.get_str("SEARCH", "brave_key", ""))
         self.e_brave_key.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
         attach_entry_context_menu(self.e_brave_key)
-        tk.Button(r_brave, text="Text", font=theme.font(-2), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, command=lambda: os.startfile("https://brave.com/search/api/")).pack(side=tk.RIGHT)
+        tk.Button(r_brave, text=t("wizard.btn_api_docs"), font=theme.font(-2), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, command=lambda: os.startfile("https://brave.com/search/api/")).pack(side=tk.RIGHT)
 
         r_tavily = tk.Frame(f_keys, bg=bg_card)
         r_tavily.pack(fill=tk.X, pady=2)
@@ -187,7 +187,7 @@ class SettingsWindow(tk.Toplevel):
         self.e_tavily_key.insert(0, config.get_str("SEARCH", "tavily_key", ""))
         self.e_tavily_key.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
         attach_entry_context_menu(self.e_tavily_key)
-        tk.Button(r_tavily, text="Text", font=theme.font(-2), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, command=lambda: os.startfile("https://tavily.com")).pack(side=tk.RIGHT)
+        tk.Button(r_tavily, text=t("wizard.btn_api_docs"), font=theme.font(-2), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, command=lambda: os.startfile("https://tavily.com")).pack(side=tk.RIGHT)
 
         r_serper = tk.Frame(f_keys, bg=bg_card)
         r_serper.pack(fill=tk.X, pady=2)
@@ -196,7 +196,7 @@ class SettingsWindow(tk.Toplevel):
         self.e_serper_key.insert(0, config.get_str("SEARCH", "serper_key", ""))
         self.e_serper_key.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
         attach_entry_context_menu(self.e_serper_key)
-        tk.Button(r_serper, text="Text", font=theme.font(-2), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, command=lambda: os.startfile("https://serper.dev")).pack(side=tk.RIGHT)
+        tk.Button(r_serper, text=t("wizard.btn_api_docs"), font=theme.font(-2), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, command=lambda: os.startfile("https://serper.dev")).pack(side=tk.RIGHT)
 
         r_sx = tk.Frame(f_keys, bg=bg_card)
         r_sx.pack(fill=tk.X, pady=2)
@@ -205,35 +205,35 @@ class SettingsWindow(tk.Toplevel):
         self.e_searxng_url.insert(0, config.get_str("SEARCH", "searxng_url", "https://search.sapti.me/search"))
         self.e_searxng_url.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
         attach_entry_context_menu(self.e_searxng_url)
-        ToolTip(self.e_searxng_url, "Text")
+        ToolTip(self.e_searxng_url, t("tip_help"))
 
-        f_test = tk.LabelFrame(tab_search, text="Text", font=theme.font(-1, "bold"), bg=bg_card, fg=fg_pri, padx=8, pady=6)
+        f_test = tk.LabelFrame(tab_search, text=t("btn_test_conn"), font=theme.font(-1, "bold"), bg=bg_card, fg=fg_pri, padx=8, pady=6)
         f_test.pack(fill=tk.BOTH, expand=True, pady=(4, 0))
 
         r_tbar = tk.Frame(f_test, bg=bg_card)
         r_tbar.pack(fill=tk.X, pady=(0, 4))
-        tk.Label(r_tbar, text="Text", font=theme.font(-1), bg=bg_card, fg=fg_pri).pack(side=tk.LEFT)
+        tk.Label(r_tbar, text=t("common.search"), font=theme.font(-1), bg=bg_card, fg=fg_pri).pack(side=tk.LEFT)
         self.e_test_query = tk.Entry(r_tbar, font=theme.font(-1), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1, width=28)
         self.e_test_query.insert(0, "QTranslate AI Hub")
         self.e_test_query.pack(side=tk.LEFT, padx=4)
         attach_entry_context_menu(self.e_test_query)
 
-        btn_test_s = tk.Button(r_tbar, text="Text", font=theme.font(-1, "bold"), relief=tk.FLAT, bg=theme.get_color("accent"), fg=theme.get_color("accent_text"), padx=8, command=self._test_search)
+        btn_test_s = tk.Button(r_tbar, text=t("common.search"), font=theme.font(-1, "bold"), relief=tk.FLAT, bg=theme.get_color("accent"), fg=theme.get_color("accent_text"), padx=8, command=self._test_search)
         btn_test_s.pack(side=tk.LEFT, padx=4)
 
         self.txt_search_res = tk.Text(f_test, height=5, font=theme.font(-2), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1, wrap=tk.WORD)
         self.txt_search_res.pack(fill=tk.BOTH, expand=True)
         attach_entry_context_menu(self.txt_search_res)
 
-        # 3. note note
+        # 3. Hotkeys tab
         tab_keys = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
-        nb.add(tab_keys, text=t("settings_tab_hotkeys", "Hotkeys"))
+        nb.add(tab_keys, text=t("settings_tab_hotkeys"))
 
-        tk.Label(tab_keys, text=t("settings_hk_header", "Text"), font=theme.font(0, "bold"), fg=theme.get_color("accent"), bg=bg_card).pack(anchor="w", pady=(0, 6))
+        tk.Label(tab_keys, text=t("settings_hk_header"), font=theme.font(0, "bold"), fg=theme.get_color("accent"), bg=bg_card).pack(anchor="w", pady=(0, 6))
 
         r_hk_ocr = tk.Frame(tab_keys, bg=bg_card)
         r_hk_ocr.pack(fill=tk.X, pady=3)
-        tk.Label(r_hk_ocr, text="Text", bg=bg_card, fg=fg_pri, font=theme.font(0), width=28, anchor="w").pack(side=tk.LEFT)
+        tk.Label(r_hk_ocr, text=t("settings_hk_ocr"), bg=bg_card, fg=fg_pri, font=theme.font(0), width=28, anchor="w").pack(side=tk.LEFT)
         self.e_hk_ocr = tk.Entry(r_hk_ocr, font=theme.font(0, "bold"), width=16, justify="center", fg=theme.get_color("accent"))
         self.e_hk_ocr.insert(0, config.get_str("HOTKEYS", "OCR", ""))
         self.e_hk_ocr.pack(side=tk.RIGHT)
@@ -241,7 +241,7 @@ class SettingsWindow(tk.Toplevel):
 
         r_hk_win = tk.Frame(tab_keys, bg=bg_card)
         r_hk_win.pack(fill=tk.X, pady=3)
-        tk.Label(r_hk_win, text="Text", bg=bg_card, fg=fg_pri, font=theme.font(0), width=28, anchor="w").pack(side=tk.LEFT)
+        tk.Label(r_hk_win, text=t("settings_hk_win"), bg=bg_card, fg=fg_pri, font=theme.font(0), width=28, anchor="w").pack(side=tk.LEFT)
         self.e_hk_win = tk.Entry(r_hk_win, font=theme.font(0, "bold"), width=16, justify="center", fg=theme.get_color("accent"))
         self.e_hk_win.insert(0, config.get_str("HOTKEYS", "ToggleWindow", ""))
         self.e_hk_win.pack(side=tk.RIGHT)
@@ -249,7 +249,7 @@ class SettingsWindow(tk.Toplevel):
 
         r_hk_tts = tk.Frame(tab_keys, bg=bg_card)
         r_hk_tts.pack(fill=tk.X, pady=3)
-        tk.Label(r_hk_tts, text="Text", bg=bg_card, fg=fg_pri, font=theme.font(0), width=28, anchor="w").pack(side=tk.LEFT)
+        tk.Label(r_hk_tts, text=t("settings_hk_tts"), bg=bg_card, fg=fg_pri, font=theme.font(0), width=28, anchor="w").pack(side=tk.LEFT)
         self.e_hk_tts = tk.Entry(r_hk_tts, font=theme.font(0, "bold"), width=16, justify="center", fg=theme.get_color("accent"))
         self.e_hk_tts.insert(0, config.get_str("HOTKEYS", "TTS", ""))
         self.e_hk_tts.pack(side=tk.RIGHT)
@@ -257,27 +257,27 @@ class SettingsWindow(tk.Toplevel):
 
         r_qtr = tk.Frame(tab_keys, bg=bg_card)
         r_qtr.pack(fill=tk.X, pady=(10, 3))
-        tk.Label(r_qtr, text="Text", bg=bg_card, fg=theme.get_color("status_ready"), font=theme.font(0, "bold"), width=28, anchor="w").pack(side=tk.LEFT)
+        tk.Label(r_qtr, text=t("settings_hk_qtr"), bg=bg_card, fg=theme.get_color("status_ready"), font=theme.font(0, "bold"), width=28, anchor="w").pack(side=tk.LEFT)
         self.e_hk_qtr = tk.Entry(r_qtr, font=theme.font(0, "bold"), width=16, justify="center", fg=theme.get_color("status_ready"))
         self.e_hk_qtr.insert(0, config.get_str("QTRANSLATE", "SummonHotkey", "double_ctrl"))
         self.e_hk_qtr.pack(side=tk.RIGHT)
         self.e_hk_qtr.bind("<KeyPress>", lambda e: self._record_key(e, self.e_hk_qtr))
 
         tk.Label(
-            tab_keys, text="Text",
+            tab_keys, text=t("settings_hk_note"),
             font=theme.font(-2, "italic"), fg=theme.get_color("fg_muted"), bg=bg_card
         ).pack(anchor="w", pady=(8, 0))
 
-        # 4. note note
+        # 4. Media tab
         tab_media = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
-        nb.add(tab_media, text=t("settings_tab_media", "OCR & Audio"))
+        nb.add(tab_media, text=t("settings_tab_media"))
 
-        tk.Label(tab_media, text=t("settings_ocr_model_lbl", "Text"), font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri).pack(anchor="w", pady=(0, 2))
+        tk.Label(tab_media, text=t("settings_ocr_model_lbl"), font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri).pack(anchor="w", pady=(0, 2))
         self.combo_ocr = ttk.Combobox(tab_media, values=ocr_engine.get_available_models(), state="readonly", width=14)
         self.combo_ocr.set(ocr_engine.get_active_model())
         self.combo_ocr.pack(anchor="w", pady=(0, 10))
 
-        tk.Label(tab_media, text=t("settings_tts_speed_lbl", "Text"), font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri).pack(anchor="w", pady=(0, 2))
+        tk.Label(tab_media, text=t("settings_tts_speed_lbl"), font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri).pack(anchor="w", pady=(0, 2))
         self.scale_speed = tk.Scale(
             tab_media, from_=0.7, to=1.4, resolution=0.05, orient="horizontal",
             bg=bg_card, fg=fg_pri, troughcolor=in_bg, activebackground=theme.get_color("accent"),
@@ -287,20 +287,20 @@ class SettingsWindow(tk.Toplevel):
         self.scale_speed.pack(fill=tk.X, pady=(0, 6))
 
         tk.Button(
-            tab_media, text="Text", font=theme.font(-1),
+            tab_media, text=t("settings_btn_test_tts"), font=theme.font(-1),
             relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, command=self._test_tts
         ).pack(anchor="w")
 
-        # 5. note note
+        # 5. Logs tab
         tab_logs = tk.Frame(nb, bg=bg_card, padx=14, pady=12)
-        nb.add(tab_logs, text=t("settings.tab_logs", "Logs"))
+        nb.add(tab_logs, text="Logs")
 
-        f_con = tk.LabelFrame(tab_logs, text="Text", font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=8, pady=6)
+        f_con = tk.LabelFrame(tab_logs, text="Console", font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=8, pady=6)
         f_con.pack(fill=tk.X, pady=(0, 8))
 
         self.var_show_console = tk.BooleanVar(value=config.get_bool("LOGGING", "showconsole", False))
         tk.Checkbutton(
-            f_con, text="Text",
+            f_con, text=t("tray_show"),
             variable=self.var_show_console, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(0, "bold"),
             command=self._toggle_console_live
         ).pack(anchor="w")
@@ -310,82 +310,82 @@ class SettingsWindow(tk.Toplevel):
 
         self.var_log_to_file = tk.BooleanVar(value=config.get_bool("LOGGING", "logtofile", True))
         tk.Checkbutton(
-            r_log_files, text="Text",
+            r_log_files, text="File log",
             variable=self.var_log_to_file, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1)
         ).pack(side=tk.LEFT)
 
         self.var_clear_on_startup = tk.BooleanVar(value=config.get_bool("LOGGING", "clearonstartup", True))
         tk.Checkbutton(
-            r_log_files, text="Text",
+            r_log_files, text="Clear on startup",
             variable=self.var_clear_on_startup, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1)
         ).pack(side=tk.LEFT, padx=(10, 0))
 
         tk.Button(
-            f_con, text="Text", font=theme.font(-2), relief=tk.FLAT,
+            f_con, text=t("btn_browse"), font=theme.font(-2), relief=tk.FLAT,
             bg=theme.get_color("btn_bg"), fg=fg_pri, command=self._open_log_folder
         ).pack(anchor="e", pady=(4, 0))
 
-        f_cats = tk.LabelFrame(tab_logs, text="Text", font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=8, pady=6)
+        f_cats = tk.LabelFrame(tab_logs, text="Log Categories", font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=8, pady=6)
         f_cats.pack(fill=tk.BOTH, expand=True, pady=(0, 4))
 
         self.var_log_api_summary = tk.BooleanVar(value=config.get_bool("LOGGING", "log_api_summary", True))
         tk.Checkbutton(
-            f_cats, text="Text",
+            f_cats, text="API Summary",
             variable=self.var_log_api_summary, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1)
         ).pack(anchor="w")
 
         self.var_log_api_payload = tk.BooleanVar(value=config.get_bool("LOGGING", "log_api_payload", True))
         tk.Checkbutton(
-            f_cats, text="Text",
+            f_cats, text="API Payload",
             variable=self.var_log_api_payload, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1)
         ).pack(anchor="w")
 
         self.var_log_api_raw = tk.BooleanVar(value=config.get_bool("LOGGING", "log_api_raw_response", True))
         tk.Checkbutton(
-            f_cats, text="Text",
+            f_cats, text="API Raw Response",
             variable=self.var_log_api_raw, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1)
         ).pack(anchor="w")
 
         self.var_log_tools = tk.BooleanVar(value=config.get_bool("LOGGING", "log_tools", True))
         tk.Checkbutton(
-            f_cats, text="Text",
+            f_cats, text="Agent Tools",
             variable=self.var_log_tools, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1)
         ).pack(anchor="w")
 
         self.var_log_glossary = tk.BooleanVar(value=config.get_bool("LOGGING", "log_glossary", True))
         tk.Checkbutton(
-            f_cats, text="Text",
+            f_cats, text=t("param_glossary"),
             variable=self.var_log_glossary, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1)
         ).pack(anchor="w")
 
         self.var_log_filtering = tk.BooleanVar(value=config.get_bool("LOGGING", "log_filtering", True))
         tk.Checkbutton(
-            f_cats, text="Text",
+            f_cats, text="Filtering",
             variable=self.var_log_filtering, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1)
         ).pack(anchor="w")
 
         self.var_log_qtranslate = tk.BooleanVar(value=config.get_bool("LOGGING", "log_qtranslate", True))
         tk.Checkbutton(
-            f_cats, text="Text",
+            f_cats, text="QTranslate",
             variable=self.var_log_qtranslate, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1)
         ).pack(anchor="w")
 
         self.var_log_browser = tk.BooleanVar(value=config.get_bool("LOGGING", "log_browser", False))
         tk.Checkbutton(
-            f_cats, text="Text",
+            f_cats, text=t("btn_browser"),
             variable=self.var_log_browser, bg=bg_card, fg=fg_pri, selectcolor=in_bg, font=theme.font(-1)
         ).pack(anchor="w")
 
-        # note note
+        # Bottom buttons
         btn_bar = tk.Frame(pad, bg=bg_main)
         btn_bar.pack(fill=tk.X)
-        tk.Button(btn_bar, text=t("btn_cancel", "Text"), font=theme.font(0), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, padx=12, command=self.destroy).pack(side=tk.RIGHT, padx=(6, 0))
-        tk.Button(btn_bar, text=t("btn_save", "Text"), font=theme.font(0, "bold"), relief=tk.FLAT, bg=theme.get_color("accent"), fg=theme.get_color("accent_text"), padx=16, command=self._save).pack(side=tk.RIGHT)
+        tk.Button(btn_bar, text=t("btn_cancel"), font=theme.font(0), relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, padx=12, command=self.destroy).pack(side=tk.RIGHT, padx=(6, 0))
+        tk.Button(btn_bar, text=t("btn_save"), font=theme.font(0, "bold"), relief=tk.FLAT, bg=theme.get_color("accent"), fg=theme.get_color("accent_text"), padx=16, command=self._save).pack(side=tk.RIGHT)
 
     def _browse_editor(self):
         chosen = filedialog.askopenfilename(
             parent=self,
-            title=t("dlg_select_editor", "Text"),
+            title=t("settings.tab_editor"),
             filetypes=[("Executable", "*.exe"), ("All files", "*.*")]
         )
         if chosen:
@@ -405,7 +405,7 @@ class SettingsWindow(tk.Toplevel):
         engine_id = next((eid for eid, title in SEARCH_ENGINE_DISPLAY if title == chosen_title), "google")
 
         self.txt_search_res.delete("1.0", tk.END)
-        self.txt_search_res.insert("1.0", f"Text")
+        self.txt_search_res.insert("1.0", t("common.loading"))
 
         def _worker():
             try:
@@ -416,7 +416,7 @@ class SettingsWindow(tk.Toplevel):
                     self.txt_search_res.insert("1.0", res)
                 self.after(0, _update)
             except Exception as e:
-                self.after(0, lambda: self.txt_search_res.insert(tk.END, f"Text"))
+                self.after(0, lambda: self.txt_search_res.insert(tk.END, f"{t('common.error')}: {e}"))
 
         threading.Thread(target=_worker, daemon=True).start()
 
@@ -480,7 +480,7 @@ class SettingsWindow(tk.Toplevel):
         return "break"
 
     def _test_tts(self):
-        phrase = t("settings_tts_test_phrase", "Text")
+        phrase = t("settings_tts_test_phrase")
         tts_engine.speak_text(phrase, speed=self.scale_speed.get(), lang=i18n.current_lang)
 
     def _save(self):
@@ -536,5 +536,5 @@ class SettingsWindow(tk.Toplevel):
         if self.on_settings_updated:
             self.on_settings_updated()
 
-        messagebox.showinfo("OK", t("settings_saved_msg", "Text"), parent=self)
+        messagebox.showinfo("OK", t("settings_saved_msg"), parent=self)
         self.destroy()

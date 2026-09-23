@@ -9,12 +9,12 @@ from data.core.i18n import i18n, t
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
 DEFAULT_SEARCH_PROMPT = (
-    "Text Text-Text:\n"
-    "Text Text Text `search_web` (Text Text Text) Text `fetch_webpage` (Text Text).\n"
-    "Text Text:\n"
-    "1. Text Text Text Text Text Text Text Text Text Text, Text Text Text URL-Text.\n"
-    "2. Text Text: Text Text Text Text Text (1) Text Text Text Text Text. Text Text Text Text.\n"
-    "3. Text Text Text Text Text Text Text Text — Text Text Text/Text Text Text."
+    "ИНСТРУМЕНТЫ ВЕБ-ПОИСКА:\n"
+    "Тебе доступны инструменты `search_web` (мультипоиск в сети) и `fetch_webpage` (чтение ссылок).\n"
+    "ПРАВИЛА ИСПОЛЬЗОВАНИЯ:\n"
+    "1. Вызывай поиск ТОЛЬКО если в тексте есть конкретный неочевидный факт, точное имя или URL-ссылка.\n"
+    "2. СТРОГИЙ ЛИМИТ: Разрешено делать НЕ БОЛЕЕ ОДНОГО (1) поискового запроса за весь ответ. Запрещено вызывать поиск повторно.\n"
+    "3. Если поиск не дал результатов или вопрос понятен — сразу пиши перевод/ответ своими словами."
 )
 
 OPENAI_WEB_TOOLS = [
@@ -22,13 +22,13 @@ OPENAI_WEB_TOOLS = [
         "type": "function",
         "function": {
             "name": "search_web",
-            "description": "Search Text Text Text. Text: Text Text Text 1 Text Text Text! Text Text Text.",
+            "description": "Поиск фактов в сети. ВНИМАНИЕ: Можно вызывать строго 1 раз за запрос! Повторные вызовы запрещены.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "Text Text Text (Text: 'QTranslate official website')"
+                        "description": "Точный поисковый запрос (например: 'QTranslate official website')"
                     }
                 },
                 "required": ["query"]
@@ -39,13 +39,13 @@ OPENAI_WEB_TOOLS = [
         "type": "function",
         "function": {
             "name": "fetch_webpage",
-            "description": "Text Text Text Text-Text Text URL.",
+            "description": "Чтение текстового содержимого веб-страницы по URL.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "url": {
                         "type": "string",
-                        "description": "Text Text-Text (http:// Text https://)"
+                        "description": "Полный веб-адрес (http:// или https://)"
                     }
                 },
                 "required": ["url"]
@@ -59,13 +59,13 @@ GEMINI_WEB_TOOLS = [
         "functionDeclarations": [
             {
                 "name": "search_web",
-                "description": "Search Text Text Text. Text 1 Text Text Text!",
+                "description": "Поиск фактов в сети. СТРОГО 1 раз за запрос!",
                 "parameters": {
                     "type": "OBJECT",
                     "properties": {
                         "query": {
                             "type": "STRING",
-                            "description": "Text Text Text"
+                            "description": "Точный поисковый запрос"
                         }
                     },
                     "required": ["query"]
@@ -73,13 +73,13 @@ GEMINI_WEB_TOOLS = [
             },
             {
                 "name": "fetch_webpage",
-                "description": "Text Text Text Text-Text Text URL.",
+                "description": "Чтение текстового содержимого веб-страницы по URL.",
                 "parameters": {
                     "type": "OBJECT",
                     "properties": {
                         "url": {
                             "type": "STRING",
-                            "description": "Text Text-Text"
+                            "description": "Полный веб-адрес"
                         }
                     },
                     "required": ["url"]
@@ -111,7 +111,7 @@ FALLBACK_SEARXNG_INSTANCES = [
 JS_CLICK_EXPAND_ONCE = """
 (() => {
     let b = document.querySelector('div[jsname="rPRdsc"]') 
-         || Array.from(document.querySelectorAll('div[role="button"], button')).find(el => (el.innerText || el.getAttribute('aria-label') || '').includes('Text'));
+         || Array.from(document.querySelectorAll('div[role="button"], button')).find(el => (el.innerText || el.getAttribute('aria-label') || '').includes('Развернуть'));
     if (b) {
         b.click();
         return true;
@@ -128,7 +128,7 @@ JS_EXTRACT_CONTENT = """
     };
 
     let t = (document.body.innerText || "").trim();
-    let s = t.indexOf("Text Text Text");
+    let s = t.indexOf("Обзор от ИИ");
     if (s === -1) {
         s = t.indexOf("AI Overview");
     }
@@ -136,26 +136,26 @@ JS_EXTRACT_CONTENT = """
     if (s !== -1) {
         let p = t.slice(s);
 
-        // Text Text Text Text Text Text Text «Text Text»
-        let endIdx = p.indexOf("\\nText Text\\n");
-        if (endIdx === -1) endIdx = p.indexOf("\\nText Text\\n\\n");
-        if (endIdx === -1) endIdx = p.indexOf("\\nText Text Text Text");
+        // Отсекаем нижний хвост со сниппетами и кнопками «Показать все»
+        let endIdx = p.indexOf("\\nРезультаты поиска\\n");
+        if (endIdx === -1) endIdx = p.indexOf("\\nПоказать все\\n\\n");
+        if (endIdx === -1) endIdx = p.indexOf("\\nСсылки в нижнем колонтитуле");
         if (endIdx !== -1) p = p.slice(0, endIdx);
 
-        // 1. Text Text Text Text Text
-        p = p.replace(/^(Text:Text Text Text|AI Overview)\\s*/i, "");
-        p = p.replace(/\\nText Text Text Text\\s*/gi, "\\n");
-        p = p.replace(/\\n(Text:Text…|Text)\\s*$/gi, "");
+        // 1. Удаление заголовков и служебных плашек
+        p = p.replace(/^(?:Обзор от ИИ|AI Overview)\\s*/i, "");
+        p = p.replace(/\\nИспользуйте код с осторожностью\\s*/gi, "\\n");
+        p = p.replace(/\\n(?:Загрузка…|Развернуть)\\s*$/gi, "");
 
-        // 2. Text Text Text Text Text Text (+1, +2, +3 Text Text Text Text Text)
+        // 2. Очистка от мусорных плашек сносок вида (+1, +2, +3 и названий сайтов перед ними)
         p = p.replace(/\\n[^\\n]{2,45}\\n\\s*\\+[0-9]+\\s*(?=\\n|$)/g, "\\n");
         p = p.replace(/\\n\\s*\\+[0-9]+\\s*(?=\\n|$)/g, "\\n");
         p = p.replace(/\\s*\\+[0-9]+\\b/g, "");
 
-        // 3. Text Text Text Text Text Text-Text, Text Text
+        // 3. Удаление изолированных строк с названиями платформ-сносок, стоящих отдельно
         p = p.replace(/\\n(?:OpenClaw Docs|Cerebras|Docker Docs|Solo\\.io|Alibaba Cloud|LiteLLM|GitHub|OpenAI Developers|Agno Documentation|APIs\\.io|Medium|Baseten|vLLM)\\s*(?=\\n)/gi, "\\n");
 
-        // 4. Text Text Text Text Text Text (Text Text Text Text «Text Text»)
+        // 4. Отсечение блока карточек в самом конце (если остался хвост перед «Показать все»)
         let cardTail = p.search(/\\n(?:[A-Za-z0-9\\.\\-\\s]{2,30}\\n)?(?:Deploy model|List endpoints|Get Started|Chat Completions|Make your first API call)[\\s\\S]*$/i);
         if (cardTail !== -1 && cardTail > 400) {
             p = p.slice(0, cardTail).trim();
@@ -165,7 +165,7 @@ JS_EXTRACT_CONTENT = """
         result.overview = p.trim();
     }
 
-    // Text Text Text Text Text Text Text Text Text
+    // Собираем органические ссылки только если обзора от ИИ нет
     if (!result.overview) {
         let seenUrls = new Set();
         let rso = document.querySelector('div#rso') || document.querySelector('div#search') || document.querySelector('div[role="main"]');
@@ -218,10 +218,14 @@ def get_user_language():
         pass
     return "ru"
 
+def _is_doc_url(url):
+    u = str(url).lower()
+    return any(k in u for k in ("docs", "developer", "api", "github", "help", "guide", "reference"))
+
 def search_google_browser(query, max_results=4):
     clean_query = str(query).strip()
     if not clean_query:
-        return t("search_query_empty", "SearchText Text Text.")
+        return t("search_query_empty", "Поисковый запрос пуст.")
 
     lang = get_user_language()
     gl = GL_MAP.get(lang, "ru")
@@ -284,29 +288,29 @@ def search_google_browser(query, max_results=4):
 
     sections = []
 
-    # 1. info info info info info — info info info, info info info info
+    # 1. Если сформирован обзор от ИИ — выводим ТОЛЬКО его, без мусорных форумных ссылок
     if data.get("overview"):
-        cleaned_ov = data["overview"].replace("Text…", "").replace("Text", "").strip()
-        sections.append(f"[{t('google_ai_overview', 'Text Text Text (Google Gemini)')}]:\n\n{cleaned_ov}")
+        cleaned_ov = data["overview"].replace("Загрузка…", "").replace("Развернуть", "").strip()
+        sections.append(f"[{t('google_ai_overview', 'Обзор от ИИ (Google Gemini)')}]:\n\n{cleaned_ov}")
     else:
-        # 2. info info info info — info info info info
+        # 2. Только если обзора нет — отдаем аккуратные сниппеты поиска
         items = data.get("items", [])
         if items:
-            link_title = t("search_sources", "Text Text Text")
+            link_title = t("search_sources", "Источники и документация")
             sections.append(f"[{link_title}]:")
             for i, it in enumerate(items[:max_results], 1):
-                title = it.get("title", "Text")
+                title = it.get("title", "Результат")
                 snippet = it.get("snippet", "")
                 link = it.get("url", "")
                 item_str = f"{i}. {title}"
                 if snippet:
                     item_str += f"\n   {snippet}"
                 if link:
-                    item_str += f"\n   {t('link_lbl', 'Text')}: {link}"
+                    item_str += f"\n   {t('link_lbl', 'Ссылка')}: {link}"
                 sections.append(item_str)
 
     if not sections:
-        raise ValueError(t("search_no_results", f"Text Text «{clean_query}» Text Text Text."))
+        raise ValueError(t("search_no_results", f"По запросу «{clean_query}» ничего не найдено."))
 
     return "\n\n".join(sections)
 
@@ -323,7 +327,7 @@ def _clean_ddg_url(raw_url):
 def search_duckduckgo(query, max_results=3):
     clean_query = str(query).strip()
     if not clean_query:
-        return t("search_query_empty", "SearchText Text Text.")
+        return t("search_query_empty", "Поисковый запрос пуст.")
 
     lang = get_user_language()
     kl_code = DDG_KL_MAP.get(lang, "ru-ru")
@@ -356,15 +360,15 @@ def search_duckduckgo(query, max_results=3):
             actual_url = _clean_ddg_url(raw_url)
 
             if snippet:
-                results.append(f"{i + 1}. {title}\n   {snippet}\n   {t('link_lbl', 'Text')}: {actual_url}")
+                results.append(f"{i + 1}. {title}\n   {snippet}\n   {t('link_lbl', 'Ссылка')}: {actual_url}")
 
         if results:
-            hdr = t("search_res_ddg", f"Text Text DuckDuckGo ({lang.upper()}):")
+            hdr = t("search_res_ddg", f"Результаты поиска DuckDuckGo ({lang.upper()}):")
             return f"{hdr}\n\n" + "\n\n".join(results)
     except Exception:
         pass
 
-    return t("search_no_results", f"Text Text «{clean_query}» Text Text Text.")
+    return t("search_no_results", f"По запросу «{clean_query}» ничего не найдено.")
 
 def _parse_searxng_html(content, max_results):
     results = []
@@ -383,7 +387,7 @@ def _parse_searxng_html(content, max_results):
             title = html.unescape(re.sub(r'<[^>]+>', '', title_match.group(2))).strip()
             snippet = html.unescape(re.sub(r'<[^>]+>', '', snippet_match.group(1))).strip() if snippet_match else ""
             if snippet:
-                results.append(f"{i + 1}. {title}\n   {snippet}\n   {t('link_lbl', 'Text')}: {link}")
+                results.append(f"{i + 1}. {title}\n   {snippet}\n   {t('link_lbl', 'Ссылка')}: {link}")
 
     return results
 
@@ -409,11 +413,11 @@ def _query_searxng_instance(endpoint, query, max_results, lang):
                 items = data.get("results", [])
                 results = []
                 for i, it in enumerate(items[:max_results]):
-                    title = html.unescape(it.get("title", "Text"))
+                    title = html.unescape(it.get("title", "Результат"))
                     snippet = html.unescape(it.get("content", ""))
                     link = it.get("url", "")
                     if snippet:
-                        results.append(f"{i + 1}. {title}\n   {snippet}\n   {t('link_lbl', 'Text')}: {link}")
+                        results.append(f"{i + 1}. {title}\n   {snippet}\n   {t('link_lbl', 'Ссылка')}: {link}")
                 if results:
                     return results
     except Exception:
@@ -429,12 +433,12 @@ def _query_searxng_instance(endpoint, query, max_results, lang):
     if results_html:
         return results_html
 
-    raise ValueError("Text SearXNG Text Text Text.")
+    raise ValueError("Инстанс SearXNG не вернул данных.")
 
 def search_searxng(query, endpoint=None, max_results=3):
     clean_query = str(query).strip()
     if not clean_query:
-        return t("search_query_empty", "SearchText Text Text.")
+        return t("search_query_empty", "Поисковый запрос пуст.")
 
     lang = get_user_language()
     instances = []
@@ -447,16 +451,16 @@ def search_searxng(query, endpoint=None, max_results=3):
             results = _query_searxng_instance(inst, clean_query, max_results, lang)
             if results:
                 host = urllib.parse.urlparse(inst).netloc
-                return f"Text Text SearXNG ({host}) [{lang.upper()}]:\n\n" + "\n\n".join(results)
+                return f"Результаты поиска SearXNG ({host}) [{lang.upper()}]:\n\n" + "\n\n".join(results)
         except Exception:
             continue
 
-    raise ConnectionError("Text Text SearXNG Text Text.")
+    raise ConnectionError("Публичные инстансы SearXNG временно недоступны.")
 
 def search_brave(query, api_key, max_results=3):
     clean_query = str(query).strip()
     if not clean_query or not api_key:
-        return "Text Text Text Text API-Text Brave Search."
+        return "Не задан запрос или API-ключ Brave Search."
 
     params = {"q": clean_query, "count": max_results}
     url = f"https://api.search.brave.com/res/v1/web/search?{urllib.parse.urlencode(params)}"
@@ -473,20 +477,20 @@ def search_brave(query, api_key, max_results=3):
     items = data.get("web", {}).get("results", [])
     results = []
     for i, it in enumerate(items[:max_results]):
-        title = html.unescape(it.get("title", "Text"))
+        title = html.unescape(it.get("title", "Результат"))
         snippet = html.unescape(it.get("description", ""))
         link = it.get("url", "")
         if snippet:
-            results.append(f"{i + 1}. {title}\n   {snippet}\n   Text: {link}")
+            results.append(f"{i + 1}. {title}\n   {snippet}\n   Ссылка: {link}")
 
     if results:
-        return f"Text Text Brave:\n\n" + "\n\n".join(results)
-    return f"Text Text «{clean_query}» Text Brave Text Text Text."
+        return f"Результаты поиска Brave:\n\n" + "\n\n".join(results)
+    return f"По запросу «{clean_query}» в Brave ничего не найдено."
 
 def search_tavily(query, api_key, max_results=3):
     clean_query = str(query).strip()
     if not clean_query or not api_key:
-        return "Text Text Text Text API-Text Tavily."
+        return "Не задан запрос или API-ключ Tavily."
 
     url = "https://api.tavily.com/search"
     payload = json.dumps({
@@ -503,20 +507,20 @@ def search_tavily(query, api_key, max_results=3):
     items = data.get("results", [])
     results = []
     for i, it in enumerate(items[:max_results]):
-        title = html.unescape(it.get("title", "Text"))
+        title = html.unescape(it.get("title", "Результат"))
         snippet = html.unescape(it.get("content", ""))
         link = it.get("url", "")
         if snippet:
-            results.append(f"{i + 1}. {title}\n   {snippet}\n   Text: {link}")
+            results.append(f"{i + 1}. {title}\n   {snippet}\n   Ссылка: {link}")
 
     if results:
-        return f"Text Text Tavily:\n\n" + "\n\n".join(results)
-    return f"Text Text «{clean_query}» Text Tavily Text Text Text."
+        return f"Результаты поиска Tavily:\n\n" + "\n\n".join(results)
+    return f"По запросу «{clean_query}» в Tavily ничего не найдено."
 
 def search_serper(query, api_key, max_results=3):
     clean_query = str(query).strip()
     if not clean_query or not api_key:
-        return "Text Text Text Text API-Text Serper."
+        return "Не задан запрос или API-ключ Serper."
 
     url = "https://google.serper.dev/search"
     payload = json.dumps({"q": clean_query, "num": max_results}).encode("utf-8")
@@ -532,15 +536,15 @@ def search_serper(query, api_key, max_results=3):
     items = data.get("organic", [])
     results = []
     for i, it in enumerate(items[:max_results]):
-        title = html.unescape(it.get("title", "Text"))
+        title = html.unescape(it.get("title", "Результат"))
         snippet = html.unescape(it.get("snippet", ""))
         link = it.get("link", "")
         if snippet:
-            results.append(f"{i + 1}. {title}\n   {snippet}\n   Text: {link}")
+            results.append(f"{i + 1}. {title}\n   {snippet}\n   Ссылка: {link}")
 
     if results:
-        return f"Text Text Serper (Google):\n\n" + "\n\n".join(results)
-    return f"Text Text «{clean_query}» Text Serper Text Text Text."
+        return f"Результаты поиска Serper (Google):\n\n" + "\n\n".join(results)
+    return f"По запросу «{clean_query}» в Serper ничего не найдено."
 
 def search_web(query, engine=None, max_results=4):
     from data.core.config_manager import config
@@ -567,10 +571,10 @@ def search_web(query, engine=None, max_results=4):
             res_text = search_duckduckgo(query, max_results=max_results)
     except Exception as e:
         ddg_res = search_duckduckgo(query, max_results=max_results)
-        res_text = f"[{active_engine.upper()}: Text ({e}). Text DuckDuckGo]:\n\n{ddg_res}"
+        res_text = f"[{active_engine.upper()}: сбой ({e}). Резерв DuckDuckGo]:\n\n{ddg_res}"
 
     elapsed = round(time.time() - t_start, 2)
-    logger.tool_call("WebSearch", 1, f"search_web ({active_engine}) [{elapsed}Text]", {"query": query}, res_text[:400])
+    logger.tool_call("WebSearch", 1, f"search_web ({active_engine}) [{elapsed}с]", {"query": query}, res_text[:400])
 
     return res_text
 
@@ -605,15 +609,15 @@ def fetch_webpage(url, max_chars=3000):
         clean_text = "\n".join(lines)
 
         if len(clean_text) > max_chars:
-            clean_text = clean_text[:max_chars] + "\n...[Text Text]"
+            clean_text = clean_text[:max_chars] + "\n...[текст обрезан]"
 
-        res_final = f"Text Text ({clean_url}):\n\n{clean_text}" if clean_text else "Text Text."
+        res_final = f"Содержимое страницы ({clean_url}):\n\n{clean_text}" if clean_text else "Страница пуста."
         elapsed = round(time.time() - t_start, 2)
-        logger.tool_call("WebSearch", 1, f"fetch_webpage [{elapsed}Text]", {"url": clean_url}, res_final[:400])
+        logger.tool_call("WebSearch", 1, f"fetch_webpage [{elapsed}с]", {"url": clean_url}, res_final[:400])
         return res_final
 
     except Exception as e:
-        err_msg = f"Text Text Text Text {clean_url}: {e}"
+        err_msg = f"Не удалось прочитать страницу {clean_url}: {e}"
         logger.tool_call("WebSearch", 1, "fetch_webpage [Error]", {"url": clean_url}, err_msg)
         return err_msg
 
@@ -627,4 +631,4 @@ def execute_tool_call(tool_name, tool_args):
         target_url = tool_args.get("url") or tool_args.get("link") or ""
         return fetch_webpage(target_url)
     else:
-        return f"Text Text: {tool_name}"
+        return f"Неизвестный инструмент: {tool_name}"

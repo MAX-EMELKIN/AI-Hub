@@ -7,6 +7,7 @@ from data.core.config_manager import config
 from data.core.hotkey_manager import hotkey_manager
 from data.core.i18n import t, i18n
 from data.core.logger import logger
+
 if ctypes.sizeof(ctypes.c_void_p) == 8:
     LRESULT = ctypes.c_int64
     WPARAM = ctypes.c_uint64
@@ -244,17 +245,17 @@ class TrayManager:
         except Exception:
             is_vis = False
 
-        show_str = t("tray_hide", "Text") if is_vis else t("tray_show", "Text")
+        show_str = t("tray_hide") if is_vis else t("tray_show")
         user32.AppendMenuW(hmenu, MF_STRING, 1, show_str)
         user32.AppendMenuW(hmenu, MF_SEPARATOR, 0, None)
 
-        user32.AppendMenuW(hmenu, MF_STRING, 5, "Text")
-        user32.AppendMenuW(hmenu, MF_STRING, 4, "Text")
-        user32.AppendMenuW(hmenu, MF_STRING, 2, "Text")
-        user32.AppendMenuW(hmenu, MF_STRING, 3, "Text")
+        user32.AppendMenuW(hmenu, MF_STRING, 5, t("chat.title"))
+        user32.AppendMenuW(hmenu, MF_STRING, 4, t("tray_browser"))
+        user32.AppendMenuW(hmenu, MF_STRING, 2, t("tray_ocr"))
+        user32.AppendMenuW(hmenu, MF_STRING, 3, t("tray_tts"))
 
         is_con = logger.is_console_visible()
-        con_str = "Text" if is_con else "Text"
+        con_str = t("tray_hide") if is_con else t("tray_show")
         user32.AppendMenuW(hmenu, MF_STRING, 6, con_str)
 
         user32.AppendMenuW(hmenu, MF_SEPARATOR, 0, None)
@@ -272,10 +273,10 @@ class TrayManager:
             flags = MF_STRING | (MF_CHECKED if is_checked else MF_UNCHECKED)
             user32.AppendMenuW(lang_sub, flags, cmd_id, str(l_name))
 
-        user32.AppendMenuW(hmenu, MF_POPUP, lang_sub, "Text")
+        user32.AppendMenuW(hmenu, MF_POPUP, lang_sub, t("tray_lang"))
         user32.AppendMenuW(hmenu, MF_SEPARATOR, 0, None)
 
-        user32.AppendMenuW(hmenu, MF_STRING, 99, "Text")
+        user32.AppendMenuW(hmenu, MF_STRING, 99, t("tray_exit"))
 
         pt = wintypes.POINT()
         user32.GetCursorPos(ctypes.byref(pt))

@@ -1,263 +1,140 @@
-{
-  "Application": {
-    "SaveHistoryPath": "",
-    "HistoryFilterFavorites": false,
-    "OptionsPageIndex": 2,
-    "HistoryFilter": ""
-  },
-  "Exceptions": {
-    "Disabled": [
-      [
-        "",
-        "SysListView32"
-      ],
-      [
-        "",
-        "SysTreeView32"
-      ],
-      [
-        "",
-        "ListBox"
-      ],
-      [
-        "",
-        "ScrollBar"
-      ],
-      [
-        "",
-        "ComboBox"
-      ],
-      [
-        "",
-        "msctls_hotkey32"
-      ],
-      [
-        "",
-        "ConsoleWindowClass"
-      ],
-      [
-        "mstsc.exe",
-        ""
-      ]
-    ],
-    "Enabled": [],
-    "DisabledMode": true
-  },
-  "Contents": {
-    "EditBackTranslation": "",
-    "SaveOnExit": true,
-    "EditTranslation": "Мисс Уэлди — это компаньон, совместимый с Automatron, с более чем 2000 строками диалога.",
-    "EditSource": "Miss Weldy is an Automatron-compatible companion with over 2000 lines."
-  },
-  "Advanced": {
-    "EnableSlowerListening": true,
-    "OcrApiKey": "2063b5705788957",
-    "LayoutIndicator": 0,
-    "EnableGuiTranslation": true,
-    "CopyAction": 0,
-    "SwitchMouseModeOnTrayClick": true,
-    "DefaultBrowserId": "Firefox-308046B0AF4A39CB",
-    "EnableMouseModeOnCtrl": true,
-    "RemoveLineBreaks": false,
-    "PreferredDomain": "com"
-  },
-  "Appearance": {
-    "EnableWindowStyle": true,
-    "PopupAutoSize": true,
-    "ColorFrame": 8023133,
-    "PopupPinWhenDragging": true,
-    "PopupWindowFrameThickness": 2,
-    "Transparency": 217,
-    "PopupIcons": 30,
-    "ColorText": 0,
-    "PopupAutoFocus": false,
-    "ThemeName": "Metro",
-    "PopupAutoPos": true,
-    "PopupTimeout": 5,
-    "ColorBack": 15790320
-  },
-  "Internet": {
-    "Timeout": 30000
-  },
-  "HotKeys": {
-    "EnableHotKeys": true,
-    "HotKeyListenText": 581,
-    "HotKeyTranslateClipboardInMainWindow": 0,
-    "HotKeyReplaceSelection": 113,
-    "HotKeyHistory": 0,
-    "HotKeySwitchMouseMode": 0,
-    "HotKeyTextRecognition": 1136,
-    "HotKeyDictionaryClipboard": 0,
-    "HotKeySpeechInput": 0,
-    "HotKeyConvertTextLayout": 0,
-    "HotKeyCopyTranslation": 0,
-    "HotKeyTranslateClipboardInPopupWindow": 0,
-    "HotKeyDictionary": 1617,
-    "HotKeyListenTranslation": 0,
-    "HotKeyTranslateClipboard": 0,
-    "HotKeyKeyboard": 0,
-    "HotKeyPopupWindow": 593,
-    "HotKeyMainWindow": 112
-  },
-  "OfflineDictionaries": [],
-  "Ocr": {
-    "OcrLanguage": 46,
-    "SaveImagePath": ""
-  },
-  "Update": {
-    "CheckForUpdates": false
-  },
-  "DisabledServices": [
-    107,
-    42,
-    12,
-    114,
-    31,
-    105,
-    106,
-    400,
-    98,
-    115,
-    117,
-    95,
-    116,
-    96,
-    99,
-    677,
-    676
-  ],
-  "Proxy": {
-    "Password": "",
-    "Scheme": 0,
-    "Host": "",
-    "ProxyType": 1,
-    "Username": "",
-    "Port": 0
-  },
-  "DictionariesOrder": [
-    25,
-    114,
-    83,
-    17,
-    19,
-    22,
-    24,
-    400,
-    29,
-    82,
-    14,
-    84,
-    676,
-    677
-  ],
-  "DisabledLanguages": [],
-  "DisabledDictionaries": [],
-  "Dictionary": {
-    "ShowServicesPane": true,
-    "DictionaryZoom": 100,
-    "DictionaryExactSearch": true
-  },
-  "LanguagePairs": [
-    [
-      46,
-      17
-    ],
-    [
-      17,
-      46
-    ]
-  ],
-  "General": {
-    "InstantTranslation": true,
-    "LanguageDictionary": 46,
-    "LanguageKeyboard": 17,
-    "AutoCleanupOfTranslation": false,
-    "MouseMode": 1,
-    "WindowPopupPlacement": "2C0000001000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF2B00000031000000830200005D010000",
-    "ClearHistoryOnExit": false,
-    "EnableHistory": false,
-    "WindowKeyboardPlacement": "",
-    "ShowServicesPane": true,
-    "MinimizeToTrayOnMinimize": false,
-    "WindowMainPlacement": "2C0000000000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF44000000B10000002D070000BC030000",
-    "BackTranslation": false,
-    "WindowHistoryPlacement": "",
-    "WindowOptionsPlacement": "2C0000000000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7004000066000000FA060000ED010000",
-    "ActiveServices": [
-      715
-    ],
-    "UseSmartDetection": true,
-    "ShowMiddlePane": true,
-    "LanguageTo": 46,
-    "WindowDictionaryPlacement": "2C0000000000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8C00000080000000E20600000A030000",
-    "ShowTopPane": true,
-    "MidSplitterPos": 162,
-    "LanguageFrom": 1,
-    "LocaleFoderName": "Russian",
-    "ReadPhonetically": false,
-    "FontName": "",
-    "MainWindowStartupAction": 0,
-    "ActiveDictionaryServices": [
-      17
-    ],
-    "AlwaysDetectLanguage": true,
-    "MainWindowShowOnLoad": false,
-    "MinimizeToTrayOnClose": true,
-    "ExpandHistoryItems": false,
-    "BackTranslationSplitterPos": -1,
-    "MouseModeOn": false,
-    "SpellChecking": true,
-    "ClearOnDragDrop": true,
-    "TextSize": 9
-  },
-  "ServicesOrder": [
-    1,
-    103,
-    107,
-    42,
-    112,
-    12,
-    114,
-    31,
-    118,
-    113,
-    105,
-    88,
-    106,
-    400,
-    98,
-    115,
-    117,
-    119,
-    111,
-    95,
-    11,
-    96,
-    116,
-    99,
-    685,
-    681,
-    699,
-    694,
-    677,
-    676,
-    675,
-    686,
-    700,
-    696,
-    705,
-    706,
-    707,
-    708,
-    711,
-    712,
-    713,
-    714,
-    715
-  ],
-  "AutoDetection": {
-    "LanguageFirst": 46,
-    "LanguageSecond": 17,
-    "LanguageSpeechRecognition": 46
-  }
+﻿{
+   "Application": {
+      "SaveHistoryPath": "",
+      "HistoryFilterFavorites": false,
+      "OptionsPageIndex": 2,
+      "HistoryFilter": ""
+   },
+   "Exceptions": {
+      "Disabled": [["", "SysListView32"], ["", "SysTreeView32"], ["", "ListBox"], ["", "ScrollBar"], ["", "ComboBox"], ["", "msctls_hotkey32"], ["", "ConsoleWindowClass"], ["mstsc.exe", ""]],
+      "Enabled": [],
+      "DisabledMode": true
+   },
+   "Contents": {
+      "EditBackTranslation": "",
+      "SaveOnExit": true,
+      "EditTranslation": "быстрый пинг мастера",
+      "EditSource": "wizard quick ping"
+   },
+   "Advanced": {
+      "EnableSlowerListening": true,
+      "OcrApiKey": "2063b5705788957",
+      "LayoutIndicator": 0,
+      "EnableGuiTranslation": true,
+      "CopyAction": 0,
+      "SwitchMouseModeOnTrayClick": true,
+      "DefaultBrowserId": "Firefox-308046B0AF4A39CB",
+      "EnableMouseModeOnCtrl": true,
+      "RemoveLineBreaks": false,
+      "PreferredDomain": "com"
+   },
+   "Appearance": {
+      "EnableWindowStyle": true,
+      "PopupAutoSize": true,
+      "ColorFrame": 8023133,
+      "PopupPinWhenDragging": true,
+      "PopupWindowFrameThickness": 2,
+      "Transparency": 217,
+      "PopupIcons": 30,
+      "ColorText": 0,
+      "PopupAutoFocus": false,
+      "ThemeName": "Metro",
+      "PopupAutoPos": true,
+      "PopupTimeout": 5,
+      "ColorBack": 15790320
+   },
+   "Internet": {
+      "Timeout": 30000
+   },
+   "HotKeys": {
+      "EnableHotKeys": true,
+      "HotKeyListenText": 581,
+      "HotKeyTranslateClipboardInMainWindow": 0,
+      "HotKeyReplaceSelection": 113,
+      "HotKeyHistory": 0,
+      "HotKeySwitchMouseMode": 0,
+      "HotKeyTextRecognition": 1136,
+      "HotKeyDictionaryClipboard": 0,
+      "HotKeySpeechInput": 0,
+      "HotKeyConvertTextLayout": 0,
+      "HotKeyCopyTranslation": 0,
+      "HotKeyTranslateClipboardInPopupWindow": 0,
+      "HotKeyDictionary": 1617,
+      "HotKeyListenTranslation": 0,
+      "HotKeyTranslateClipboard": 0,
+      "HotKeyKeyboard": 0,
+      "HotKeyPopupWindow": 593,
+      "HotKeyMainWindow": 112
+   },
+   "OfflineDictionaries": [],
+   "Ocr": {
+      "OcrLanguage": 46,
+      "SaveImagePath": ""
+   },
+   "Update": {
+      "CheckForUpdates": false
+   },
+   "DisabledServices": [107, 42, 12, 114, 31, 105, 106, 400, 98, 115, 117, 95, 116, 96, 99, 677, 676],
+   "Proxy": {
+      "Password": "",
+      "Scheme": 0,
+      "Host": "",
+      "ProxyType": 1,
+      "Username": "",
+      "Port": 0
+   },
+   "DictionariesOrder": [25, 114, 83, 17, 19, 22, 24, 400, 29, 82, 14, 84, 676, 677],
+   "DisabledLanguages": [],
+   "DisabledDictionaries": [],
+   "Dictionary": {
+      "ShowServicesPane": true,
+      "DictionaryZoom": 100,
+      "DictionaryExactSearch": true
+   },
+   "LanguagePairs": [[46, 17], [17, 46]],
+   "General": {
+      "InstantTranslation": true,
+      "LanguageDictionary": 46,
+      "LanguageKeyboard": 17,
+      "AutoCleanupOfTranslation": false,
+      "MouseMode": 1,
+      "WindowPopupPlacement": "2C0000001000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF2B00000031000000830200005D010000",
+      "ClearHistoryOnExit": false,
+      "EnableHistory": false,
+      "WindowKeyboardPlacement": "",
+      "ShowServicesPane": true,
+      "MinimizeToTrayOnMinimize": false,
+      "WindowMainPlacement": "2C0000000000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF44000000B10000002D070000BC030000",
+      "BackTranslation": false,
+      "WindowHistoryPlacement": "",
+      "WindowOptionsPlacement": "2C0000000000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7004000066000000FA060000ED010000",
+      "ActiveServices": [119],
+      "UseSmartDetection": true,
+      "ShowMiddlePane": true,
+      "LanguageTo": 46,
+      "WindowDictionaryPlacement": "2C0000000000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8C00000080000000E20600000A030000",
+      "ShowTopPane": true,
+      "MidSplitterPos": 162,
+      "LanguageFrom": 1,
+      "LocaleFoderName": "Russian",
+      "ReadPhonetically": false,
+      "FontName": "",
+      "MainWindowStartupAction": 0,
+      "ActiveDictionaryServices": [17],
+      "AlwaysDetectLanguage": true,
+      "MainWindowShowOnLoad": false,
+      "MinimizeToTrayOnClose": true,
+      "ExpandHistoryItems": false,
+      "BackTranslationSplitterPos": -1,
+      "MouseModeOn": false,
+      "SpellChecking": true,
+      "ClearOnDragDrop": true,
+      "TextSize": 9
+   },
+   "ServicesOrder": [1, 103, 107, 42, 112, 12, 114, 31, 118, 113, 105, 88, 106, 400, 98, 115, 117, 119, 111, 95, 11, 96, 116, 99, 685, 681, 699, 694, 677, 676, 675, 686, 700, 696, 705, 706, 707, 708, 711, 712, 713, 714, 715, 719],
+   "AutoDetection": {
+      "LanguageFirst": 46,
+      "LanguageSecond": 17,
+      "LanguageSpeechRecognition": 46
+   }
 }

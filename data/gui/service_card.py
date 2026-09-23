@@ -10,6 +10,7 @@ from data.core.logger import logger
 from data.gui.dialogs import ToolTip
 from data.gui.theme_manager import theme
 from data.presets.preset_manager import preset_manager
+
 GEMINI_ALLOWED_MODELS = [
     "gemini-3.8-flash",
     "gemini-3.7-flash",
@@ -23,53 +24,11 @@ GEMINI_ALLOWED_MODELS = [
 ]
 
 GEMINI_THINKING_MODES = [
-    "Text",
-    "Text",
-    "Text",
-    "Text"
+    "LOW",
+    "MEDIUM",
+    "HIGH",
+    "OFF"
 ]
-
-HELP_TEXTS = {
-    "temp": (
-        "Text"
-        "Text"
-        "Text"
-        "Text"
-        "Text"
-    ),
-    "topp": (
-        "Text"
-        "Text"
-        "Text"
-        "Text"
-    ),
-    "tokens": (
-        "Text"
-        "Text"
-        "Text"
-    ),
-    "thinking": (
-        "Text"
-        "Text"
-        "Text"
-        "Text"
-    ),
-    "glossary": (
-        "Text"
-        "Text"
-        "Text"
-        "Text"
-    ),
-    "gemini_search": (
-        "Text"
-        "Text"
-        "Text"
-        "Text"
-        "Text"
-        "Text"
-        "Text"
-    )
-}
 
 class HelpPopup(tk.Toplevel):
     def __init__(self, anchor_widget, text):
@@ -90,8 +49,7 @@ class HelpPopup(tk.Toplevel):
         lbl = tk.Label(frame, text=text, justify=tk.LEFT, bg=bg, fg=fg, font=theme.font(-1), wraplength=260)
         lbl.pack(anchor="w")
 
-        hint_text = t("help_close_hint", "Text")
-        hint = tk.Label(frame, text=hint_text, font=theme.font(-2, "italic"), fg=hint_fg, bg=bg)
+        hint = tk.Label(frame, text=t("help_close_hint"), font=theme.font(-2, "italic"), fg=hint_fg, bg=bg)
         hint.pack(anchor="w", pady=(6, 0))
 
         self.update_idletasks()
@@ -168,7 +126,7 @@ class ServiceCard(tk.Frame):
         if self._active_help_popup and self._active_help_popup.winfo_exists():
             self._active_help_popup.destroy()
 
-        text = t(f"help_{help_key}", HELP_TEXTS.get(help_key, ""))
+        text = t(f"help_{help_key}")
         if text:
             self._active_help_popup = HelpPopup(anchor_widget, text)
 
@@ -205,7 +163,7 @@ class ServiceCard(tk.Frame):
             fg=fg_pri, bg=bg_card, cursor="sb_v_double_arrow"
         )
         self.title_lbl.pack(side=tk.LEFT, padx=(2, 4))
-        ToolTip(self.title_lbl, "Text")
+        ToolTip(self.title_lbl, t("tip_drag_service"))
 
         self.status_lbl = tk.Label(
             self.top_frame, text="...", font=theme.font(0, "bold"),
@@ -215,12 +173,12 @@ class ServiceCard(tk.Frame):
         self.status_tooltip = ToolTip(self.status_lbl, "")
 
         self.btn_settings = tk.Button(
-            self.top_frame, text="⚙", font=theme.font(1, "bold"), relief=tk.FLAT,
+            self.top_frame, text="*", font=theme.font(1, "bold"), relief=tk.FLAT,
             bg=theme.get_color("btn_bg"), fg=fg_pri, activebackground=theme.get_color("btn_hover"),
             cursor="hand2", width=2, padx=0, pady=0, command=self._on_settings_click
         )
         self.btn_settings.pack(side=tk.RIGHT, padx=(2, 0))
-        ToolTip(self.btn_settings, t("tip_service_settings", "Text"))
+        ToolTip(self.btn_settings, t("tip_service_settings"))
 
         in_bg = theme.get_color("input_bg")
         in_fg = theme.get_color("input_fg")
@@ -229,7 +187,7 @@ class ServiceCard(tk.Frame):
             gemini_bar = tk.Frame(self.top_frame, bg=bg_card)
             gemini_bar.pack(side=tk.RIGHT, padx=(0, 4))
 
-            tk.Label(gemini_bar, text="Text", font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
+            tk.Label(gemini_bar, text=t("lbl_model"), font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
             self.combo_model = ttk.Combobox(gemini_bar, values=GEMINI_ALLOWED_MODELS, state="readonly", width=22, font=param_font)
             cur_model = self.service.get_config_val("model", GEMINI_ALLOWED_MODELS[0])
             self.combo_model.set(cur_model if cur_model in GEMINI_ALLOWED_MODELS else GEMINI_ALLOWED_MODELS[0])
@@ -237,24 +195,25 @@ class ServiceCard(tk.Frame):
             self.combo_model.bind("<<ComboboxSelected>>", self._on_gemini_model_changed)
 
             self.btn_ping = tk.Button(
-                gemini_bar, text="Text", font=theme.font(-2, "bold"), relief=tk.FLAT,
+                gemini_bar, text=t("btn_ping"), font=theme.font(-2, "bold"), relief=tk.FLAT,
                 bg=theme.get_color("help_btn_bg"), fg=theme.get_color("help_btn_fg"),
                 activebackground=theme.get_color("btn_hover"), cursor="hand2", padx=4, pady=0,
                 command=self._on_gemini_ping_click
             )
             self.btn_ping.pack(side=tk.LEFT, padx=(0, 4))
-            ToolTip(self.btn_ping, "Text")
+            ToolTip(self.btn_ping, t("tip_quick_ping"))
 
-            tk.Label(gemini_bar, text="Text", font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
-            self.combo_thinking = ttk.Combobox(gemini_bar, values=GEMINI_THINKING_MODES, state="readonly", width=22, font=param_font)
+            tk.Label(gemini_bar, text=t("param_thinking"), font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
+            self.combo_thinking = ttk.Combobox(gemini_bar, values=GEMINI_THINKING_MODES, state="readonly", width=12, font=param_font)
 
             saved_thinking = self.service.get_config_val("thinking_mode", GEMINI_THINKING_MODES[0])
             matched_thinking = GEMINI_THINKING_MODES[0]
             for m in GEMINI_THINKING_MODES:
-                if ("Text" in saved_thinking and "Text" in m) or \
-                   ("Text" in saved_thinking and "Text" in m) or \
-                   ("Text" in saved_thinking and "Text" in m) or \
-                   ("Text" in saved_thinking and "Text" in m):
+                if (m.lower() in saved_thinking.lower()) or \
+                   ("низк" in saved_thinking.lower() and m == "LOW") or \
+                   ("средн" in saved_thinking.lower() and m == "MEDIUM") or \
+                   ("высок" in saved_thinking.lower() and m == "HIGH") or \
+                   ("отключ" in saved_thinking.lower() and m == "OFF"):
                     matched_thinking = m
                     break
 
@@ -262,7 +221,7 @@ class ServiceCard(tk.Frame):
             self.combo_thinking.pack(side=tk.LEFT, padx=(0, 3))
             self.combo_thinking.bind("<<ComboboxSelected>>", self._on_gemini_thinking_changed)
 
-            tk.Label(gemini_bar, text="Text", font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
+            tk.Label(gemini_bar, text=t("search_title"), font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
             self._create_help_btn(gemini_bar, "gemini_search").pack(side=tk.LEFT, padx=(0, 1))
             self.var_web_search = tk.BooleanVar(value=(self.service.get_config_val("enable_web_search", "0") in ("1", "true", "yes")))
             chk_search = tk.Checkbutton(
@@ -271,8 +230,7 @@ class ServiceCard(tk.Frame):
             )
             chk_search.pack(side=tk.LEFT, padx=(0, 3))
 
-            lbl_gloss = t("param_glossary", "Text")
-            tk.Label(gemini_bar, text=lbl_gloss, font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
+            tk.Label(gemini_bar, text=t("param_glossary"), font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
             self._create_help_btn(gemini_bar, "glossary").pack(side=tk.LEFT, padx=(0, 1))
             self.var_glossary = tk.BooleanVar(value=(self.service.get_config_val("enable_glossary", "1") in ("1", "true", "yes")))
             chk_glossary = tk.Checkbutton(
@@ -291,8 +249,7 @@ class ServiceCard(tk.Frame):
                 params_bar.pack(side=tk.RIGHT, padx=(0, 4))
 
                 if has_params:
-                    lbl_temp = t("param_temp", "temperature")
-                    tk.Label(params_bar, text=lbl_temp, font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(3, 1))
+                    tk.Label(params_bar, text=t("param_temp"), font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(3, 1))
                     self._create_help_btn(params_bar, "temp").pack(side=tk.LEFT, padx=(0, 2))
                     self.e_temp = tk.Entry(params_bar, font=param_font, width=4, justify="center", bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
                     self.e_temp.insert(0, str(self.service.get_config_val("temperature", "0.2")))
@@ -300,8 +257,7 @@ class ServiceCard(tk.Frame):
                     self.e_temp.bind("<FocusOut>", lambda e: self._save_param("temperature", self.e_temp.get()))
                     self.e_temp.bind("<Return>", lambda e: self._save_param("temperature", self.e_temp.get()))
 
-                    lbl_topp = t("param_topp", "top_p")
-                    tk.Label(params_bar, text=lbl_topp, font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
+                    tk.Label(params_bar, text=t("param_topp"), font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
                     self._create_help_btn(params_bar, "topp").pack(side=tk.LEFT, padx=(0, 2))
                     self.e_topp = tk.Entry(params_bar, font=param_font, width=4, justify="center", bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
                     self.e_topp.insert(0, str(self.service.get_config_val("top_p", "0.2")))
@@ -309,8 +265,7 @@ class ServiceCard(tk.Frame):
                     self.e_topp.bind("<FocusOut>", lambda e: self._save_param("top_p", self.e_topp.get()))
                     self.e_topp.bind("<Return>", lambda e: self._save_param("top_p", self.e_topp.get()))
 
-                    lbl_tokens = t("param_tokens", "max_tokens")
-                    tk.Label(params_bar, text=lbl_tokens, font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
+                    tk.Label(params_bar, text=t("param_tokens"), font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
                     self._create_help_btn(params_bar, "tokens").pack(side=tk.LEFT, padx=(0, 2))
                     self.e_tokens = tk.Entry(params_bar, font=param_font, width=5, justify="center", bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
                     self.e_tokens.insert(0, str(self.service.get_config_val("max_tokens", "2048")))
@@ -318,8 +273,7 @@ class ServiceCard(tk.Frame):
                     self.e_tokens.bind("<FocusOut>", lambda e: self._save_param("max_tokens", self.e_tokens.get()))
                     self.e_tokens.bind("<Return>", lambda e: self._save_param("max_tokens", self.e_tokens.get()))
 
-                    lbl_think = t("param_thinking", "Text")
-                    tk.Label(params_bar, text=lbl_think, font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
+                    tk.Label(params_bar, text=t("param_thinking"), font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
                     self._create_help_btn(params_bar, "thinking").pack(side=tk.LEFT, padx=(0, 1))
                     self.var_thinking = tk.BooleanVar(value=(self.service.get_config_val("enable_thinking", "0") in ("1", "true", "yes")))
                     chk_thinking = tk.Checkbutton(
@@ -329,7 +283,7 @@ class ServiceCard(tk.Frame):
                     chk_thinking.pack(side=tk.LEFT, padx=(0, 3))
 
                 if supports_search:
-                    tk.Label(params_bar, text="Text", font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
+                    tk.Label(params_bar, text=t("search_title"), font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
                     self._create_help_btn(params_bar, "gemini_search").pack(side=tk.LEFT, padx=(0, 1))
                     self.var_web_search = tk.BooleanVar(value=(self.service.get_config_val("enable_web_search", "0") in ("1", "true", "yes")))
                     chk_search = tk.Checkbutton(
@@ -339,8 +293,7 @@ class ServiceCard(tk.Frame):
                     chk_search.pack(side=tk.LEFT, padx=(0, 3))
 
                 if has_glossary:
-                    lbl_gloss = t("param_glossary", "Text")
-                    tk.Label(params_bar, text=lbl_gloss, font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
+                    tk.Label(params_bar, text=t("param_glossary"), font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
                     self._create_help_btn(params_bar, "glossary").pack(side=tk.LEFT, padx=(0, 1))
                     self.var_glossary = tk.BooleanVar(value=(self.service.get_config_val("enable_glossary", "1") in ("1", "true", "yes")))
                     chk_glossary = tk.Checkbutton(
@@ -358,7 +311,7 @@ class ServiceCard(tk.Frame):
             cursor="hand2", width=2, padx=0, pady=0, command=self._on_delete_click
         )
         self.btn_delete.pack(side=tk.RIGHT, padx=(2, 0))
-        ToolTip(self.btn_delete, t("tip_service_delete", "Text"))
+        ToolTip(self.btn_delete, t("tip_service_delete"))
 
         self.presets_container = tk.Frame(self.bottom_frame, bg=bg_card)
         self.presets_container.pack(side=tk.LEFT, fill=tk.X, expand=True)
@@ -372,18 +325,18 @@ class ServiceCard(tk.Frame):
         new_model = self.combo_model.get().strip()
         if new_model:
             self.service.set_config_val("model", new_model)
-            logger.system(f"Text")
+            logger.system(f"Model updated for {self.service_id}: {new_model}")
 
     def _on_gemini_thinking_changed(self, event=None):
         new_mode = self.combo_thinking.get().strip()
         if new_mode:
             self.service.set_config_val("thinking_mode", new_mode)
-            logger.system(f"Text")
+            logger.system(f"Thinking mode updated for {self.service_id}: {new_mode}")
 
     def _on_web_search_toggle(self):
         val = "1" if self.var_web_search.get() else "0"
         self.service.set_config_val("enable_web_search", val)
-        logger.system(f"Text")
+        logger.system(f"Web search toggled for {self.service_id}: {val}")
 
     def _on_gemini_ping_click(self):
         cur_model = self.service.get_config_val("model", GEMINI_ALLOWED_MODELS[0])
@@ -392,13 +345,13 @@ class ServiceCard(tk.Frame):
         def _worker():
             ok, msg, elapsed = self.service.ping_model(cur_model)
             def _ui():
-                self.btn_ping.config(state="normal", text="Text")
+                self.btn_ping.config(state="normal", text=t("btn_ping"))
                 if ok:
-                    self.status_lbl.config(text=f"* {msg}", fg=theme.get_color("status_ready"))
+                    self.status_lbl.config(text=f"[OK] {msg}", fg=theme.get_color("status_ready"))
                 else:
-                    self.status_lbl.config(text=f"* {msg}", fg=theme.get_color("status_error"))
+                    self.status_lbl.config(text=f"[ERR] {msg}", fg=theme.get_color("status_error"))
                 if self.status_tooltip:
-                    self.status_tooltip.set_text(f"Text")
+                    self.status_tooltip.set_text(f"{t('btn_ping')}: {msg} ({elapsed}s)")
             self.after(0, _ui)
 
         threading.Thread(target=_worker, daemon=True).start()
@@ -432,17 +385,17 @@ class ServiceCard(tk.Frame):
         val = str(value).strip()
         if val:
             self.service.set_config_val(key, val)
-            logger.system(f"Text")
+            logger.system(f"Param saved for {self.service_id}: {key}={val}")
 
     def _on_thinking_toggle(self):
         val = "1" if self.var_thinking.get() else "0"
         self.service.set_config_val("enable_thinking", val)
-        logger.system(f"Text")
+        logger.system(f"Thinking toggled for {self.service_id}: {val}")
 
     def _on_glossary_toggle(self):
         val = "1" if self.var_glossary.get() else "0"
         self.service.set_config_val("enable_glossary", val)
-        logger.system(f"Text")
+        logger.system(f"Glossary toggled for {self.service_id}: {val}")
 
     def _on_delete_click(self):
         if self.on_delete_callback:
@@ -451,9 +404,9 @@ class ServiceCard(tk.Frame):
     def refresh_status(self):
         ok, reason = self.service.is_ready()
         if ok:
-            self.status_lbl.config(text=f"Text", fg=theme.get_color("status_ready"))
+            self.status_lbl.config(text="[OK]", fg=theme.get_color("status_ready"))
         else:
-            self.status_lbl.config(text=f"Text", fg=theme.get_color("status_error"))
+            self.status_lbl.config(text="[ERR]", fg=theme.get_color("status_error"))
 
         if self.status_tooltip:
             self.status_tooltip.set_text(reason)
@@ -479,7 +432,7 @@ class ServiceCard(tk.Frame):
                 command=lambda p=name: self._on_preset_select(p)
             )
             btn.pack(side=tk.LEFT, padx=(0, 3))
-            ToolTip(btn, t("tip_select_preset", "Text", name=name))
+            ToolTip(btn, t("tip_select_preset", name=name))
             self._preset_buttons[name] = btn
 
         btn_add = tk.Button(
@@ -490,7 +443,7 @@ class ServiceCard(tk.Frame):
             command=self._on_add_preset_click
         )
         btn_add.pack(side=tk.LEFT, padx=(3, 2))
-        ToolTip(btn_add, t("tip_add_preset", "Text"))
+        ToolTip(btn_add, t("tip_add_preset"))
 
         btn_edit = tk.Button(
             self.presets_container, text="*", font=theme.font(0, "bold"),
@@ -500,11 +453,11 @@ class ServiceCard(tk.Frame):
             command=self._on_edit_preset_click
         )
         btn_edit.pack(side=tk.LEFT, padx=2)
-        ToolTip(btn_edit, t("tip_edit_preset", "Text"))
+        ToolTip(btn_edit, t("tip_edit_preset"))
 
     def _on_preset_select(self, preset_name):
         config.set_active_preset(self.service_id, preset_name)
-        logger.system(f"Text")
+        logger.system(f"Active preset changed for {self.service_id}: {preset_name}")
         self.refresh_presets()
 
     def _on_settings_click(self):
