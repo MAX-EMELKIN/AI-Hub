@@ -13,8 +13,8 @@
    "Contents": {
       "EditBackTranslation": "",
       "SaveOnExit": true,
-      "EditTranslation": "быстрый пинг мастера",
-      "EditSource": "wizard quick ping"
+      "EditTranslation": "Агент Antigravity — это универсальный управляемый агент, работающий через API Gemini. Один вызов API предоставляет вам агента, который выполняет логические рассуждения, код, управляет файлами и просматривает веб-страницы внутри вашей собственной защищенной песочницы Linux, размещенной Google.\r\rОн создан с использованием Gemini 3.8 Flash и той же инфраструктуры, что и Antigravity IDE. Вы можете настроить базовую модель Gemini с помощью agent_config. Доступен через Interactions API и Google AI Studio.",
+      "EditSource": "The Antigravity agent is a general-purpose managed agent on the Gemini API. A single API call gives you an agent that reasons, executes code, manages files, and browses the web inside your own secure Linux sandbox, hosted by Google.\r\rIt is built with Gemini 3.8 Flash and uses the same harness as the Antigravity IDE. You can configure the underlying Gemini model using agent_config. Available through the Interactions API and Google AI Studio."
    },
    "Advanced": {
       "EnableSlowerListening": true,
