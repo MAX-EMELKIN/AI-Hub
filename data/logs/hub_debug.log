@@ -1,14 +1,14 @@
---- QTranslate AI Hub Log Started: 2026-09-24 09:08:12 ---
+--- QTranslate AI Hub Log Started: 2026-09-25 09:01:18 ---
 
-[2026-09-24 09:08:12] [SYSTEM] 
-Text
+[2026-09-25 09:01:18] [SYSTEM] 
+Инициализация ядра QTranslate AI Hub
 
-[2026-09-24 09:08:12] [SYSTEM] 
-HTTP-Text Text Text 127.0.0.1:8080
+[2026-09-25 09:01:19] [SYSTEM] 
+HTTP-сервер запущен на 127.0.0.1:8080
 
-[2026-09-24 09:08:12] [SYSTEM] 
+[2026-09-25 09:01:19] [SYSTEM] 
 MainWindow initialized
 
-[2026-09-24 09:08:12] [SYSTEM] 
-Text
+[2026-09-25 09:01:19] [SYSTEM] 
+Окно свернуто в трей при запуске
 

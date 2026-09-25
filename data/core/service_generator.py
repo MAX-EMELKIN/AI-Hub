@@ -1,16 +1,20 @@
-# -*- coding: utf-8 -*-
 # data/core/service_generator.py
-
-import os, sys, re, shutil, importlib.util
+import os
+import sys
+import re
+import shutil
+import importlib.util
 from data.core.api_config import api_config
 from data.core.logger import logger
 from data.core.launcher import restart_qtranslate
+
 
 def get_base_dir():
     if getattr(sys, 'frozen', False):
         return os.path.dirname(sys.executable)
     current_dir = os.path.dirname(os.path.abspath(__file__))
     return os.path.abspath(os.path.join(current_dir, "..", ".."))
+
 
 DEFAULT_DOCS = {
     "openrouter": "https://openrouter.ai/docs",
@@ -25,6 +29,53 @@ DEFAULT_DOCS = {
     "pollinations": "https://pollinations.ai/",
     "openai_compatible": "https://platform.openai.com/docs/api-reference"
 }
+
+
+def delete_service_completely(service_id, display_name=None):
+    base_dir = get_base_dir()
+    sec_id = str(service_id).strip().lower()
+
+    if api_config.models.has_section(sec_id):
+        api_config.models.remove_section(sec_id)
+        api_config.save_models()
+
+    try:
+        from data.core.config_manager import config
+        order = config.get_service_order()
+        if sec_id in order:
+            order.remove(sec_id)
+            config.save_service_order(order)
+    except Exception:
+        pass
+
+    hub_service_dir = os.path.join(base_dir, "data", "services", sec_id)
+    if os.path.exists(hub_service_dir):
+        try:
+            shutil.rmtree(hub_service_dir)
+        except Exception:
+            pass
+
+    presets_dir = os.path.join(base_dir, "data", "presets", sec_id)
+    if os.path.exists(presets_dir):
+        try:
+            shutil.rmtree(presets_dir)
+        except Exception:
+            pass
+
+    folder_name = display_name or sec_id
+    clean_folder = re.sub(r'[\\/*?:"<>|]', '', str(folder_name).strip())
+    qt_service_dir = os.path.join(base_dir, "Services", clean_folder)
+    if os.path.exists(qt_service_dir):
+        try:
+            shutil.rmtree(qt_service_dir)
+        except Exception:
+            pass
+
+    try:
+        restart_qtranslate()
+    except Exception:
+        pass
+
 
 class ServiceGenerator:
     def __init__(self):
@@ -53,7 +104,6 @@ class ServiceGenerator:
         templates = []
         if not os.path.exists(self.templates_dir):
             return templates
-
         system_files = {"__init__.py", "unified_engine.py", "common_js.py"}
         for fname in sorted(os.listdir(self.templates_dir)):
             if fname.endswith(".py") and fname not in system_files:
@@ -70,28 +120,26 @@ class ServiceGenerator:
                 return None
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
-
             docs = getattr(module, "DOCS_URL", DEFAULT_DOCS.get(template_id, ""))
-
             return {
                 "id": template_id,
-                "name": getattr(module, "TEMPLATE_NAME", template_id.capitalize()),
-                "provider": getattr(module, "PROVIDER_ID", template_id),
+                "name": getattr(module, "PROVIDER_NAME", template_id.capitalize()),
+                "provider": getattr(module, "PROVIDER_KEY", template_id),
                 "description": getattr(module, "TEMPLATE_DESC", ""),
                 "docs_url": docs,
                 "default_endpoint": getattr(module, "DEFAULT_ENDPOINT", ""),
                 "default_model": getattr(module, "DEFAULT_MODEL", ""),
-                "default_connection_mode": getattr(module, "DEFAULT_CONNECTION_MODE", "direct"),
+                "default_connection_mode": getattr(module, "CONNECTION_MODE", "direct"),
                 "default_proxy": getattr(module, "DEFAULT_PROXY", "213.165.38.49:1080"),
-                "default_doh": getattr(module, "DEFAULT_DOH", "smartdns"),
+                "default_doh": "Comss.one (SmartDNS / РФ обход)",
                 "supports_thinking": getattr(module, "SUPPORTS_THINKING", False),
-                "thinking_policy": getattr(module, "DEFAULT_THINKING_POLICY", "strip"),
-                "auth_header_format": getattr(module, "AUTH_HEADER_FORMAT", "Bearer {api_key}"),
+                "thinking_policy": getattr(module, "THINKING_POLICY", "strip"),
+                "auth_header_format": getattr(module, "AUTH_HEADER_TYPE", "Bearer"),
                 "extra_headers": getattr(module, "EXTRA_HEADERS", {}),
                 "module": module
             }
         except Exception as e:
-            logger.error(f"Error Text Text Text {template_id}: {e}")
+            logger.system(f"Ошибка загрузки метаданных шаблона {template_id}: {e}")
             return None
 
     def get_template_docs_url(self, template_id):
@@ -101,13 +149,13 @@ class ServiceGenerator:
         return DEFAULT_DOCS.get(template_id, "https://openrouter.ai/docs")
 
     def generate(self, display_name, template_id, api_key="", model_name="",
-                 endpoint="", connection_mode=None, proxy="", doh_preset="smartdns",
+                 endpoint="", connection_mode=None, proxy="", doh_preset="Comss.one (SmartDNS / РФ обход)",
                  temperature="0.3", top_p="0.9", max_tokens="2048",
                  thinking_policy="strip", restart_qt=True):
         templates = {t["id"]: t for t in self.get_available_templates()}
         tmpl = templates.get(template_id)
         if not tmpl:
-            raise ValueError(f"Template '{template_id}' not found.")
+            raise ValueError(f"Шаблон '{template_id}' не найден.")
 
         service_id = self.sanitize_id(display_name)
         folder_name = self.sanitize_folder_name(display_name)
@@ -156,7 +204,7 @@ class ServiceGenerator:
         hub_service_dir = os.path.join(self.services_hub_dir, service_id)
         os.makedirs(hub_service_dir, exist_ok=True)
         hub_service_file = os.path.join(hub_service_dir, "service.py")
-        self._write_hub_service_file(hub_service_file, service_id, template_id)
+        self._write_hub_service_file(hub_service_file, service_id, folder_name, tmpl, final_model, final_endpoint, final_api_key)
 
         qt_service_dir = os.path.join(self.services_qt_dir, folder_name)
         os.makedirs(qt_service_dir, exist_ok=True)
@@ -165,21 +213,20 @@ class ServiceGenerator:
 
         self._setup_service_icons(tmpl, hub_service_dir, qt_service_dir)
 
-        logger.system(f"Text '{folder_name}' (ID: {service_id}) Text Text.")
+        logger.system(f"Сервис '{folder_name}' (ID: {service_id}) успешно сгенерирован и настроен.")
 
         if restart_qt:
             try:
                 restart_qtranslate()
-                logger.system("QTranslate Text Text Text Text Text.")
+                logger.system("QTranslate успешно перезапущен для загрузки плагина.")
             except Exception as e:
-                logger.error(f"Failed to restart QTranslate: {e}")
+                logger.system(f"Не удалось перезапустить QTranslate: {e}")
 
         return service_id
 
     def _setup_service_presets(self, service_id):
         target_preset_dir = os.path.join(self.presets_dir, service_id)
         os.makedirs(target_preset_dir, exist_ok=True)
-
         styles = ["academic", "code", "default", "games", "literary"]
         source_dir = os.path.join(self.presets_dir, "qwen_turbo")
         if not os.path.exists(source_dir):
@@ -196,128 +243,65 @@ class ServiceGenerator:
                         pass
                 else:
                     with open(target_file, "w", encoding="utf-8") as f:
-                        f.write(f"Text — Text Text. Text Text Text Text Text Text Text {style}.")
+                        f.write(f"Сделай профессиональный перевод текста на {{TARGET_LANG}} в стиле: {style}.")
 
-    def _write_hub_service_file(self, target_path, service_id, template_id):
-        content = f"""# -*- coding: utf-8 -*-
-# data/services/{service_id}/service.py
+    def _write_hub_service_file(self, target_path, service_id, display_name, tmpl, model, endpoint, api_key):
+        module = tmpl.get("module")
+        template_code = getattr(module, "PYTHON_TEMPLATE", None)
 
-import sys, os
-current_dir = os.path.dirname(os.path.abspath(__file__))
-base_dir = os.path.abspath(os.path.join(current_dir, "..", "..", ".."))
-if base_dir not in sys.path:
-    sys.path.insert(0, base_dir)
+        if template_code:
+            code = template_code.replace("{SERVICE_ID_SLUG}", service_id)
+            code = code.replace("{SERVICE_NAME}", display_name)
+            code = code.replace("{MODEL_ID}", model)
+            code = code.replace("{ENDPOINT}", endpoint)
+        else:
+            from data.core.templates.unified_engine import UNIFIED_PYTHON_TEMPLATE
+            code = UNIFIED_PYTHON_TEMPLATE.replace("{SERVICE_ID_SLUG}", service_id)
+            code = code.replace("{SERVICE_NAME}", display_name)
+            code = code.replace("{PROVIDER_KEY}", tmpl.get("provider", "custom"))
+            code = code.replace("{MODEL_ID}", model)
+            code = code.replace("{ENDPOINT}", endpoint)
+            code = code.replace("{AUTH_HEADER_TYPE}", tmpl.get("auth_header_format", "Bearer"))
+            code = code.replace("{THINKING_POLICY}", tmpl.get("thinking_policy", "strip"))
+            code = code.replace("{RESPONSE_PATH}", "choices.0.message.content")
+            code = code.replace("{EXTRA_HEADERS_JSON}", "")
 
-from data.core.templates.unified_engine import execute_request
-
-SERVICE_ID = "{service_id}"
-TEMPLATE_ID = "{template_id}"
-
-def translate(text, from_lang="auto", to_lang="ru", preset_name="default", **kwargs):
-    return execute_request(SERVICE_ID, TEMPLATE_ID, text, from_lang, to_lang, preset_name, **kwargs)
-"""
         with open(target_path, "w", encoding="utf-8") as f:
-            f.write(content)
+            f.write(code)
 
     def _write_qt_service_file(self, target_path, display_name, service_id):
-        content = f"""// QTranslate Service Script: {display_name}
-// Generated by QTranslate AI Hub Studio
-var name = "{display_name}";
-var hub_service_id = "{service_id}";
+        from data.core.templates.common_js import JS_SERVICE_TEMPLATE
+        h = sum(ord(c) for c in service_id) % 800 + 700
+        js_code = JS_SERVICE_TEMPLATE.replace("{SERVICE_NAME}", display_name)
+        js_code = js_code.replace("{SERVICE_ID_SLUG}", service_id)
+        js_code = js_code.replace("{QT_ID}", str(h))
 
-function getRequest(text, from, to) {{
-    var url = "http://127.0.0.1:8080/translate";
-    var escapedText = text.replace(/\\\\/g, "\\\\\\\\")
-                          .replace(/\"/g, "\\\\\"")
-                          .replace(/\\r/g, "\\\\r")
-                          .replace(/\\n/g, "\\\\n")
-                          .replace(/\\t/g, "\\\\t");
-
-    var jsonBody = '{{"service":"' + hub_service_id + '","from":"' + from + '","to":"' + to + '","text":"' + escapedText + '"}}';
-
-    return {{
-        url: url,
-        postData: jsonBody,
-        headers: {{
-            "Content-Type": "application/json; charset=utf-8"
-        }}
-    }};
-}}
-
-function getResponse(text) {{
-    if (!text || text.length === 0) {{
-        return "Error: Text Text Text AI Hub";
-    }}
-    try {{
-        if (text.indexOf('{{"result":') === 0 || text.indexOf('{{"error":') === 0) {{
-            var res = eval("(" + text + ")");
-            if (res.error) {{
-                return "Error AI Hub: " + res.error;
-            }}
-            return res.result;
-        }}
-    }} catch (e) {{
-    }}
-    return text;
-}}
-"""
         with open(target_path, "w", encoding="utf-8") as f:
-            f.write(content)
+            f.write(js_code)
 
     def _setup_service_icons(self, tmpl, hub_service_dir, qt_service_dir):
-        template_id = tmpl["id"]
-        source_ico = os.path.join(self.templates_dir, f"{template_id}.ico")
-        source_png = os.path.join(self.templates_dir, f"{template_id}.png")
-        default_ico = os.path.join(self.base_dir, "data", "gui", "AI_Hub.ico")
+        icon_names = ["Service.png", "Service.ico", "icon.png"]
+        src_icon = None
 
-        target_ico = os.path.join(qt_service_dir, "service.ico")
-        if os.path.exists(source_ico):
-            shutil.copy2(source_ico, target_ico)
-        elif os.path.exists(default_ico):
-            shutil.copy2(default_ico, target_ico)
+        tmpl_dir = os.path.dirname(os.path.abspath(__file__))
+        icons_search = [
+            os.path.join(self.base_dir, "data", "gui", "AI_Hub.ico"),
+            os.path.join(self.base_dir, "AI_Hub.ico")
+        ]
 
-        target_png = os.path.join(hub_service_dir, "service.png")
-        if os.path.exists(source_png):
-            shutil.copy2(source_png, target_png)
+        for p in icons_search:
+            if os.path.exists(p):
+                src_icon = p
+                break
 
-    def delete_service(self, service_id_or_name):
-        sec = api_config._resolve_section(service_id_or_name)
-        display_name = ""
-        if api_config.models.has_section(sec) and api_config.models.has_option(sec, "display_name"):
-            display_name = api_config.models.get(sec, "display_name")
-        if not display_name:
-            display_name = service_id_or_name
+        if src_icon:
+            for d in [hub_service_dir, qt_service_dir]:
+                target_ico = os.path.join(d, "Service.ico")
+                if not os.path.exists(target_ico):
+                    try:
+                        shutil.copy2(src_icon, target_ico)
+                    except Exception:
+                        pass
 
-        qt_dir = os.path.join(self.services_qt_dir, display_name)
-        if os.path.exists(qt_dir):
-            try:
-                shutil.rmtree(qt_dir, ignore_errors=True)
-            except Exception as e:
-                logger.error(f"Text Text Text Text QTranslate {qt_dir}: {e}")
-
-        hub_dir = os.path.join(self.services_hub_dir, sec)
-        if os.path.exists(hub_dir):
-            try:
-                shutil.rmtree(hub_dir, ignore_errors=True)
-            except Exception as e:
-                logger.error(f"Text Text Text Text Hub {hub_dir}: {e}")
-
-        preset_dir = os.path.join(self.presets_dir, sec)
-        if os.path.exists(preset_dir):
-            try:
-                shutil.rmtree(preset_dir, ignore_errors=True)
-            except Exception as e:
-                logger.error(f"Text Text Text Text Text {preset_dir}: {e}")
-
-        if api_config.models.has_section(sec):
-            api_config.models.remove_section(sec)
-            api_config.save_models()
-
-        logger.system(f"Text '{display_name}' ({sec}) Text Text.")
-        try:
-            restart_qtranslate()
-        except Exception:
-            pass
 
 service_generator = ServiceGenerator()
-delete_service_completely = service_generator.delete_service

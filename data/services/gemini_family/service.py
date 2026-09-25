@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # data/services/gemini_family/service.py
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -7,6 +7,7 @@ import time
 import json
 import socket
 import ssl
+import struct
 import re
 import urllib.request
 import urllib.parse
@@ -44,6 +45,16 @@ DOH_PRESETS = {
         "host": "dns.comss.one",
         "bootstrap_ip": "195.133.25.16"
     },
+    "Comss.one (SmartDNS / РФ обход)": {
+        "url": "https://dns.comss.one/dns-query",
+        "host": "dns.comss.one",
+        "bootstrap_ip": "195.133.25.16"
+    },
+    "Xbox DNS (SmartDNS / РФ обход)": {
+        "url": "https://xbox-dns.ru/dns-query",
+        "host": "xbox-dns.ru",
+        "bootstrap_ip": "111.88.96.54"
+    },
     "Control D (Uncensored)": {
         "url": "https://freedns.controld.com/uncensored",
         "host": "freedns.controld.com",
@@ -61,15 +72,102 @@ DOH_PRESETS = {
     }
 }
 
+BOOTSTRAP_HOSTS = {
+    "dns.comss.one": "195.133.25.16",
+    "xbox-dns.ru": "111.88.96.54",
+    "freedns.controld.com": "76.76.2.11",
+    "cloudflare-dns.com": "1.1.1.1",
+    "dns.google": "8.8.8.8"
+}
+
 _dns_cache = {}
 _dns_lock = threading.Lock()
 _orig_getaddrinfo = socket.getaddrinfo
+
+
+def _make_dns_query_wire(hostname):
+    header = struct.pack("!HHHHHH", 0x1A2B, 0x0100, 1, 0, 0, 0)
+    parts = hostname.strip(".").split(".")
+    qname = b"".join(bytes([len(p)]) + p.encode("ascii") for p in parts) + b"\x00"
+    question = qname + struct.pack("!HH", 1, 1)
+    return header + question
+
+
+def _parse_dns_response_wire(raw):
+    if len(raw) < 12:
+        return None
+    _, flags, qdcount, ancount, _, _ = struct.unpack("!HHHHHH", raw[:12])
+    if (flags & 0x000F) != 0:
+        return None
+    idx = 12
+    for _ in range(qdcount):
+        while idx < len(raw):
+            length = raw[idx]
+            if length == 0:
+                idx += 1
+                break
+            elif (length & 0xC0) == 0xC0:
+                idx += 2
+                break
+            else:
+                idx += 1 + length
+        idx += 4
+    for _ in range(ancount):
+        if idx >= len(raw):
+            break
+        while idx < len(raw):
+            length = raw[idx]
+            if length == 0:
+                idx += 1
+                break
+            elif (length & 0xC0) == 0xC0:
+                idx += 2
+                break
+            else:
+                idx += 1 + length
+        if idx + 10 > len(raw):
+            break
+        rtype, _, _, rdlength = struct.unpack("!HHIH", raw[idx:idx+10])
+        idx += 10
+        if rtype == 1 and rdlength == 4 and idx + 4 <= len(raw):
+            return ".".join(str(b) for b in raw[idx:idx+4])
+        idx += rdlength
+    return None
+
 
 def resolve_doh_stdlib(hostname, doh_url):
     with _dns_lock:
         if hostname in _dns_cache:
             return _dns_cache[hostname]
 
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+
+    # 1. RFC 8484 binary wireformat POST (PowerDNS, Comss.one, Xbox-DNS)
+    try:
+        wire_data = _make_dns_query_wire(hostname)
+        req = urllib.request.Request(
+            doh_url,
+            data=wire_data,
+            headers={
+                "Content-Type": "application/dns-message",
+                "Accept": "application/dns-message",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            },
+            method="POST"
+        )
+        with urllib.request.urlopen(req, context=ctx, timeout=3.5) as resp:
+            if resp.status == 200:
+                ip = _parse_dns_response_wire(resp.read())
+                if ip:
+                    with _dns_lock:
+                        _dns_cache[hostname] = ip
+                    return ip
+    except Exception:
+        pass
+
+    # 2. JSON DoH fallback (Cloudflare, Google)
     try:
         url = f"{doh_url}?name={hostname}&type=A"
         req = urllib.request.Request(
@@ -79,37 +177,50 @@ def resolve_doh_stdlib(hostname, doh_url):
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
             }
         )
-        with urllib.request.urlopen(req, timeout=3.5) as resp:
+        with urllib.request.urlopen(req, context=ctx, timeout=3.5) as resp:
             data = json.loads(resp.read().decode('utf-8'))
             for ans in data.get("Answer", []):
-                if ans.get("type") == 1:
-                    ip = ans.get("data")
+                if ans.get("type") == 1 and ans.get("data"):
+                    ip = ans["data"]
                     with _dns_lock:
                         _dns_cache[hostname] = ip
                     return ip
     except Exception:
         pass
+
     return None
 
-def custom_gemini_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
-    for preset in DOH_PRESETS.values():
-        if preset["host"] in str(host):
-            if preset.get("bootstrap_ip"):
-                return _orig_getaddrinfo(preset["bootstrap_ip"], port, family, type, proto, flags)
 
-    conn_mode = api_config.get_val("gemini_family", "connection_mode", "doh")
-    if conn_mode == "doh" and "googleapis.com" in str(host):
-        preset_name = api_config.get_val("gemini_family", "doh_preset", "Comss.one (SmartDNS)")
-        doh_url = DOH_PRESETS.get(preset_name, {}).get("url") or api_config.get_val(
-            "gemini_family", "doh_custom_url", "https://dns.comss.one/dns-query"
-        )
+def custom_gemini_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+    host_str = str(host).lower().strip()
+    for b_host, b_ip in BOOTSTRAP_HOSTS.items():
+        if b_host in host_str:
+            return _orig_getaddrinfo(b_ip, port, family, type, proto, flags)
+
+    conn_mode = api_config.get_val("gemini_family", "connection_mode", "doh").lower().strip()
+    if conn_mode == "doh" and "googleapis.com" in host_str:
+        preset_name = api_config.get_val("gemini_family", "doh_preset", "Comss.one (SmartDNS)").strip()
+        doh_url = None
+        for p_key, p_val in DOH_PRESETS.items():
+            if p_key.lower() in preset_name.lower() or preset_name.lower() in p_key.lower():
+                doh_url = p_val.get("url")
+                break
+        if not doh_url:
+            doh_url = api_config.get_val(
+                "gemini_family", "doh_custom_url", "https://dns.comss.one/dns-query"
+            ).strip()
+        if not doh_url:
+            doh_url = "https://dns.comss.one/dns-query"
+
         ip = resolve_doh_stdlib(str(host), doh_url)
         if ip:
             return _orig_getaddrinfo(ip, port, family, type, proto, flags)
 
     return _orig_getaddrinfo(host, port, family, type, proto, flags)
 
+
 socket.getaddrinfo = custom_gemini_getaddrinfo
+
 
 class GeminiFamilyService(BaseService):
     def __init__(self):
@@ -218,12 +329,17 @@ class GeminiFamilyService(BaseService):
 
     def _get_opener(self):
         conn_mode = self.get_config_val("connection_mode", "doh")
+        handlers = []
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        handlers.append(urllib.request.HTTPSHandler(context=ctx))
+
         if conn_mode == "proxy":
             proxy_addr = self.get_config_val("proxy", "").strip()
             if proxy_addr:
-                proxy_handler = urllib.request.ProxyHandler({"http": proxy_addr, "https": proxy_addr})
-                return urllib.request.build_opener(proxy_handler)
-        return urllib.request.build_opener()
+                handlers.append(urllib.request.ProxyHandler({"http": proxy_addr, "https": proxy_addr}))
+        return urllib.request.build_opener(*handlers)
 
     def ping_model(self, model_name=None):
         api_key = self.get_config_val("api_key", "").strip()
@@ -442,5 +558,6 @@ class GeminiFamilyService(BaseService):
             elapsed = time.time() - t_call
             logger.api_summary(self.name, cur_model, elapsed, 0, note=f"Exception: {e}")
             return ""
+
 
 service = GeminiFamilyService()

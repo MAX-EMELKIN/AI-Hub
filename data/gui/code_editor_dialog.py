@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
 # data/gui/code_editor_dialog.py
-
-import os, sys, subprocess
+import os
+import sys
+import subprocess
 import tkinter as tk
 from tkinter import ttk, messagebox
-
 from data.core.config_manager import config
 from data.core.i18n import t
 from data.gui.theme_manager import theme
-from data.gui.dialogs import attach_entry_context_menu
+from data.gui.dialog_helpers import attach_entry_context_menu
+
 
 def open_file_in_smart_editor(file_path, parent_window=None):
     if not file_path or not os.path.exists(file_path):
@@ -51,20 +51,19 @@ def open_file_in_smart_editor(file_path, parent_window=None):
 
     CodeEditorDialog(parent_window, file_path)
 
+
 class CodeEditorDialog(tk.Toplevel):
     def __init__(self, parent, file_path):
         super().__init__(parent)
         self.parent = parent
         self.file_path = file_path
-
         theme.apply_ttk_theme(self)
-
         bg_main = theme.get_color("bg_main")
         bg_card = theme.get_color("bg_card")
         fg_pri = theme.get_color("fg_primary")
 
         fname = os.path.basename(file_path)
-        self.title(f"Text")
+        self.title(f"Редактор: {fname}")
         self.geometry("740x560")
         self.minsize(540, 380)
         self.configure(bg=bg_main)
@@ -78,7 +77,7 @@ class CodeEditorDialog(tk.Toplevel):
         top_bar.pack(fill=tk.X, pady=(0, 6))
 
         tk.Label(
-            top_bar, text=f"Text",
+            top_bar, text=f"Файл: {file_path}",
             font=theme.font(-1, "bold"), fg=theme.get_color("accent"), bg=bg_card, anchor="w"
         ).pack(side=tk.LEFT, fill=tk.X, expand=True)
 
@@ -105,26 +104,25 @@ class CodeEditorDialog(tk.Toplevel):
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         h_scroll.pack(side=tk.BOTTOM, fill=tk.X)
         self.text_area.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
         attach_entry_context_menu(self.text_area)
 
         btn_bar = tk.Frame(pad, bg=bg_main, pady=6)
         btn_bar.pack(fill=tk.X)
 
         tk.Button(
-            btn_bar, text=t("btn_cancel", "Text"), font=theme.font(0),
+            btn_bar, text=t("btn_cancel", "Отмена"), font=theme.font(0),
             relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, padx=12,
             command=self.destroy
         ).pack(side=tk.RIGHT, padx=(6, 0))
 
         tk.Button(
-            btn_bar, text=t("btn_save", "Text"), font=theme.font(0, "bold"),
+            btn_bar, text=t("btn_save", "Сохранить"), font=theme.font(0, "bold"),
             relief=tk.FLAT, bg=theme.get_color("accent"), fg=theme.get_color("accent_text"),
             padx=16, command=self._save_file
         ).pack(side=tk.RIGHT)
 
         tk.Button(
-            btn_bar, text="Text", font=theme.font(-1),
+            btn_bar, text="Перезагрузить", font=theme.font(-1),
             relief=tk.FLAT, bg=theme.get_color("btn_bg"), fg=fg_pri, padx=10,
             command=self._load_file
         ).pack(side=tk.LEFT)
@@ -146,6 +144,7 @@ class CodeEditorDialog(tk.Toplevel):
     def _load_file(self):
         if not os.path.exists(self.file_path):
             return
+
         content = ""
         try:
             with open(self.file_path, "r", encoding="utf-8") as f:
@@ -155,10 +154,10 @@ class CodeEditorDialog(tk.Toplevel):
                 with open(self.file_path, "r", encoding="cp1251") as f:
                     content = f.read()
             except Exception as e:
-                messagebox.showerror("Text", f"Text", parent=self)
+                messagebox.showerror("Ошибка", f"Не удалось прочитать файл: {e}", parent=self)
                 return
         except Exception as e:
-            messagebox.showerror("Text", f"Text", parent=self)
+            messagebox.showerror("Ошибка", f"Не удалось открыть файл: {e}", parent=self)
             return
 
         self.text_area.delete("1.0", tk.END)
@@ -168,10 +167,9 @@ class CodeEditorDialog(tk.Toplevel):
         content = self.text_area.get("1.0", tk.END)
         if content.endswith("\n"):
             content = content[:-1]
-
         try:
             with open(self.file_path, "w", encoding="utf-8") as f:
                 f.write(content)
-            messagebox.showinfo("Text", "Text", parent=self)
+            messagebox.showinfo("Успех", "Файл успешно сохранен.", parent=self)
         except Exception as e:
-            messagebox.showerror("Text", f"Text", parent=self)
+            messagebox.showerror("Ошибка", f"Не удалось сохранить файл: {e}", parent=self)

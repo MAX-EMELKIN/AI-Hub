@@ -1,13 +1,21 @@
-# -*- coding: utf-8 -*-
 # data/core/cdp_client.py
-
-import base64, ctypes, json, os, socket, struct, subprocess, sys, threading, time
+import base64
+import ctypes
+import json
+import os
+import socket
+import struct
+import subprocess
+import sys
+import threading
+import time
 import atexit
 import urllib.parse
 import urllib.request
 import urllib.error
 from ctypes import wintypes
 from data.core.logger import logger
+
 user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32
 
@@ -18,7 +26,6 @@ SWP_SHOWWINDOW = 0x0040
 SWP_NOZORDER = 0x0004
 SWP_FRAMECHANGED = 0x0020
 SWP_ASYNCWINDOWPOS = 0x4000
-
 GWL_EXSTYLE = -20
 WS_EX_TOOLWINDOW = 0x00000080
 WS_EX_APPWINDOW = 0x00040000
@@ -38,11 +45,13 @@ else:
     SetWindowLong.restype = ctypes.c_long
     SetWindowLong.argtypes = [wintypes.HWND, ctypes.c_int, ctypes.c_long]
 
+
 def get_base_dir():
     if getattr(sys, 'frozen', False):
         return os.path.dirname(sys.executable)
     current_dir = os.path.dirname(os.path.abspath(__file__))
     return os.path.abspath(os.path.join(current_dir, "..", ".."))
+
 
 class FastWebSocketClient:
     def __init__(self, ws_url, cdp_port=9222):
@@ -53,7 +62,6 @@ class FastWebSocketClient:
         self.host = parsed.hostname or "127.0.0.1"
         self.port = parsed.port or cdp_port
         self.path = parsed.path or "/"
-
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(4.0)
         self.sock.connect((self.host, self.port))
@@ -85,10 +93,8 @@ class FastWebSocketClient:
             length = len(data)
             mask_key = os.urandom(4)
             masked_data = bytearray(length)
-
             for i in range(length):
                 masked_data[i] = data[i] ^ mask_key[i % 4]
-
             frame = bytearray([0x81])
             if length <= 125:
                 frame.append(0x80 | length)
@@ -98,7 +104,6 @@ class FastWebSocketClient:
             else:
                 frame.append(0x80 | 127)
                 frame.extend(struct.pack("!Q", length))
-
             frame.extend(mask_key)
             frame.extend(masked_data)
             self.sock.sendall(frame)
@@ -135,7 +140,6 @@ class FastWebSocketClient:
             if (b1 & 0x0F) == 0x8:
                 self.is_alive = False
                 return None
-
             is_masked = bool(b2 & 0x80)
             length = b2 & 0x7F
             if length == 126:
@@ -148,17 +152,14 @@ class FastWebSocketClient:
                 if not ext:
                     return None
                 length = struct.unpack("!Q", ext)[0]
-
             mask = self._recv_exact(4) if is_masked else None
             payload = self._recv_exact(length)
             if payload is None:
                 return None
-
             if is_masked and mask:
                 payload = bytearray(payload)
                 for i in range(len(payload)):
                     payload[i] ^= mask[i % 4]
-
             return payload.decode('utf-8', errors='ignore')
         except (socket.timeout, BlockingIOError):
             return None
@@ -173,8 +174,8 @@ class FastWebSocketClient:
         except Exception:
             pass
 
-class CDPBrowserManager:
 
+class CDPBrowserManager:
     def __init__(self):
         self.base_dir = get_base_dir()
         self.browser_pid = None
@@ -205,8 +206,7 @@ class CDPBrowserManager:
                 for file in files:
                     if file.lower() in ("chrome.exe", "supermium.exe"):
                         return os.path.abspath(os.path.join(root, file)), "Supermium Portable"
-
-        return None, "Text Text"
+        return None, "Браузер не найден"
 
     def _clean_stale_profile_locks(self, profile_dir):
         if not os.path.exists(profile_dir):
@@ -218,13 +218,11 @@ class CDPBrowserManager:
                     os.remove(p)
                 except Exception:
                     pass
-
         pref_path = os.path.join(profile_dir, "Default", "Preferences")
         if os.path.exists(pref_path):
             try:
-                with open(pref_path, "r", encoding="utf-8", errors="ignore") as f:
+                with open(pref_path, "r", encoding="utf-8") as f:
                     pref_data = json.load(f)
-
                 changed = False
                 if "profile" in pref_data and isinstance(pref_data["profile"], dict):
                     if pref_data["profile"].get("exit_type") != "Normal":
@@ -233,7 +231,6 @@ class CDPBrowserManager:
                     if pref_data["profile"].get("exited_cleanly") is not True:
                         pref_data["profile"]["exited_cleanly"] = True
                         changed = True
-
                 if changed:
                     with open(pref_path, "w", encoding="utf-8") as f:
                         json.dump(pref_data, f)
@@ -242,6 +239,7 @@ class CDPBrowserManager:
 
     def _find_browser_windows(self):
         hwnds = []
+
         def _enum_proc(hwnd, lparam):
             if user32.IsWindow(hwnd):
                 buf = (ctypes.c_wchar * 256)()
@@ -267,21 +265,19 @@ class CDPBrowserManager:
             if ex_style is not None:
                 new_style = (int(ex_style) & ~WS_EX_APPWINDOW) | WS_EX_TOOLWINDOW
                 SetWindowLong(hwnd, GWL_EXSTYLE, new_style)
-
             sw = user32.GetSystemMetrics(0)
             user32.SetWindowPos(
                 hwnd, 0, sw + 2000, 100, 1150, 750,
                 SWP_SHOWWINDOW | SWP_FRAMECHANGED | SWP_NOZORDER | SWP_ASYNCWINDOWPOS
             )
         except Exception as e:
-            logger.browser_event(f"Error Text Text: {e}")
+            logger.browser_event(f"Ошибка скрытия окна браузера: {e}")
 
     def _create_tab_safe(self, url):
         cdp_port = self._get_cdp_port()
         encoded_url = urllib.parse.quote(url, safe=':/?=')
         endpoint = f"http://127.0.0.1:{cdp_port}/json/new?{encoded_url}"
-        logger.browser_event(f"Text Text Text URL: {url}")
-
+        logger.browser_event(f"Создание вкладки для URL: {url}")
         try:
             req = urllib.request.Request(endpoint, method="PUT")
             with urllib.request.urlopen(req, timeout=2.0) as resp:
@@ -297,8 +293,7 @@ class CDPBrowserManager:
             with urllib.request.urlopen(req, timeout=2.0) as resp:
                 return json.loads(resp.read().decode('utf-8'))
         except Exception as e:
-            logger.browser_event(f"Error Text Text: {e}")
-
+            logger.browser_event(f"Ошибка создания вкладки браузера: {e}")
         return None
 
     def _prewarm_tabs(self):
@@ -306,15 +301,14 @@ class CDPBrowserManager:
         try:
             self.get_tab_client("chatgpt")
             self.get_tab_client("google")
-            logger.browser_event("Text ChatGPT Text Google Text Text Text Text")
-            print("[CDP Browser]: Text ChatGPT Text Google Text Text Text Text.")
+            logger.browser_event("Фоновые вкладки ChatGPT и Google успешно инициализированы")
+            print("[CDP Browser]: Фоновые вкладки ChatGPT и Google успешно инициализированы.")
         except Exception as e:
-            logger.browser_event(f"Error Text Text Text: {e}")
+            logger.browser_event(f"Ошибка предзагрузки вкладок браузера: {e}")
 
     def ensure_browser_running(self):
         with self._lock:
             cdp_port = self._get_cdp_port()
-
             try:
                 req = urllib.request.urlopen(f"http://127.0.0.1:{cdp_port}/json", timeout=1)
                 tabs = json.loads(req.read().decode('utf-8'))
@@ -325,7 +319,7 @@ class CDPBrowserManager:
 
             browser_exe, name = self._find_browser_executable()
             if not browser_exe:
-                err = "Text Text Text Text browser/engine/!"
+                err = "Исполняемый файл браузера не найден в каталоге browser/engine/!"
                 logger.browser_event(err)
                 raise Exception(err)
 
@@ -333,8 +327,8 @@ class CDPBrowserManager:
             os.makedirs(profile_dir, exist_ok=True)
             self._clean_stale_profile_locks(profile_dir)
 
-            logger.browser_event(f"Text {name} Text Text {cdp_port}")
-            print(f"[CDP Browser]: Text {name} Text Text {cdp_port}...")
+            logger.browser_event(f"Запуск {name} на порту отладки {cdp_port}")
+            print(f"[CDP Browser]: Запуск {name} на порту отладки {cdp_port}...")
 
             cmd = [
                 browser_exe,
@@ -357,7 +351,6 @@ class CDPBrowserManager:
                 "--window-size=1200,800",
                 "about:blank"
             ]
-
             proc = subprocess.Popen(cmd)
             self.browser_pid = proc.pid
 
@@ -375,21 +368,20 @@ class CDPBrowserManager:
                     req = urllib.request.urlopen(f"http://127.0.0.1:{cdp_port}/json", timeout=1)
                     tabs = json.loads(req.read().decode('utf-8'))
                     if tabs:
-                        logger.browser_event("Text Text Text Text Text CDP")
-                        print("[CDP Browser]: Text Text Text Text Text.")
+                        logger.browser_event("Браузер успешно запущен и готов к работе по протоколу CDP")
+                        print("[CDP Browser]: Браузер успешно запущен и готов к работе.")
                         threading.Thread(target=self._prewarm_tabs, daemon=True).start()
                         return True
                 except Exception:
                     pass
 
-            err_msg = "Text Text Text Text Text CDP Text."
+            err_msg = "Не удалось дождаться ответа порта CDP браузера."
             logger.browser_event(err_msg)
             raise Exception(err_msg)
 
     def get_tab_client(self, service_type="google"):
         self.ensure_browser_running()
         cdp_port = self._get_cdp_port()
-
         existing = self._tab_clients.get(service_type)
         if existing and existing.is_alive and existing.sock:
             return existing
@@ -412,15 +404,15 @@ class CDPBrowserManager:
             req = urllib.request.urlopen(f"http://127.0.0.1:{cdp_port}/json", timeout=1.5)
             tabs = json.loads(req.read().decode('utf-8'))
             page_tabs = [t for t in tabs if t.get('type') == 'page' and 'webSocketDebuggerUrl' in t]
-
             target_tab = None
-            for t in page_tabs:
-                if kw in t.get("url", ""):
-                    target_tab = t
+
+            for t_item in page_tabs:
+                if kw in t_item.get("url", ""):
+                    target_tab = t_item
                     break
 
             if not target_tab:
-                blank_tabs = [t for t in page_tabs if t.get("url", "") in ("about:blank", "about:blank/")]
+                blank_tabs = [t_item for t_item in page_tabs if t_item.get("url", "") in ("about:blank", "about:blank/")]
                 if blank_tabs and service_type == "google":
                     target_tab = blank_tabs[0]
                 else:
@@ -430,10 +422,8 @@ class CDPBrowserManager:
                 client = FastWebSocketClient(target_tab['webSocketDebuggerUrl'], cdp_port=cdp_port)
                 self._tab_clients[service_type] = client
                 return client
-
         except Exception as e:
-            logger.browser_event(f"Error Text Text ({service_type}): {e}")
-
+            logger.browser_event(f"Ошибка подключения к вкладке ({service_type}): {e}")
         return None
 
     def show_browser_window(self):
@@ -445,46 +435,42 @@ class CDPBrowserManager:
                 if ex_style is not None:
                     new_style = (int(ex_style) & ~WS_EX_TOOLWINDOW) | WS_EX_APPWINDOW
                     SetWindowLong(hwnd, GWL_EXSTYLE, new_style)
-
                 sw = user32.GetSystemMetrics(0)
                 sh = user32.GetSystemMetrics(1)
                 win_w, win_h = 1150, 750
                 pos_x = max(20, (sw - win_w) // 2)
                 pos_y = max(20, (sh - win_h) // 2)
-
                 user32.SetWindowPos(
                     hwnd, 0, pos_x, pos_y, win_w, win_h,
                     SWP_SHOWWINDOW | SWP_FRAMECHANGED | SWP_ASYNCWINDOWPOS
                 )
                 user32.ShowWindow(hwnd, SW_RESTORE)
                 user32.SetForegroundWindow(hwnd)
-                logger.browser_event("Text Text Text Text Text Text")
+                logger.browser_event("Окно браузера отображено на переднем плане")
             except Exception as e:
-                logger.browser_event(f"Error Text Text Text: {e}")
+                logger.browser_event(f"Ошибка отображения окна браузера: {e}")
 
     def hide_browser_window(self):
         hwnds = self._find_browser_windows()
         for h in hwnds:
             self._hide_from_taskbar_and_screen(h)
-        logger.browser_event("Text Text Text Text Text Text Text")
+        logger.browser_event("Окно браузера скрыто с панели задач и экрана")
 
     def toggle_browser_window(self):
         self.ensure_browser_running()
         hwnd = self._find_browser_window_hwnd()
         if not hwnd:
             return
-
         try:
             rect = wintypes.RECT()
             user32.GetWindowRect(hwnd, ctypes.byref(rect))
             sw = user32.GetSystemMetrics(0)
-
             if rect.left < sw - 50:
                 self.hide_browser_window()
-                print("[CDP Browser]: Text Text Text Text.")
+                print("[CDP Browser]: Окно браузера скрыто.")
             else:
                 self.show_browser_window()
-                print("[CDP Browser]: Text Text Text Text Text.")
+                print("[CDP Browser]: Окно браузера отображено.")
         except Exception:
             pass
 
@@ -498,7 +484,6 @@ class CDPBrowserManager:
         client = self.get_tab_client(service_type)
         if not client or not client.is_alive:
             return {}
-
         req_id = int(time.time() * 1000) % 1000000
         msg = {"id": req_id, "method": method, "params": params or {}}
         try:
@@ -518,7 +503,7 @@ class CDPBrowserManager:
                 except Exception:
                     pass
         except Exception as e:
-            logger.browser_event(f"Text Text CDP Text {method}: {e}")
+            logger.browser_event(f"Сбой отправки команды CDP {method}: {e}")
             self._tab_clients.pop(service_type, None)
         return {}
 
@@ -531,7 +516,7 @@ class CDPBrowserManager:
         return res.get("result", {}).get("value", "")
 
     def navigate_tab(self, service_type, url):
-        logger.browser_event(f"Text Text {service_type} -> {url}")
+        logger.browser_event(f"Переход вкладки {service_type} -> {url}")
         self.send_tab_cdp_command(service_type, "Page.navigate", {"url": url}, await_response=False)
 
     def evaluate_js(self, js_code):
@@ -548,7 +533,6 @@ class CDPBrowserManager:
                 except Exception:
                     pass
             self._tab_clients.clear()
-
             if self.browser_pid:
                 try:
                     subprocess.run(
@@ -560,12 +544,12 @@ class CDPBrowserManager:
                 except Exception:
                     pass
                 self.browser_pid = None
-
             profile_dir = os.path.join(self.base_dir, "browser", "profile")
             self._clean_stale_profile_locks(profile_dir)
-            logger.browser_event("Text Supermium Text Text")
+            logger.browser_event("Процесс браузера успешно завершен")
         except Exception:
             pass
+
 
 browser_cdp = CDPBrowserManager()
 atexit.register(browser_cdp.close_browser)

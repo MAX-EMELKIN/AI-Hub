@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 # data/ocr/ocr_engine.py
-
 import os
 import sys
 import time
@@ -8,18 +6,19 @@ import ctypes
 from ctypes import wintypes
 import threading
 import subprocess
-
 from data.core.win_api import (
     user32, kernel32, EM_SETSEL, WM_PASTE, WM_KEYDOWN, WM_KEYUP, VK_RETURN,
     simulate_hardware_hotkey, put_clipboard_text, bring_window_to_front_safe
 )
 from data.core.logger import logger
 
+
 def get_base_dir():
     if getattr(sys, 'frozen', False):
         return os.path.dirname(sys.executable)
     current_dir = os.path.dirname(os.path.abspath(__file__))
     return os.path.abspath(os.path.join(current_dir, "..", ".."))
+
 
 def is_window_of_qtranslate(hwnd):
     if not hwnd or not user32.IsWindow(hwnd):
@@ -28,7 +27,6 @@ def is_window_of_qtranslate(hwnd):
     user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
     if not pid.value:
         return False
-
     h_proc = kernel32.OpenProcess(0x1000, False, pid.value)
     if h_proc:
         try:
@@ -41,6 +39,7 @@ def is_window_of_qtranslate(hwnd):
         finally:
             kernel32.CloseHandle(h_proc)
     return False
+
 
 def find_qtranslate_main_and_edit_controls():
     main_hwnd = None
@@ -59,7 +58,6 @@ def find_qtranslate_main_and_edit_controls():
 
     WNDENUMPROC = ctypes.WINFUNCTYPE(wintypes.BOOL, ctypes.c_void_p, wintypes.LPARAM)
     user32.EnumWindows(WNDENUMPROC(_enum_windows), 0)
-
     if not main_hwnd:
         return None, []
 
@@ -76,8 +74,8 @@ def find_qtranslate_main_and_edit_controls():
 
     user32.EnumChildWindows(main_hwnd, WNDENUMPROC(_enum_children), 0)
     edits.sort(key=lambda x: x[0])
-
     return main_hwnd, [e[1] for e in edits]
+
 
 class OCREngine:
     def __init__(self):
@@ -114,7 +112,7 @@ class OCREngine:
         try:
             from data.core.config_manager import config
             config.set_value("OCR", "ActiveModel", model_name.lower())
-            logger.system(f"OCR: Text Text Text '{model_name}'")
+            logger.system(f"OCR: Установлена активная модель '{model_name}'")
             return True
         except Exception:
             return False
@@ -128,7 +126,6 @@ class OCREngine:
             p = os.path.join(self.bin_dir, name)
             if os.path.exists(p):
                 return p
-
         if os.path.exists(self.bin_dir):
             for f in os.listdir(self.bin_dir):
                 if f.lower().endswith(".exe"):
@@ -143,7 +140,6 @@ class OCREngine:
             os.path.join(self.bin_dir, model_name),
             self.bin_dir
         ]
-
         det_f, rec_f, keys_f = None, None, None
         for target_dir in candidate_dirs:
             if not os.path.exists(target_dir):
@@ -157,25 +153,23 @@ class OCREngine:
                     rec_f = fp
                 elif not keys_f and (fl.endswith(".txt") or "keys" in fl or "dict" in fl or "charset" in fl):
                     keys_f = fp
-
         return det_f, rec_f, keys_f
 
     def send_text_to_qtranslate(self, text):
         if not text or not text.strip():
             return
-
         clean_val = text.strip()
-        if clean_val.startswith("Error") or "Text Text" in clean_val.lower():
+        if clean_val.startswith("Error") or "ошибка" in clean_val.lower():
             return
 
         ok = put_clipboard_text(clean_val)
         if not ok:
-            logger.system("OCR Error: Text Text Text Text Text")
-            print("[OCR Error]: Text Text Text Text.")
+            logger.system("OCR Ошибка: Не удалось поместить текст в буфер обмена")
+            print("[OCR Ошибка]: Не удалось записать текст в буфер обмена.")
             return
 
-        logger.system(f"OCR: Text Text Text Text ({len(clean_val)} Text.): '{clean_val[:60]}...'")
-        print(f"[OCR Text Text]: \"{clean_val}\" -> Text Text Text")
+        logger.system(f"OCR: Распознанный текст помещен в буфер ({len(clean_val)} симв.): '{clean_val[:60]}...'")
+        print(f"[OCR Буфер]: \"{clean_val}\" -> Текст помещен в буфер обмена")
 
         try:
             from data.core.config_manager import config
@@ -183,8 +177,8 @@ class OCREngine:
         except Exception:
             summon_key = "F1"
 
-        logger.system(f"OCR: Text Text Text '{summon_key}' Text QTranslate")
-        print(f"[OCR]: Text Text '{summon_key}' Text QTranslate...")
+        logger.system(f"OCR: Отправка горячей клавиши '{summon_key}' в QTranslate")
+        print(f"[OCR]: Отправка горячей клавиши '{summon_key}' в QTranslate...")
         simulate_hardware_hotkey(summon_key)
 
         main_hwnd, edits = None, []
@@ -197,23 +191,18 @@ class OCREngine:
         if main_hwnd and edits:
             bring_window_to_front_safe(main_hwnd)
             time.sleep(0.12)
-
             top_edit_hwnd = edits[0]
-
             user32.SendMessageW(top_edit_hwnd, EM_SETSEL, 0, -1)
             time.sleep(0.03)
-
             user32.SendMessageW(top_edit_hwnd, WM_PASTE, 0, 0)
             time.sleep(0.04)
-
             user32.PostMessageW(top_edit_hwnd, WM_KEYDOWN, VK_RETURN, 0)
             user32.PostMessageW(top_edit_hwnd, WM_KEYUP, VK_RETURN, 0)
-
-            logger.system(f"OCR: Text Text Text Text QTranslate (HWND: {top_edit_hwnd}) Text Text Text")
-            print("[OCR]: Text Text Text Text QTranslate Text Text.")
+            logger.system(f"OCR: Текст успешно вставлен в окно QTranslate (HWND: {top_edit_hwnd}) и запущен перевод")
+            print("[OCR]: Текст успешно передан в QTranslate и отправлен на перевод.")
         else:
-            logger.system("OCR: Text Text QTranslate Text Text Text, Text Text Text Text")
-            print("[OCR]: Text Text Text Text Text Windows.")
+            logger.system("OCR: Окно ввода QTranslate не найдено, текст остался в буфере обмена")
+            print("[OCR]: Текст сохранен в системном буфере обмена Windows.")
 
     def recognize_image_file(self, image_path, model_name=None):
         if not os.path.exists(image_path):
@@ -221,7 +210,7 @@ class OCREngine:
 
         exe_path = self._find_ocr_executable()
         if not exe_path:
-            err = "[OCR]: Text Text OCR Text Text Text data/ocr/bin/."
+            err = "[OCR]: Исполняемый файл движка OCR не найден в каталоге data/ocr/bin/."
             logger.system(err)
             return err
 
@@ -236,8 +225,8 @@ class OCREngine:
         if keys_f:
             cmd.extend(["--charset", keys_f])
 
-        logger.system(f"OCR: Text Text: {' '.join(cmd)}")
-        print(f"[OCR]: Text Text -> {' '.join(cmd)}")
+        logger.system(f"OCR: Запуск команды распознавания: {' '.join(cmd)}")
+        print(f"[OCR]: Команда распознавания -> {' '.join(cmd)}")
         t0 = time.time()
 
         try:
@@ -277,28 +266,26 @@ class OCREngine:
                 clean_lines.append(line.rstrip())
 
             result = "\n".join(clean_lines).strip()
-            logger.system(f"OCR: Text Text Text {elapsed:.2f}Text, Text Text: {len(clean_lines)}")
+            logger.system(f"OCR: Распознавание завершено за {elapsed:.2f}с, строк получено: {len(clean_lines)}")
             return result
-
         except Exception as e:
-            err = f"Error Text OCR: {e}"
+            err = f"Ошибка выполнения OCR: {e}"
             logger.system(f"OCR: {err}")
             return err
 
     def snip_screen_interactive(self, parent_tk):
         from data.ocr.screen_snipper import ScreenSnipper
-
-        logger.system("OCR: Text Text Text Text Text Text")
+        logger.system("OCR: Запуск экранного выделения области (Snipper)")
 
         def _on_cropped(crop_bmp_path):
             def _async_ocr():
                 try:
                     text_res = self.recognize_image_file(crop_bmp_path)
-                    if text_res and not text_res.startswith("Error"):
+                    if text_res and not text_res.startswith("Error") and not text_res.startswith("Ошибка"):
                         self.send_text_to_qtranslate(text_res)
                     else:
-                        logger.system("OCR: Text Text Text Text Text Text")
-                        print("[OCR]: Text Text Text Text Text Text.")
+                        logger.system("OCR: Текст в выделенной области не обнаружен")
+                        print("[OCR]: Текст в выделенной области не найден.")
                 finally:
                     if os.path.exists(crop_bmp_path):
                         try:
@@ -310,5 +297,6 @@ class OCREngine:
 
         snipper = ScreenSnipper(on_cropped_callback=_on_cropped)
         snipper.start(parent_tk)
+
 
 ocr_engine = OCREngine()

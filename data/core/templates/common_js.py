@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
 # data/core/templates/common_js.py
-
 JS_SERVICE_TEMPLATE = """// =============================================================================
-// Text: {SERVICE_NAME} (Text Text Text AI Hub)
+// Сервис: {SERVICE_NAME} (Шлюз локального сервера AI Hub)
 // ID: {QT_ID}
 // =============================================================================
-
 var LOCAL_URL    = "http://127.0.0.1:8080";
 var SERVICE_ID   = {QT_ID};
 var SERVICE_NAME = "{SERVICE_NAME}";
@@ -88,13 +85,11 @@ function serviceTranslateRequest(text, from, to) {
         text = limitSource(prepareLinkedSource(text), 4000);
         var sCode = codeFromLanguage(from);
         var tCode = codeFromLanguage(to);
-
         var payload = {
             text: text,
             from: (sCode && sCode !== UNKNOWN_LANGUAGE_CODE && sCode !== "auto") ? sCode : "auto",
             to: (tCode && tCode !== UNKNOWN_LANGUAGE_CODE && tCode !== "auto") ? tCode : "ru"
         };
-
         var headers = "Content-Type: application/json";
         return new RequestData(HttpMethod.POST, "/{SERVICE_ID_SLUG}", stringifyJSON(payload), headers, CodePage.UTF8);
     } catch (e) {
@@ -104,15 +99,14 @@ function serviceTranslateRequest(text, from, to) {
 
 function serviceTranslateResponse(original, json, from, to) {
     try {
-        if (!json) return new ResponseData(original + Const.NL2 + "[AI Hub: Text Text Text]", from, to);
+        if (!json) return new ResponseData(original + Const.NL2 + "[AI Hub: Пустой ответ сервера]", from, to);
         var data = parseJSON(json);
-        if (!data) return new ResponseData(original + Const.NL2 + "[Error Text JSON]", from, to);
-        if (data.error) return new ResponseData(original + Const.NL2 + "[Error: " + data.error + "]", from, to);
-
+        if (!data) return new ResponseData(original + Const.NL2 + "[Ошибка парсинга ответа JSON]", from, to);
+        if (data.error) return new ResponseData(original + Const.NL2 + "[Ошибка: " + data.error + "]", from, to);
         var result = trimString(String(data.response || ""));
         return new ResponseData(result, from, to);
     } catch (e) {
-        return new ResponseData(original + Const.NL2 + "[Error: " + (e.message || e) + "]", from, to);
+        return new ResponseData(original + Const.NL2 + "[Ошибка: " + (e.message || e) + "]", from, to);
     }
 }
 """

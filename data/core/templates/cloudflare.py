@@ -1,34 +1,34 @@
-# -*- coding: utf-8 -*-
 # data/core/templates/cloudflare.py
+# -*- coding: utf-8 -*-
 
 PROVIDER_KEY = "cloudflare"
 PROVIDER_NAME = "Cloudflare Workers AI"
 DEFAULT_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
 DEFAULT_ENDPOINT = "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}"
 
-def setup_config(api_config, slug, model_str):
-    existing_acc = api_config.get_val("openai_120b", "account_id", "")
-    existing_tok = api_config.get_val("openai_120b", "api_token", "")
 
+def setup_config(api_config, slug, model_str):
+    existing_acc = api_config.get_val("openai_120b", "account_id", "") or api_config.get_provider_val(PROVIDER_KEY, "account_id", "")
+    existing_tok = api_config.get_val("openai_120b", "api_token", "") or api_config.get_provider_val(PROVIDER_KEY, "api_token", "")
     api_config.set_val(slug, "account_id", existing_acc)
     api_config.set_val(slug, "api_token", existing_tok)
     api_config.set_val(slug, "model", model_str or DEFAULT_MODEL)
     api_config.set_val(slug, "endpoint", DEFAULT_ENDPOINT)
     api_config.set_val(slug, "connection_mode", "direct")
     api_config.set_val(slug, "proxy", "213.165.38.49:1080")
-    api_config.set_val(slug, "doh_preset", "Comss.one (SmartDNS / Text Text)")
+    api_config.set_val(slug, "doh_preset", "Comss.one (SmartDNS / РФ обход)")
     api_config.set_val(slug, "temperature", "0.1")
     api_config.set_val(slug, "top_p", "0.2")
     api_config.set_val(slug, "max_tokens", "3072")
     api_config.set_val(slug, "enable_thinking", "0")
     api_config.set_val(slug, "enable_glossary", "1")
 
+
 PYTHON_TEMPLATE = """# -*- coding: utf-8 -*-
 \"\"\"
-Text: data/services/{SERVICE_ID_SLUG}/service.py
-Text: Text {SERVICE_NAME} Text Cloudflare Workers AI.
+Файл: data/services/{SERVICE_ID_SLUG}/service.py
+Сервис: {SERVICE_NAME} на базе Cloudflare Workers AI.
 \"\"\"
-
 import os
 import sys
 import time
@@ -41,15 +41,24 @@ import urllib.request
 import urllib.parse
 import urllib.error
 import threading
-
 from data.services.base_service import BaseService
 from data.core.logger import logger
 
 CLOUDFLARE_DOH_PRESETS = {
-    "Comss.one (SmartDNS / Text Text)": {
+    "Comss.one (SmartDNS)": {
         "url": "https://dns.comss.one/dns-query",
         "host": "dns.comss.one",
         "bootstrap_ip": "195.133.25.16"
+    },
+    "Comss.one (SmartDNS / РФ обход)": {
+        "url": "https://dns.comss.one/dns-query",
+        "host": "dns.comss.one",
+        "bootstrap_ip": "195.133.25.16"
+    },
+    "Xbox DNS (SmartDNS / РФ обход)": {
+        "url": "https://xbox-dns.ru/dns-query",
+        "host": "xbox-dns.ru",
+        "bootstrap_ip": "111.88.96.54"
     },
     "Control D (Uncensored)": {
         "url": "https://freedns.controld.com/uncensored",
@@ -71,57 +80,137 @@ CLOUDFLARE_DOH_PRESETS = {
 _dns_cache = {}
 _dns_lock = threading.Lock()
 
+
+def _make_dns_query_wire(hostname):
+    header = struct.pack("!HHHHHH", 0x1A2B, 0x0100, 1, 0, 0, 0)
+    parts = hostname.strip(".").split(".")
+    qname = b"".join(bytes([len(p)]) + p.encode("ascii") for p in parts) + b"\\x00"
+    question = qname + struct.pack("!HH", 1, 1)
+    return header + question
+
+
+def _parse_dns_response_wire(raw):
+    if len(raw) < 12:
+        return None
+    _, flags, qdcount, ancount, _, _ = struct.unpack("!HHHHHH", raw[:12])
+    if (flags & 0x000F) != 0:
+        return None
+    idx = 12
+    for _ in range(qdcount):
+        while idx < len(raw):
+            length = raw[idx]
+            if length == 0:
+                idx += 1
+                break
+            elif (length & 0xC0) == 0xC0:
+                idx += 2
+                break
+            else:
+                idx += 1 + length
+        idx += 4
+    for _ in range(ancount):
+        if idx >= len(raw):
+            break
+        while idx < len(raw):
+            length = raw[idx]
+            if length == 0:
+                idx += 1
+                break
+            elif (length & 0xC0) == 0xC0:
+                idx += 2
+                break
+            else:
+                idx += 1 + length
+        if idx + 10 > len(raw):
+            break
+        rtype, _, _, rdlength = struct.unpack("!HHIH", raw[idx:idx+10])
+        idx += 10
+        if rtype == 1 and rdlength == 4 and idx + 4 <= len(raw):
+            return ".".join(str(b) for b in raw[idx:idx+4])
+        idx += rdlength
+    return None
+
+
 def resolve_doh(hostname, doh_url):
     with _dns_lock:
         if hostname in _dns_cache:
             return _dns_cache[hostname]
+
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+
     try:
-        url = f"{doh_url}?name={hostname}&type=A"
+        wire_data = _make_dns_query_wire(hostname)
         req = urllib.request.Request(
-            url,
-            headers={"Accept": "application/dns-json", "User-Agent": "Mozilla/5.0"}
+            doh_url,
+            data=wire_data,
+            headers={
+                "Content-Type": "application/dns-message",
+                "Accept": "application/dns-message",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            },
+            method="POST"
         )
-        with urllib.request.urlopen(req, timeout=3.5) as resp:
-            data = json.loads(resp.read().decode('utf-8'))
-            for ans in data.get("Answer", []):
-                if ans.get("type") == 1:
-                    ip = ans.get("data")
+        with urllib.request.urlopen(req, context=ctx, timeout=3.5) as resp:
+            if resp.status == 200:
+                ip = _parse_dns_response_wire(resp.read())
+                if ip:
                     with _dns_lock:
                         _dns_cache[hostname] = ip
                     return ip
     except Exception:
         pass
+
+    try:
+        url = f"{doh_url}?name={hostname}&type=A"
+        req = urllib.request.Request(
+            url,
+            headers={
+                "Accept": "application/dns-json",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+        )
+        with urllib.request.urlopen(req, context=ctx, timeout=3.5) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            for ans in data.get("Answer", []):
+                if ans.get("type") == 1 and ans.get("data"):
+                    ip = ans["data"]
+                    with _dns_lock:
+                        _dns_cache[hostname] = ip
+                    return ip
+    except Exception:
+        pass
+
     return None
+
 
 def _recv_all(sock, n):
     data = bytearray()
     while len(data) < n:
         packet = sock.recv(n - len(data))
         if not packet:
-            raise ConnectionError("Text Text Text.")
+            raise ConnectionError("Соединение разорвано удаленной стороной.")
         data.extend(packet)
     return bytes(data)
+
 
 def create_socks5_socket(proxy_host, proxy_port, dest_host, dest_port, timeout=30.0):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(timeout)
     s.connect((proxy_host, proxy_port))
-
     s.sendall(b"\\x05\\x01\\x00")
     resp = _recv_all(s, 2)
     if resp[0] != 5 or resp[1] != 0:
         s.close()
-        raise ConnectionError("SOCKS5 Text Text Text.")
-
+        raise ConnectionError("SOCKS5: Аутентификация отклонена сервером.")
     dest_bytes = dest_host.encode("utf-8")
     req = b"\\x05\\x01\\x00\\x03" + bytes([len(dest_bytes)]) + dest_bytes + struct.pack("!H", dest_port)
     s.sendall(req)
-
     resp_header = _recv_all(s, 4)
     if resp_header[0] != 5 or resp_header[1] != 0:
         s.close()
-        raise ConnectionError(f"SOCKS5 Text Text (Text: {resp_header[1]})")
-
+        raise ConnectionError(f"SOCKS5: Ошибка запроса соединения (код: {resp_header[1]})")
     atyp = resp_header[3]
     if atyp == 1:
         _recv_all(s, 6)
@@ -130,8 +219,8 @@ def create_socks5_socket(proxy_host, proxy_port, dest_host, dest_port, timeout=3
         _recv_all(s, length + 2)
     elif atyp == 4:
         _recv_all(s, 18)
-
     return s
+
 
 def parse_proxy_string(proxy_str):
     clean = re.sub(r'^(?:socks5h?|https?|socks)://', '', str(proxy_str).strip(), flags=re.IGNORECASE)
@@ -143,26 +232,32 @@ def parse_proxy_string(proxy_str):
             pass
     return "127.0.0.1", 10808
 
+
 def dechunk_http_body(raw_bytes):
     pos = 0
     decoded = bytearray()
     length = len(raw_bytes)
     while pos < length:
         crlf_idx = raw_bytes.find(b"\\r\\n", pos)
-        if crlf_idx == -1: break
+        if crlf_idx == -1:
+            break
         chunk_header = raw_bytes[pos:crlf_idx].strip()
         if not chunk_header:
             pos = crlf_idx + 2
             continue
         hex_len = chunk_header.split(b";")[0].strip()
-        try: chunk_size = int(hex_len, 16)
-        except ValueError: return raw_bytes
-        if chunk_size == 0: break
+        try:
+            chunk_size = int(hex_len, 16)
+        except ValueError:
+            return raw_bytes
+        if chunk_size == 0:
+            break
         data_start = crlf_idx + 2
         data_end = data_start + chunk_size
         decoded.extend(raw_bytes[data_start:data_end])
         pos = data_end + 2
     return bytes(decoded) if decoded else raw_bytes
+
 
 def extract_clean_json_body(raw_str):
     start = raw_str.find('{')
@@ -170,6 +265,7 @@ def extract_clean_json_body(raw_str):
     if start != -1 and end != -1 and end > start:
         return raw_str[start:end + 1]
     return raw_str
+
 
 class CustomService(BaseService):
     def __init__(self):
@@ -184,35 +280,35 @@ class CustomService(BaseService):
         return [
             {"key": "account_id", "label": "Account ID:", "required": True},
             {"key": "api_token", "label": "API Token:", "required": True},
-            {"key": "model", "label": "Text (@cf/...):", "required": True},
-            {"key": "endpoint", "label": "Text URL:", "required": True},
-            {"key": "connection_mode", "label": "Text Text (direct/proxy/doh):", "required": True},
-            {"key": "proxy", "label": "Text SOCKS5 (Text:Text):", "required": False},
-            {"key": "doh_preset", "label": "DoH Text:", "required": False}
+            {"key": "model", "label": "Модель (@cf/...):", "required": True},
+            {"key": "endpoint", "label": "Эндпоинт (URL):", "required": True},
+            {"key": "connection_mode", "label": "Режим сети (direct/proxy/doh):", "required": True},
+            {"key": "proxy", "label": "SOCKS5 прокси (Хост:Порт):", "required": False},
+            {"key": "doh_preset", "label": "Пресет DoH:", "required": False}
         ]
 
     def is_ready(self):
         acc = self.get_config_val("account_id", "").strip()
         tok = self.get_config_val("api_token", "").strip()
         if not acc or not tok:
-            return False, "Text Account ID Text API Token Text Text"
-        return True, "Text {SERVICE_NAME} Text Text Text Text Text"
+            return False, "Account ID и API Token Cloudflare должны быть заполнены"
+        return True, "Сервис {SERVICE_NAME} готов к работе"
 
     def _execute_request_raw(self, url, payload_bytes, headers, timeout=60.0):
         conn_mode = self.get_config_val("connection_mode", "direct").lower().strip()
         proxy_val = self.get_config_val("proxy", "213.165.38.49:1080").strip()
-
         parsed = urllib.parse.urlparse(url)
         dest_host = parsed.hostname or "api.cloudflare.com"
         dest_port = parsed.port or (443 if parsed.scheme == "https" else 80)
         path = (parsed.path or "/") + (("?" + parsed.query) if parsed.query else "")
 
-        if conn_mode == "proxy":
+        if conn_mode in ("proxy", "socks5"):
             p_host, p_port = parse_proxy_string(proxy_val)
             raw_sock = create_socks5_socket(p_host, p_port, dest_host, dest_port, timeout=timeout)
-
             if parsed.scheme == "https":
                 ctx = ssl.create_default_context()
+                ctx.check_hostname = False
+                ctx.verify_mode = ssl.CERT_NONE
                 sock = ctx.wrap_socket(raw_sock, server_hostname=dest_host)
             else:
                 sock = raw_sock
@@ -228,51 +324,99 @@ class CustomService(BaseService):
             header_data = "\\r\\n".join(header_lines) + "\\r\\n\\r\\n"
 
             sock.sendall(header_data.encode("utf-8") + payload_bytes)
-
             response_bytes = bytearray()
             sock.settimeout(timeout)
             while True:
                 try:
                     chunk = sock.recv(4096)
-                    if not chunk: break
+                    if not chunk:
+                        break
                     response_bytes.extend(chunk)
                 except ConnectionResetError:
-                    # info [WinError 10054], info info info info info
                     break
             sock.close()
 
             parts = bytes(response_bytes).split(b"\\r\\n\\r\\n", 1)
             header_bytes = parts[0]
             body_bytes = parts[1] if len(parts) > 1 else b""
-
             header_str = header_bytes.decode("utf-8", errors="replace")
             if "chunked" in header_str.lower():
                 body_bytes = dechunk_http_body(body_bytes)
-
             raw_str = body_bytes.decode("utf-8", errors="replace")
             status_code = 200
             m_status = re.search(r'HTTP/\\S+\\s+(\\d+)', header_str)
             if m_status:
                 status_code = int(m_status.group(1))
-
             return status_code, raw_str
 
         elif conn_mode == "doh":
-            preset_name = self.get_config_val("doh_preset", "Comss.one (SmartDNS / Text Text)")
-            doh_url = CLOUDFLARE_DOH_PRESETS.get(preset_name, {}).get("url") or "https://dns.comss.one/dns-query"
-            ip = resolve_doh(dest_host, doh_url)
+            preset_name = self.get_config_val("doh_preset", "Comss.one (SmartDNS)").strip()
+            doh_url = None
+            for p_key, p_val in CLOUDFLARE_DOH_PRESETS.items():
+                if p_key.lower() in preset_name.lower() or preset_name.lower() in p_key.lower():
+                    doh_url = p_val.get("url")
+                    break
+            if not doh_url:
+                doh_url = "https://dns.comss.one/dns-query"
 
-            req = urllib.request.Request(url, data=payload_bytes, headers=headers)
-            try:
-                with urllib.request.urlopen(req, timeout=timeout) as resp:
-                    return resp.status, resp.read().decode("utf-8", errors="replace")
-            except urllib.error.HTTPError as he:
-                return he.code, he.read().decode("utf-8", errors="replace")
+            ip = resolve_doh(dest_host, doh_url)
+            target_ip = ip if ip else dest_host
+
+            raw_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            raw_sock.settimeout(timeout)
+            raw_sock.connect((target_ip, dest_port))
+
+            if parsed.scheme == "https":
+                ctx = ssl.create_default_context()
+                ctx.check_hostname = False
+                ctx.verify_mode = ssl.CERT_NONE
+                sock = ctx.wrap_socket(raw_sock, server_hostname=dest_host)
+            else:
+                sock = raw_sock
+
+            req_headers = dict(headers)
+            req_headers["Host"] = dest_host
+            req_headers["Content-Length"] = str(len(payload_bytes))
+            req_headers["Connection"] = "close"
+
+            header_lines = [f"POST {path} HTTP/1.1"]
+            for k, v in req_headers.items():
+                header_lines.append(f"{k}: {v}")
+            header_data = "\\r\\n".join(header_lines) + "\\r\\n\\r\\n"
+
+            sock.sendall(header_data.encode("utf-8") + payload_bytes)
+            response_bytes = bytearray()
+            sock.settimeout(timeout)
+            while True:
+                try:
+                    chunk = sock.recv(4096)
+                    if not chunk:
+                        break
+                    response_bytes.extend(chunk)
+                except ConnectionResetError:
+                    break
+            sock.close()
+
+            parts = bytes(response_bytes).split(b"\\r\\n\\r\\n", 1)
+            header_bytes = parts[0]
+            body_bytes = parts[1] if len(parts) > 1 else b""
+            header_str = header_bytes.decode("utf-8", errors="replace")
+            if "chunked" in header_str.lower():
+                body_bytes = dechunk_http_body(body_bytes)
+            raw_str = body_bytes.decode("utf-8", errors="replace")
+            status_code = 200
+            m_status = re.search(r'HTTP/\\S+\\s+(\\d+)', header_str)
+            if m_status:
+                status_code = int(m_status.group(1))
+            return status_code, raw_str
 
         else:
             req = urllib.request.Request(url, data=payload_bytes, headers=headers)
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
             try:
-                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                with urllib.request.urlopen(req, context=ctx, timeout=timeout) as resp:
                     return resp.status, resp.read().decode("utf-8", errors="replace")
             except urllib.error.HTTPError as he:
                 return he.code, he.read().decode("utf-8", errors="replace")
@@ -284,10 +428,8 @@ class CustomService(BaseService):
 
         account_id = self.get_config_val("account_id").strip()
         api_token = re.sub(r'^(?:Key|Token|Bearer)\\s+', '', self.get_config_val("api_token"), flags=re.IGNORECASE).strip()
-
         model = self.get_config_val("model", "{MODEL_ID}")
         endpoint_template = self.get_config_val("endpoint", "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}")
-
         url = endpoint_template.replace("{account_id}", account_id).replace("{model}", model)
 
         clean_input = text.strip() if text else ""
@@ -304,10 +446,14 @@ class CustomService(BaseService):
             clean_input, src_lang=src_lang, trg_lang=trg_lang, preset=preset
         )
 
-        try: temp_val = float(self.get_config_val("temperature", "0.1"))
-        except Exception: temp_val = 0.1
-        try: max_tokens_val = int(self.get_config_val("max_tokens", "3072"))
-        except Exception: max_tokens_val = 3072
+        try:
+            temp_val = float(self.get_config_val("temperature", "0.1"))
+        except Exception:
+            temp_val = 0.1
+        try:
+            max_tokens_val = int(self.get_config_val("max_tokens", "3072"))
+        except Exception:
+            max_tokens_val = 3072
 
         enable_thinking = self.get_config_val("enable_thinking", "0") in ("1", "true", "yes")
 
@@ -315,7 +461,6 @@ class CustomService(BaseService):
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": annotated_text}
         ]
-
         payload = {
             "messages": messages,
             "max_tokens": max_tokens_val,
@@ -336,12 +481,10 @@ class CustomService(BaseService):
             data_bytes = json.dumps(payload).encode("utf-8")
             status_code, raw_str = self._execute_request_raw(url, data_bytes, headers, timeout=60.0)
             elapsed = time.time() - t_call
-
             logger.api_raw_response(self.name, status_code, elapsed, raw_str)
             logger.api_summary(self.name, model, elapsed, status_code)
 
             clean_json = extract_clean_json_body(raw_str)
-
             if status_code >= 400:
                 try:
                     err_data = json.loads(clean_json)
@@ -354,10 +497,9 @@ class CustomService(BaseService):
                 return f"[Cloudflare HTTP {status_code}]: {err_msg}"
 
             data = json.loads(clean_json)
-
             if data.get("errors") and len(data["errors"]) > 0:
                 err_msg = data["errors"][0].get("message", str(data["errors"][0]))
-                return f"[Cloudflare Error: {err_msg}]"
+                return f"[Cloudflare Ошибка: {err_msg}]"
 
             res = ""
             if data.get("result"):
@@ -366,21 +508,22 @@ class CustomService(BaseService):
                     res = data["result"]["choices"][0].get("message", {}).get("content", "")
 
             if not res:
-                return f"[{self.name}: Text Text Text]"
+                return f"[{self.name}: Пустой ответ сервера]"
 
             res = str(res)
             res = re.sub(r'<think>[\\s\\S]*?</think>', '', res, flags=re.IGNORECASE)
-            res = re.sub(r'^(Text:Here is the translation:Text|Translation:Text|Text Text:Text|Translation:Text)\\s*(\\rText\\n)+', '', res, flags=re.IGNORECASE)
-
+            res = re.sub(r'^(?:Вот перевод:|Here is the translation:|Перевод:|Translation:)\\s*\\n+', '', res, flags=re.IGNORECASE)
             final = self.clean_response(res)
+
             elapsed_total = round(time.time() - t0, 2)
-            print(f"[{self.name} Text Text {elapsed_total}Text]: {final[:70]}...")
+            print(f"[{self.name} {elapsed_total}с]: {final[:70]}...")
             return final if final else clean_input
 
         except Exception as e:
             elapsed = time.time() - t_call
             logger.api_summary(self.name, model, elapsed, 0, note=f"Exception: {e}")
-            return f"Error Cloudflare AI: {e}"
+            return f"Ошибка Cloudflare AI: {e}"
+
 
 service = CustomService()
 """

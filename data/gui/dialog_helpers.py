@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 # data/gui/dialog_helpers.py
-
 import tkinter as tk
 from data.core.i18n import t
 from data.gui.theme_manager import theme
+
+
 class HelpPopup(tk.Toplevel):
     def __init__(self, anchor_widget, text):
         super().__init__(anchor_widget)
@@ -12,8 +12,8 @@ class HelpPopup(tk.Toplevel):
         border = theme.get_color("popup_border")
         fg = theme.get_color("popup_fg")
         hint_fg = theme.get_color("popup_hint")
-
         self.configure(bg=bg)
+
         frame = tk.Frame(
             self, bg=bg, padx=10, pady=8, relief=tk.SOLID, bd=1,
             highlightbackground=border, highlightthickness=1
@@ -23,7 +23,7 @@ class HelpPopup(tk.Toplevel):
         lbl = tk.Label(frame, text=text, justify=tk.LEFT, bg=bg, fg=fg, font=theme.font(-1), wraplength=250)
         lbl.pack(anchor="w")
 
-        hint = tk.Label(frame, text=t("help_close_hint", "Text"), font=theme.font(-2, "italic"), fg=hint_fg, bg=bg)
+        hint = tk.Label(frame, text=t("help_close_hint", "Кликните в любом месте, чтобы закрыть"), font=theme.font(-2, "italic"), fg=hint_fg, bg=bg)
         hint.pack(anchor="w", pady=(6, 0))
 
         self.update_idletasks()
@@ -32,7 +32,6 @@ class HelpPopup(tk.Toplevel):
         btn_h = anchor_widget.winfo_height()
         w = self.winfo_reqwidth()
         h = self.winfo_reqheight()
-
         screen_w = self.winfo_screenwidth()
         screen_h = self.winfo_screenheight()
 
@@ -49,6 +48,7 @@ class HelpPopup(tk.Toplevel):
         self.bind("<FocusOut>", lambda e: self.destroy())
         self.bind("<Escape>", lambda e: self.destroy())
         self.focus_force()
+
 
 def attach_entry_context_menu(widget):
     menu = tk.Menu(widget, tearoff=0, font=theme.font(0))
@@ -80,7 +80,6 @@ def attach_entry_context_menu(widget):
                 text = read_clipboard_text()
             except Exception:
                 text = ""
-
         if text:
             try:
                 if widget.selection_present():
@@ -93,11 +92,11 @@ def attach_entry_context_menu(widget):
         widget.selection_range(0, tk.END)
         widget.icursor(tk.END)
 
-    menu.add_command(label=t("menu_paste", "Text"), command=_paste)
-    menu.add_command(label=t("menu_copy", "Text"), command=_copy)
-    menu.add_command(label=t("menu_cut", "Text"), command=_cut)
+    menu.add_command(label=t("menu_paste", "Вставить"), command=_paste)
+    menu.add_command(label=t("menu_copy", "Копировать"), command=_copy)
+    menu.add_command(label=t("menu_cut", "Вырезать"), command=_cut)
     menu.add_separator()
-    menu.add_command(label=t("menu_select_all", "Text"), command=_select_all)
+    menu.add_command(label=t("menu_select_all", "Выделить всё"), command=_select_all)
 
     widget.bind("<Button-3>", lambda e: menu.tk_popup(e.x_root, e.y_root))
 
@@ -117,6 +116,7 @@ def attach_entry_context_menu(widget):
                 return "break"
 
     widget.bind("<KeyPress>", _on_key)
+
 
 def attach_text_context_menu(text_widget):
     menu = tk.Menu(text_widget, tearoff=0, font=theme.font(0))
@@ -160,11 +160,11 @@ def attach_text_context_menu(text_widget):
         text_widget.tag_add(tk.SEL, "1.0", tk.END)
         text_widget.mark_set(tk.INSERT, "1.0")
 
-    menu.add_command(label=t("menu_paste", "Text"), command=_paste)
-    menu.add_command(label=t("menu_copy", "Text"), command=_copy)
-    menu.add_command(label=t("menu_cut", "Text"), command=_cut)
+    menu.add_command(label=t("menu_paste", "Вставить"), command=_paste)
+    menu.add_command(label=t("menu_copy", "Копировать"), command=_copy)
+    menu.add_command(label=t("menu_cut", "Вырезать"), command=_cut)
     menu.add_separator()
-    menu.add_command(label=t("menu_select_all", "Text"), command=_select_all)
+    menu.add_command(label=t("menu_select_all", "Выделить всё"), command=_select_all)
 
     text_widget.bind("<Button-3>", lambda e: menu.tk_popup(e.x_root, e.y_root))
 
@@ -185,6 +185,7 @@ def attach_text_context_menu(text_widget):
 
     text_widget.bind("<KeyPress>", _on_key)
 
+
 class ToolTip:
     def __init__(self, widget, text):
         self.widget = widget
@@ -204,7 +205,6 @@ class ToolTip:
         self.tip_window = tw = tk.Toplevel(self.widget)
         tw.wm_overrideredirect(True)
         tw.wm_geometry(f"+{x}+{y}")
-
         bg = theme.get_color("popup_bg")
         fg = theme.get_color("popup_fg")
 

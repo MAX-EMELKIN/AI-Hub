@@ -13,8 +13,8 @@
    "Contents": {
       "EditBackTranslation": "",
       "SaveOnExit": true,
-      "EditTranslation": "Агент Antigravity — это универсальный управляемый агент, работающий через API Gemini. Один вызов API предоставляет вам агента, который выполняет логические рассуждения, код, управляет файлами и просматривает веб-страницы внутри вашей собственной защищенной песочницы Linux, размещенной Google.\r\rОн создан с использованием Gemini 3.8 Flash и той же инфраструктуры, что и Antigravity IDE. Вы можете настроить базовую модель Gemini с помощью agent_config. Доступен через Interactions API и Google AI Studio.",
-      "EditSource": "The Antigravity agent is a general-purpose managed agent on the Gemini API. A single API call gives you an agent that reasons, executes code, manages files, and browses the web inside your own secure Linux sandbox, hosted by Google.\r\rIt is built with Gemini 3.8 Flash and uses the same harness as the Antigravity IDE. You can configure the underlying Gemini model using agent_config. Available through the Interactions API and Google AI Studio."
+      "EditTranslation": "Определение местоположения пользователя не поддерживается для использования API.",
+      "EditSource": "User location is not supported for the API use"
    },
    "Advanced": {
       "EnableSlowerListening": true,
@@ -44,7 +44,7 @@
       "ColorBack": 15790320
    },
    "Internet": {
-      "Timeout": 30000
+      "Timeout": 10000
    },
    "HotKeys": {
       "EnableHotKeys": true,
@@ -85,7 +85,7 @@
    },
    "DictionariesOrder": [25, 114, 83, 17, 19, 22, 24, 400, 29, 82, 14, 84, 676, 677],
    "DisabledLanguages": [],
-   "DisabledDictionaries": [],
+   "DisabledDictionaries": [25],
    "Dictionary": {
       "ShowServicesPane": true,
       "DictionaryZoom": 100,
@@ -112,7 +112,7 @@
       "UseSmartDetection": true,
       "ShowMiddlePane": true,
       "LanguageTo": 46,
-      "WindowDictionaryPlacement": "2C0000000000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF8C00000080000000E20600000A030000",
+      "WindowDictionaryPlacement": "2C0000000000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC9000000D90000001F07000063030000",
       "ShowTopPane": true,
       "MidSplitterPos": 162,
       "LanguageFrom": 1,
