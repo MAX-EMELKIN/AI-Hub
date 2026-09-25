@@ -1,8 +1,11 @@
-# -*- coding: utf-8 -*-
 # data/core/api_config.py
-import os, sys, re, configparser
+import os
+import sys
+import re
+import configparser
 from data.core.logger import logger
 from data.core.web_search import DEFAULT_SEARCH_PROMPT
+
 
 def get_base_dir():
     if getattr(sys, 'frozen', False):
@@ -10,10 +13,75 @@ def get_base_dir():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     return os.path.abspath(os.path.join(current_dir, '..', '..'))
 
+
 PROVIDER_KEYS = {
     'api_key', 'account_id', 'api_token', 'connection_mode',
     'proxy', 'doh_preset', 'doh_custom_url'
 }
+
+DEFAULT_PROVIDERS = {
+    "gemini": {
+        "api_key": "",
+        "connection_mode": "doh",
+        "doh_preset": "Comss.one (SmartDNS / РФ обход)",
+        "doh_custom_url": "https://xbox-dns.ru/dns-query",
+        "proxy": ""
+    },
+    "cloudflare": {
+        "account_id": "",
+        "api_token": ""
+    },
+    "orcarouter": {
+        "api_key": ""
+    },
+    "dashscope": {
+        "api_key": ""
+    },
+    "custom": {},
+    "deepseek": {
+        "api_key": ""
+    },
+    "moonshot": {
+        "api_key": ""
+    },
+    "boltch": {
+        "api_key": "",
+        "connection_mode": "direct",
+        "proxy": "",
+        "doh_preset": ""
+    },
+    "openrouter": {
+        "api_key": "",
+        "connection_mode": "proxy",
+        "proxy": "213.165.38.49:1080",
+        "doh_preset": "Comss.one (SmartDNS / РФ обход)"
+    },
+    "siliconflow": {
+        "api_key": "",
+        "connection_mode": "direct",
+        "proxy": "127.0.0.1:10808",
+        "doh_preset": "Comss.one (SmartDNS / РФ обход)"
+    },
+    "pollinations": {
+        "api_key": "",
+        "connection_mode": "direct",
+        "proxy": "127.0.0.1:10808",
+        "doh_preset": "Comss.one (SmartDNS / РФ обход)"
+    },
+    "cerebras": {
+        "api_key": "",
+        "connection_mode": "direct",
+        "proxy": "127.0.0.1:10808",
+        "doh_preset": "Comss.one (SmartDNS / РФ обход)"
+    },
+    "mistral": {
+        "api_key": "",
+        "connection_mode": "direct",
+        "proxy": "127.0.0.1:10808",
+        "doh_preset": "Comss.one (SmartDNS / РФ обход)"
+    }
+}
+
 
 class APIConfigManager:
     def __init__(self):
@@ -26,6 +94,21 @@ class APIConfigManager:
         self.models = configparser.ConfigParser(interpolation=None)
         self._migrate_if_needed()
         self.load()
+        self._ensure_default_providers()
+
+    def _ensure_default_providers(self):
+        modified = False
+        for prov, settings in DEFAULT_PROVIDERS.items():
+            if not self.providers.has_section(prov):
+                self.providers.add_section(prov)
+                modified = True
+            for k, v in settings.items():
+                if not self.providers.has_option(prov, k):
+                    self.providers.set(prov, k, str(v))
+                    modified = True
+
+        if modified or not os.path.exists(self.providers_path):
+            self.save_providers()
 
     def _normalize_name(self, name):
         if not name:
@@ -70,23 +153,36 @@ class APIConfigManager:
 
     def _guess_provider(self, sec, old_conf):
         endpoint = old_conf.get(sec, 'endpoint', fallback='').lower()
-        if 'dashscope' in endpoint: return 'dashscope'
-        if 'deepseek' in endpoint: return 'deepseek'
-        if 'moonshot' in endpoint: return 'moonshot'
-        if 'openrouter' in endpoint: return 'openrouter'
-        if 'boltch' in endpoint: return 'boltch'
-        if 'orcarouter' in endpoint: return 'orcarouter'
-        if 'cloudflare' in endpoint: return 'cloudflare'
-        if 'generativelanguage' in endpoint or sec == 'gemini_family': return 'gemini'
-        if 'siliconflow' in endpoint: return 'siliconflow'
-        if 'cerebras' in endpoint: return 'cerebras'
-        if 'mistral' in endpoint: return 'mistral'
-        if 'pollinations' in endpoint: return 'pollinations'
+        if 'dashscope' in endpoint:
+            return 'dashscope'
+        if 'deepseek' in endpoint:
+            return 'deepseek'
+        if 'moonshot' in endpoint:
+            return 'moonshot'
+        if 'openrouter' in endpoint:
+            return 'openrouter'
+        if 'boltch' in endpoint:
+            return 'boltch'
+        if 'orcarouter' in endpoint:
+            return 'orcarouter'
+        if 'cloudflare' in endpoint:
+            return 'cloudflare'
+        if 'generativelanguage' in endpoint or sec == 'gemini_family':
+            return 'gemini'
+        if 'siliconflow' in endpoint:
+            return 'siliconflow'
+        if 'cerebras' in endpoint:
+            return 'cerebras'
+        if 'mistral' in endpoint:
+            return 'mistral'
+        if 'pollinations' in endpoint:
+            return 'pollinations'
         return 'custom'
 
     def _migrate_if_needed(self):
         if os.path.exists(self.providers_path) and os.path.exists(self.models_path):
             return
+
         old_path = self.old_config_path if os.path.exists(self.old_config_path) else os.path.join(self.base_dir, 'api_keys.ini')
         if os.path.exists(old_path):
             old_conf = configparser.ConfigParser(interpolation=None)
@@ -94,15 +190,18 @@ class APIConfigManager:
                 old_conf.read(old_path, encoding='utf-8')
             except Exception:
                 old_conf.read(old_path, encoding='cp1251')
+
             for sec in old_conf.sections():
                 norm_sec = self._normalize_name(sec)
                 provider = self._guess_provider(sec, old_conf)
                 if not self.models.has_section(norm_sec):
                     self.models.add_section(norm_sec)
                 self.models.set(norm_sec, 'provider', provider)
+
                 norm_prov = self._normalize_name(provider)
                 if not self.providers.has_section(norm_prov):
                     self.providers.add_section(norm_prov)
+
                 for k, v in old_conf.items(sec):
                     val_str = str(v).strip()
                     if k in PROVIDER_KEYS:
@@ -110,6 +209,7 @@ class APIConfigManager:
                             self.providers.set(norm_prov, k, val_str)
                     else:
                         self.models.set(norm_sec, k, val_str)
+
             self.save_providers()
             self.save_models()
             try:
@@ -126,6 +226,7 @@ class APIConfigManager:
                     self.providers.read(self.providers_path, encoding='cp1251')
                 except Exception:
                     pass
+
         if os.path.exists(self.models_path):
             try:
                 self.models.read(self.models_path, encoding='utf-8')
@@ -176,7 +277,6 @@ class APIConfigManager:
 
         if key == 'search_prompt':
             return DEFAULT_SEARCH_PROMPT
-
         return default
 
     def set_val(self, service_id, key, value, update_provider=False):
@@ -202,5 +302,6 @@ class APIConfigManager:
         else:
             self.models.set(sec, key, val_str)
             self.save_models()
+
 
 api_config = APIConfigManager()
