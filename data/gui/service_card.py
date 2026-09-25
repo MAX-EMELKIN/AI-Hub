@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
 # data/gui/service_card.py
-
-import os, threading
+import os
+import threading
 import tkinter as tk
 from tkinter import ttk
 from data.core.config_manager import config
@@ -30,6 +29,7 @@ GEMINI_THINKING_MODES = [
     "OFF"
 ]
 
+
 class HelpPopup(tk.Toplevel):
     def __init__(self, anchor_widget, text):
         super().__init__(anchor_widget)
@@ -38,37 +38,29 @@ class HelpPopup(tk.Toplevel):
         border = theme.get_color("popup_border")
         fg = theme.get_color("popup_fg")
         hint_fg = theme.get_color("popup_hint")
-
         self.configure(bg=bg)
         frame = tk.Frame(
             self, bg=bg, padx=10, pady=8, relief=tk.SOLID, bd=1,
             highlightbackground=border, highlightthickness=1
         )
         frame.pack(fill=tk.BOTH, expand=True)
-
         lbl = tk.Label(frame, text=text, justify=tk.LEFT, bg=bg, fg=fg, font=theme.font(-1), wraplength=260)
         lbl.pack(anchor="w")
-
         hint = tk.Label(frame, text=t("help_close_hint"), font=theme.font(-2, "italic"), fg=hint_fg, bg=bg)
         hint.pack(anchor="w", pady=(6, 0))
-
         self.update_idletasks()
         btn_x = anchor_widget.winfo_rootx()
         btn_y = anchor_widget.winfo_rooty()
         btn_h = anchor_widget.winfo_height()
         w = self.winfo_reqwidth()
         h = self.winfo_reqheight()
-
         screen_w = self.winfo_screenwidth()
         screen_h = self.winfo_screenheight()
-
         pos_x = max(10, min(btn_x - 30, screen_w - w - 20))
         pos_y = btn_y + btn_h + 4
         if pos_y + h > screen_h - 40:
             pos_y = btn_y - h - 4
-
         self.wm_geometry(f"+{pos_x}+{pos_y}")
-
         self.bind("<Button-1>", lambda e: self.destroy())
         lbl.bind("<Button-1>", lambda e: self.destroy())
         frame.bind("<Button-1>", lambda e: self.destroy())
@@ -76,19 +68,18 @@ class HelpPopup(tk.Toplevel):
         self.bind("<Escape>", lambda e: self.destroy())
         self.focus_force()
 
+
 class ServiceCard(tk.Frame):
     def __init__(self, parent, service, on_reorder_step_callback=None,
                  on_drag_end_callback=None, on_settings_callback=None,
                  on_delete_callback=None, on_edit_preset_callback=None,
                  on_add_preset_callback=None, **kwargs):
-
         bg_card = theme.get_color("bg_card")
         bd_color = theme.get_color("bg_card_border")
         super().__init__(
             parent, relief=tk.SOLID, bd=1, padx=6, pady=4, bg=bg_card,
             highlightbackground=bd_color, highlightthickness=1, **kwargs
         )
-
         self.service = service
         self.service_id = service.service_id
         self.on_reorder_step = on_reorder_step_callback
@@ -97,14 +88,12 @@ class ServiceCard(tk.Frame):
         self.on_delete_callback = on_delete_callback
         self.on_edit_preset_callback = on_edit_preset_callback
         self.on_add_preset_callback = on_add_preset_callback
-
         self.icon_photo = None
         self._preset_buttons = {}
         self.status_tooltip = None
         self._active_help_popup = None
         self._is_dragging = False
         self._drag_start_y = 0
-
         self._build_ui()
         self.refresh_status()
         self.refresh_presets()
@@ -125,7 +114,6 @@ class ServiceCard(tk.Frame):
     def _show_help(self, anchor_widget, help_key):
         if self._active_help_popup and self._active_help_popup.winfo_exists():
             self._active_help_popup.destroy()
-
         text = t(f"help_{help_key}")
         if text:
             self._active_help_popup = HelpPopup(anchor_widget, text)
@@ -144,7 +132,6 @@ class ServiceCard(tk.Frame):
         fg_pri = theme.get_color("fg_primary")
         param_fg = theme.get_color("preset_btn_fg")
         param_font = theme.font(-1, "normal")
-
         self.top_frame = tk.Frame(self, bg=bg_card)
         self.top_frame.pack(fill=tk.X, expand=True)
 
@@ -205,7 +192,6 @@ class ServiceCard(tk.Frame):
 
             tk.Label(gemini_bar, text=t("param_thinking"), font=param_font, fg=param_fg, bg=bg_card).pack(side=tk.LEFT, padx=(2, 1))
             self.combo_thinking = ttk.Combobox(gemini_bar, values=GEMINI_THINKING_MODES, state="readonly", width=12, font=param_font)
-
             saved_thinking = self.service.get_config_val("thinking_mode", GEMINI_THINKING_MODES[0])
             matched_thinking = GEMINI_THINKING_MODES[0]
             for m in GEMINI_THINKING_MODES:
@@ -216,7 +202,6 @@ class ServiceCard(tk.Frame):
                    ("отключ" in saved_thinking.lower() and m == "OFF"):
                     matched_thinking = m
                     break
-
             self.combo_thinking.set(matched_thinking)
             self.combo_thinking.pack(side=tk.LEFT, padx=(0, 3))
             self.combo_thinking.bind("<<ComboboxSelected>>", self._on_gemini_thinking_changed)
@@ -238,7 +223,6 @@ class ServiceCard(tk.Frame):
                 command=self._on_glossary_toggle, padx=0, pady=0
             )
             chk_glossary.pack(side=tk.LEFT, padx=(0, 1))
-
         else:
             has_params = getattr(self.service, "supports_hyperparameters", True)
             has_glossary = getattr(self.service, "supports_glossary", True) and getattr(self.service, "is_ai_service", True)
@@ -344,14 +328,16 @@ class ServiceCard(tk.Frame):
 
         def _worker():
             ok, msg, elapsed = self.service.ping_model(cur_model)
+
             def _ui():
                 self.btn_ping.config(state="normal", text=t("btn_ping"))
                 if ok:
                     self.status_lbl.config(text=f"[OK] {msg}", fg=theme.get_color("status_ready"))
                 else:
-                    self.status_lbl.config(text=f"[ERR] {msg}", fg=theme.get_color("status_error"))
+                    self.status_lbl.config(text=f"[ОШИБКА] {msg}", fg=theme.get_color("status_error"))
                 if self.status_tooltip:
                     self.status_tooltip.set_text(f"{t('btn_ping')}: {msg} ({elapsed}s)")
+
             self.after(0, _ui)
 
         threading.Thread(target=_worker, daemon=True).start()
@@ -406,8 +392,7 @@ class ServiceCard(tk.Frame):
         if ok:
             self.status_lbl.config(text="[OK]", fg=theme.get_color("status_ready"))
         else:
-            self.status_lbl.config(text="[ERR]", fg=theme.get_color("status_error"))
-
+            self.status_lbl.config(text="[ОШИБКА]", fg=theme.get_color("status_error"))
         if self.status_tooltip:
             self.status_tooltip.set_text(reason)
 
@@ -421,10 +406,9 @@ class ServiceCard(tk.Frame):
 
         for name in available_presets:
             is_active = (name == active_preset)
-            btn_text = f"v {name}" if is_active else name
+            btn_text = name
             bg_color = theme.get_color("preset_btn_active_bg") if is_active else theme.get_color("preset_btn_bg")
             fg_color = theme.get_color("preset_btn_active_fg") if is_active else theme.get_color("preset_btn_fg")
-
             btn = tk.Button(
                 self.presets_container, text=btn_text, font=theme.font(-1, "bold" if is_active else "normal"),
                 bg=bg_color, fg=fg_color, activebackground=theme.get_color("accent_hover"), activeforeground="#ffffff",

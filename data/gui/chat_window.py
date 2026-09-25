@@ -43,6 +43,21 @@ class UniversalChatClient:
                 return urllib.request.build_opener(urllib.request.ProxyHandler({"http": proxy, "https": proxy}))
         return urllib.request.build_opener()
 
+    def _execute_network_call(self, url, payload_bytes, headers, timeout=60.0):
+        srv = LOADED_SERVICES.get(self.service_id)
+        if srv and hasattr(srv, "_execute_request_raw"):
+            return srv._execute_request_raw(url, payload_bytes, headers, timeout=timeout)
+
+        opener = self._get_opener()
+        req = urllib.request.Request(url, data=payload_bytes, headers=headers)
+        try:
+            with opener.open(req, timeout=timeout) as resp:
+                raw_bytes = resp.read()
+                return resp.status, raw_bytes.decode('utf-8', errors='replace')
+        except urllib.error.HTTPError as he:
+            err_body = he.read().decode('utf-8', errors='replace')
+            return he.code, err_body
+
     def send_chat(self, history, enable_search):
         sys_prompt = (
             "Ты — полезный, дружелюбный и профессиональный ИИ-ассистент в составе QTranslate AI Hub.\n"
@@ -55,15 +70,14 @@ class UniversalChatClient:
                 "Если в вопросе требуются актуальные факты, новости, документация или проверка данных — вызови инструмент."
             )
 
-        opener = self._get_opener()
         if self.is_gemini:
-            return self._send_gemini(history, sys_prompt, enable_search, opener)
+            return self._send_gemini(history, sys_prompt, enable_search)
         elif self.is_orca:
-            return self._send_orca(history, sys_prompt, enable_search, opener)
+            return self._send_orca(history, sys_prompt, enable_search)
         else:
-            return self._send_cloudflare(history, sys_prompt, opener)
+            return self._send_cloudflare(history, sys_prompt)
 
-    def _send_orca(self, history, sys_prompt, enable_search, opener):
+    def _send_orca(self, history, sys_prompt, enable_search):
         messages = [{"role": "system", "content": sys_prompt}] + history
         headers = {
             "Content-Type": "application/json; charset=utf-8",
@@ -86,15 +100,21 @@ class UniversalChatClient:
 
             logger.api_payload(f"Chat: {self.service_id}", self.model, self.endpoint, headers, payload)
             t_call = time.time()
+            data_bytes = json.dumps(payload).encode('utf-8')
             try:
-                req = urllib.request.Request(self.endpoint, data=json.dumps(payload).encode('utf-8'), headers=headers)
-                with opener.open(req, timeout=70.0) as resp:
-                    raw_bytes = resp.read()
-                    elapsed = time.time() - t_call
-                    raw_str = raw_bytes.decode('utf-8')
-                    data = json.loads(raw_str)
-                    logger.api_raw_response(f"Chat: {self.service_id}", resp.status, elapsed, raw_str)
-                    logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, resp.status)
+                status_code, raw_str = self._execute_network_call(self.endpoint, data_bytes, headers, timeout=70.0)
+                elapsed = time.time() - t_call
+                logger.api_raw_response(f"Chat: {self.service_id}", status_code, elapsed, raw_str)
+                logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, status_code)
+
+                if status_code >= 400:
+                    if status_code in (500, 502, 503, 504):
+                        return f"Ошибка сервера провайдера (HTTP {status_code}). Попробуйте позже."
+                    if status_code == 429:
+                        return "Превышен лимит запросов (HTTP 429). Сделайте паузу перед следующим сообщением."
+                    return f"Ошибка API (HTTP {status_code}): {raw_str[:250]}"
+
+                data = json.loads(raw_str)
 
                 if "choices" not in data or not data["choices"]:
                     return "Сервер вернул пустой ответ (нет блока choices)."
@@ -127,35 +147,21 @@ class UniversalChatClient:
                 ans = re.sub(r'<think>[\s\S]*?</think>', '', ans, flags=re.IGNORECASE).strip()
                 return ans
 
-            except urllib.error.HTTPError as he:
-                elapsed = time.time() - t_call
-                err_body = he.read().decode("utf-8", errors="ignore")
-                logger.api_raw_response(f"Chat: {self.service_id}", he.code, elapsed, err_body)
-                logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, he.code, note=f"HTTP Error {he.code}")
-                if he.code in (400, 502, 503) and step == 0:
-                    payload.pop("tools", None)
-                    time.sleep(0.5)
-                    continue
-                if he.code in (500, 502, 503, 504):
-                    return f"Ошибка сервера провайдера (HTTP {he.code}). Попробуйте позже."
-                if he.code == 429:
-                    return "Превышен лимит запросов (HTTP 429). Сделайте паузу перед следующим сообщением."
-                return f"Ошибка API (HTTP {he.code}): {err_body[:250]}"
-            except urllib.error.URLError as ue:
-                elapsed = time.time() - t_call
-                logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, 0, note=f"URLError: {ue.reason}")
-                return f"Сетевая ошибка при обращении к серверу: {ue.reason}"
             except Exception as e:
                 elapsed = time.time() - t_call
                 logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, 0, note=f"Exception: {e}")
                 return f"Исключение при вызове модели: {e}"
+
         return "Не удалось сформировать ответ после завершения цепочки инструментов."
 
-    def _send_gemini(self, history, sys_prompt, enable_search, opener):
+    def _send_gemini(self, history, sys_prompt, enable_search):
         contents = []
         for h in history:
             role = "model" if h["role"] == "assistant" else "user"
-            contents.append({"role": role, "parts": [{"text": h["content"]}]})
+            if contents and contents[-1]["role"] == role:
+                contents[-1]["parts"].append({"text": h["content"]})
+            else:
+                contents.append({"role": role, "parts": [{"text": h["content"]}]})
 
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
         headers = {
@@ -175,29 +181,22 @@ class UniversalChatClient:
 
             logger.api_payload(f"Chat: {self.service_id}", self.model, url, headers, payload)
             t_call = time.time()
+            data_bytes = json.dumps(payload).encode('utf-8')
             try:
-                req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers)
-                with opener.open(req, timeout=60.0) as resp:
-                    raw_bytes = resp.read()
-                    elapsed = time.time() - t_call
-                    raw_str = raw_bytes.decode('utf-8')
-                    data = json.loads(raw_str)
-                    logger.api_raw_response(f"Chat: {self.service_id}", resp.status, elapsed, raw_str)
-                    logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, resp.status)
-            except urllib.error.HTTPError as he:
+                status_code, raw_str = self._execute_network_call(url, data_bytes, headers, timeout=60.0)
                 elapsed = time.time() - t_call
-                err_body = he.read().decode('utf-8', errors='ignore')
-                logger.api_raw_response(f"Chat: {self.service_id}", he.code, elapsed, err_body)
-                logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, he.code, note=f"HTTP Error {he.code}")
-                if he.code in (500, 502, 503, 504):
-                    return f"Ошибка сервера Google (HTTP {he.code})."
-                if he.code == 429:
-                    return "Превышен лимит запросов Google API (HTTP 429)."
-                return f"Ошибка Gemini API (HTTP {he.code}): {err_body[:250]}"
-            except urllib.error.URLError as ue:
-                elapsed = time.time() - t_call
-                logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, 0, note=f"URLError: {ue.reason}")
-                return f"Сетевая ошибка подключения: {ue.reason}"
+                logger.api_raw_response(f"Chat: {self.service_id}", status_code, elapsed, raw_str)
+                logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, status_code)
+
+                if status_code >= 400:
+                    if status_code in (500, 502, 503, 504):
+                        return f"Ошибка сервера Google (HTTP {status_code})."
+                    if status_code == 429:
+                        return "Превышен лимит запросов Google API (HTTP 429)."
+                    return f"Ошибка Gemini API (HTTP {status_code}): {raw_str[:250]}"
+
+                data = json.loads(raw_str)
+
             except Exception as e:
                 elapsed = time.time() - t_call
                 logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, 0, note=f"Exception: {e}")
@@ -216,18 +215,29 @@ class UniversalChatClient:
             if fn_call and enable_search and step < (max_steps - 1):
                 fn_name = fn_call.get("name")
                 args = fn_call.get("args", {})
-                contents.append({"role": "model", "parts": [{"functionCall": fn_call}]})
+                contents.append({"role": "model", "parts": parts})
+
                 tool_res = execute_tool_call(fn_name, args)
                 logger.tool_call(f"Chat: {self.service_id}", step + 1, fn_name, args, tool_res)
+
+                resp_part = {
+                    "name": fn_name,
+                    "response": {"result": tool_res}
+                }
+                if fn_call.get("id"):
+                    resp_part["id"] = fn_call["id"]
+
                 contents.append({
                     "role": "user",
-                    "parts": [{"functionResponse": {"name": fn_name, "response": {"result": tool_res}}}]
+                    "parts": [{"functionResponse": resp_part}]
                 })
                 continue
+
             return text_res.strip()
+
         return "Не удалось сформировать ответ Gemini после цепочки инструментов."
 
-    def _send_cloudflare(self, history, sys_prompt, opener):
+    def _send_cloudflare(self, history, sys_prompt):
         account_id = api_config.get_val(self.service_id, "account_id", "")
         url = self.endpoint.replace("{account_id}", account_id).replace("{model}", self.model)
         headers = {
@@ -239,32 +249,24 @@ class UniversalChatClient:
         payload = {"messages": messages, "temperature": 0.4}
         logger.api_payload(f"Chat: {self.service_id}", self.model, url, headers, payload)
         t_call = time.time()
+        data_bytes = json.dumps(payload).encode('utf-8')
         try:
-            req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers)
-            with opener.open(req, timeout=50.0) as resp:
-                raw_bytes = resp.read()
-                elapsed = time.time() - t_call
-                raw_str = raw_bytes.decode('utf-8')
-                data = json.loads(raw_str)
-                logger.api_raw_response(f"Chat: {self.service_id}", resp.status, elapsed, raw_str)
-                logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, resp.status)
+            status_code, raw_str = self._execute_network_call(url, data_bytes, headers, timeout=50.0)
+            elapsed = time.time() - t_call
+            logger.api_raw_response(f"Chat: {self.service_id}", status_code, elapsed, raw_str)
+            logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, status_code)
 
+            if status_code >= 400:
+                if status_code in (500, 502, 503, 504):
+                    return f"Ошибка сервера Cloudflare (HTTP {status_code})."
+                return f"Ошибка Cloudflare API (HTTP {status_code}): {raw_str[:250]}"
+
+            data = json.loads(raw_str)
             res = data.get("result", {}).get("response", "")
             if not res and data.get("result", {}).get("choices"):
                 res = data.get("result")["choices"][0].get("message", {}).get("content", "")
             return res.strip()
-        except urllib.error.HTTPError as he:
-            elapsed = time.time() - t_call
-            err_body = he.read().decode("utf-8", errors="ignore")
-            logger.api_raw_response(f"Chat: {self.service_id}", he.code, elapsed, err_body)
-            logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, he.code, note=f"HTTP Error {he.code}")
-            if he.code in (500, 502, 503, 504):
-                return f"Ошибка сервера Cloudflare (HTTP {he.code})."
-            return f"Ошибка Cloudflare API (HTTP {he.code}): {err_body[:250]}"
-        except urllib.error.URLError as ue:
-            elapsed = time.time() - t_call
-            logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, 0, note=f"URLError: {ue.reason}")
-            return f"Сетевая ошибка подключения: {ue.reason}"
+
         except Exception as e:
             elapsed = time.time() - t_call
             logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, 0, note=f"Exception: {e}")

@@ -279,7 +279,7 @@ class APIConfigManager:
             return DEFAULT_SEARCH_PROMPT
         return default
 
-    def set_val(self, service_id, key, value, update_provider=False):
+    def set_val(self, service_id, key, value, update_provider=True):
         sec = self._resolve_section(service_id)
         val_str = str(value).strip()
         if not self.models.has_section(sec):
@@ -294,11 +294,13 @@ class APIConfigManager:
         if key in PROVIDER_KEYS:
             if update_provider:
                 self.set_provider_val(provider, key, val_str)
+                # Удаляем ключ из models.ini, чтобы не засорять репозиторий секретами
+                if self.models.has_option(sec, key):
+                    self.models.remove_option(sec, key)
+                    self.save_models()
             else:
                 self.models.set(sec, key, val_str)
                 self.save_models()
-                if not self.get_provider_val(provider, key, ''):
-                    self.set_provider_val(provider, key, val_str)
         else:
             self.models.set(sec, key, val_str)
             self.save_models()

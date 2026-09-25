@@ -42,47 +42,31 @@ THINKING_MODES = [
 DOH_PRESETS = {
     "Comss.one (SmartDNS)": {
         "url": "https://dns.comss.one/dns-query",
-        "host": "dns.comss.one",
-        "bootstrap_ip": "195.133.25.16"
+        "fallback_url": "https://router.comss.one/dns-query"
     },
     "Comss.one (SmartDNS / РФ обход)": {
         "url": "https://dns.comss.one/dns-query",
-        "host": "dns.comss.one",
-        "bootstrap_ip": "195.133.25.16"
+        "fallback_url": "https://router.comss.one/dns-query"
     },
     "Xbox DNS (SmartDNS / РФ обход)": {
         "url": "https://xbox-dns.ru/dns-query",
-        "host": "xbox-dns.ru",
-        "bootstrap_ip": "111.88.96.54"
+        "fallback_url": "https://dns.comss.one/dns-query"
     },
     "Control D (Uncensored)": {
-        "url": "https://freedns.controld.com/uncensored",
-        "host": "freedns.controld.com",
-        "bootstrap_ip": "76.76.2.11"
+        "url": "https://freedns.controld.com/uncensored"
     },
     "Cloudflare (1.1.1.1)": {
-        "url": "https://cloudflare-dns.com/dns-query",
-        "host": "cloudflare-dns.com",
-        "bootstrap_ip": "1.1.1.1"
+        "url": "https://cloudflare-dns.com/dns-query"
     },
     "Google (8.8.8.8)": {
-        "url": "https://dns.google/dns-query",
-        "host": "dns.google",
-        "bootstrap_ip": "8.8.8.8"
+        "url": "https://dns.google/dns-query"
     }
 }
 
-BOOTSTRAP_HOSTS = {
-    "dns.comss.one": "195.133.25.16",
-    "xbox-dns.ru": "111.88.96.54",
-    "freedns.controld.com": "76.76.2.11",
-    "cloudflare-dns.com": "1.1.1.1",
-    "dns.google": "8.8.8.8"
-}
+SMARTDNS_FALLBACK_IPS = ["45.155.204.190", "185.250.151.49"]
 
 _dns_cache = {}
 _dns_lock = threading.Lock()
-_orig_getaddrinfo = socket.getaddrinfo
 
 
 def _make_dns_query_wire(hostname):
@@ -135,7 +119,7 @@ def _parse_dns_response_wire(raw):
     return None
 
 
-def resolve_doh_stdlib(hostname, doh_url):
+def resolve_doh(hostname, doh_url):
     with _dns_lock:
         if hostname in _dns_cache:
             return _dns_cache[hostname]
@@ -144,7 +128,7 @@ def resolve_doh_stdlib(hostname, doh_url):
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
 
-    # 1. RFC 8484 binary wireformat POST (PowerDNS, Comss.one, Xbox-DNS)
+    # 1. RFC 8484 binary wireformat POST
     try:
         wire_data = _make_dns_query_wire(hostname)
         req = urllib.request.Request(
@@ -167,7 +151,7 @@ def resolve_doh_stdlib(hostname, doh_url):
     except Exception:
         pass
 
-    # 2. JSON DoH fallback (Cloudflare, Google)
+    # 2. JSON DoH fallback
     try:
         url = f"{doh_url}?name={hostname}&type=A"
         req = urllib.request.Request(
@@ -191,35 +175,78 @@ def resolve_doh_stdlib(hostname, doh_url):
     return None
 
 
-def custom_gemini_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
-    host_str = str(host).lower().strip()
-    for b_host, b_ip in BOOTSTRAP_HOSTS.items():
-        if b_host in host_str:
-            return _orig_getaddrinfo(b_ip, port, family, type, proto, flags)
-
-    conn_mode = api_config.get_val("gemini_family", "connection_mode", "doh").lower().strip()
-    if conn_mode == "doh" and "googleapis.com" in host_str:
-        preset_name = api_config.get_val("gemini_family", "doh_preset", "Comss.one (SmartDNS)").strip()
-        doh_url = None
-        for p_key, p_val in DOH_PRESETS.items():
-            if p_key.lower() in preset_name.lower() or preset_name.lower() in p_key.lower():
-                doh_url = p_val.get("url")
-                break
-        if not doh_url:
-            doh_url = api_config.get_val(
-                "gemini_family", "doh_custom_url", "https://dns.comss.one/dns-query"
-            ).strip()
-        if not doh_url:
-            doh_url = "https://dns.comss.one/dns-query"
-
-        ip = resolve_doh_stdlib(str(host), doh_url)
-        if ip:
-            return _orig_getaddrinfo(ip, port, family, type, proto, flags)
-
-    return _orig_getaddrinfo(host, port, family, type, proto, flags)
+def _recv_all(sock, n):
+    data = bytearray()
+    while len(data) < n:
+        packet = sock.recv(n - len(data))
+        if not packet:
+            raise ConnectionError("Соединение разорвано удаленной стороной.")
+        data.extend(packet)
+    return bytes(data)
 
 
-socket.getaddrinfo = custom_gemini_getaddrinfo
+def create_socks5_socket(proxy_host, proxy_port, dest_host, dest_port, timeout=15.0):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(timeout)
+    s.connect((proxy_host, proxy_port))
+    s.sendall(b"\x05\x01\x00")
+    resp = _recv_all(s, 2)
+    if resp[0] != 5 or resp[1] != 0:
+        s.close()
+        raise ConnectionError("SOCKS5: Аутентификация отклонена сервером.")
+    dest_bytes = dest_host.encode("utf-8")
+    req = b"\x05\x01\x00\x03" + bytes([len(dest_bytes)]) + dest_bytes + struct.pack("!H", dest_port)
+    s.sendall(req)
+    resp_header = _recv_all(s, 4)
+    if resp_header[0] != 5 or resp_header[1] != 0:
+        s.close()
+        raise ConnectionError(f"SOCKS5: Ошибка запроса соединения (код: {resp_header[1]})")
+    atyp = resp_header[3]
+    if atyp == 1:
+        _recv_all(s, 6)
+    elif atyp == 3:
+        length = _recv_all(s, 1)[0]
+        _recv_all(s, length + 2)
+    elif atyp == 4:
+        _recv_all(s, 18)
+    return s
+
+
+def parse_proxy_string(proxy_str):
+    clean = re.sub(r'^(?:socks5h?|https?|socks)://', '', str(proxy_str).strip(), flags=re.IGNORECASE)
+    parts = clean.split(':')
+    if len(parts) >= 2:
+        try:
+            return parts[0].strip(), int(parts[1].strip())
+        except ValueError:
+            pass
+    return "127.0.0.1", 10808
+
+
+def dechunk_http_body(raw_bytes):
+    pos = 0
+    decoded = bytearray()
+    length = len(raw_bytes)
+    while pos < length:
+        crlf_idx = raw_bytes.find(b"\r\n", pos)
+        if crlf_idx == -1:
+            break
+        chunk_header = raw_bytes[pos:crlf_idx].strip()
+        if not chunk_header:
+            pos = crlf_idx + 2
+            continue
+        hex_len = chunk_header.split(b";")[0].strip()
+        try:
+            chunk_size = int(hex_len, 16)
+        except ValueError:
+            return raw_bytes
+        if chunk_size == 0:
+            break
+        data_start = crlf_idx + 2
+        data_end = data_start + chunk_size
+        decoded.extend(raw_bytes[data_start:data_end])
+        pos = data_end + 2
+    return bytes(decoded) if decoded else raw_bytes
 
 
 class GeminiFamilyService(BaseService):
@@ -327,19 +354,145 @@ class GeminiFamilyService(BaseService):
         payload["generationConfig"] = gen_config
         return payload
 
-    def _get_opener(self):
-        conn_mode = self.get_config_val("connection_mode", "doh")
-        handlers = []
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-        handlers.append(urllib.request.HTTPSHandler(context=ctx))
+    def _execute_request_raw(self, url, payload_bytes, headers, timeout=35.0):
+        conn_mode = self.get_config_val("connection_mode", "doh").lower().strip()
+        proxy_val = self.get_config_val("proxy", "127.0.0.1:10808").strip()
+        parsed = urllib.parse.urlparse(url)
+        dest_host = parsed.hostname or "generativelanguage.googleapis.com"
+        dest_port = parsed.port or (443 if parsed.scheme == "https" else 80)
+        path = (parsed.path or "/") + (("?" + parsed.query) if parsed.query else "")
 
-        if conn_mode == "proxy":
-            proxy_addr = self.get_config_val("proxy", "").strip()
-            if proxy_addr:
-                handlers.append(urllib.request.ProxyHandler({"http": proxy_addr, "https": proxy_addr}))
-        return urllib.request.build_opener(*handlers)
+        if conn_mode in ("proxy", "socks5"):
+            p_host, p_port = parse_proxy_string(proxy_val)
+            raw_sock = create_socks5_socket(p_host, p_port, dest_host, dest_port, timeout=timeout)
+            if parsed.scheme == "https":
+                ctx = ssl.create_default_context()
+                ctx.check_hostname = False
+                ctx.verify_mode = ssl.CERT_NONE
+                sock = ctx.wrap_socket(raw_sock, server_hostname=dest_host)
+            else:
+                sock = raw_sock
+
+            req_headers = dict(headers)
+            req_headers["Host"] = dest_host
+            req_headers["Content-Length"] = str(len(payload_bytes))
+            req_headers["Connection"] = "close"
+
+            header_lines = [f"POST {path} HTTP/1.1"]
+            for k, v in req_headers.items():
+                header_lines.append(f"{k}: {v}")
+            header_data = "\r\n".join(header_lines) + "\r\n\r\n"
+
+            sock.sendall(header_data.encode("utf-8") + payload_bytes)
+            response_bytes = bytearray()
+            sock.settimeout(timeout)
+            while True:
+                try:
+                    chunk = sock.recv(4096)
+                    if not chunk:
+                        break
+                    response_bytes.extend(chunk)
+                except ConnectionResetError:
+                    break
+            sock.close()
+
+            parts = bytes(response_bytes).split(b"\r\n\r\n", 1)
+            header_bytes = parts[0]
+            body_bytes = parts[1] if len(parts) > 1 else b""
+            header_str = header_bytes.decode("utf-8", errors="replace")
+            if "chunked" in header_str.lower():
+                body_bytes = dechunk_http_body(body_bytes)
+            raw_str = body_bytes.decode("utf-8", errors="replace")
+            status_code = 200
+            m_status = re.search(r'HTTP/\S+\s+(\d+)', header_str)
+            if m_status:
+                status_code = int(m_status.group(1))
+            return status_code, raw_str
+
+        elif conn_mode == "doh":
+            preset_name = self.get_config_val("doh_preset", "Comss.one (SmartDNS)").strip()
+            preset_info = None
+            for p_key, p_val in DOH_PRESETS.items():
+                if p_key.lower() in preset_name.lower() or preset_name.lower() in p_key.lower():
+                    preset_info = p_val
+                    break
+
+            doh_url = preset_info.get("url") if preset_info else None
+            if not doh_url:
+                doh_url = self.get_config_val("doh_custom_url", "https://dns.comss.one/dns-query").strip()
+            if not doh_url:
+                doh_url = "https://dns.comss.one/dns-query"
+
+            ip = resolve_doh(dest_host, doh_url)
+            if not ip and preset_info and preset_info.get("fallback_url"):
+                ip = resolve_doh(dest_host, preset_info["fallback_url"])
+            if not ip:
+                ip = resolve_doh(dest_host, "https://xbox-dns.ru/dns-query")
+            if not ip:
+                for fallback_ip in SMARTDNS_FALLBACK_IPS:
+                    ip = fallback_ip
+                    break
+
+            target_ip = ip if ip else dest_host
+
+            raw_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            raw_sock.settimeout(timeout)
+            raw_sock.connect((target_ip, dest_port))
+
+            if parsed.scheme == "https":
+                ctx = ssl.create_default_context()
+                ctx.check_hostname = False
+                ctx.verify_mode = ssl.CERT_NONE
+                sock = ctx.wrap_socket(raw_sock, server_hostname=dest_host)
+            else:
+                sock = raw_sock
+
+            req_headers = dict(headers)
+            req_headers["Host"] = dest_host
+            req_headers["Content-Length"] = str(len(payload_bytes))
+            req_headers["Connection"] = "close"
+
+            header_lines = [f"POST {path} HTTP/1.1"]
+            for k, v in req_headers.items():
+                header_lines.append(f"{k}: {v}")
+            header_data = "\r\n".join(header_lines) + "\r\n\r\n"
+
+            sock.sendall(header_data.encode("utf-8") + payload_bytes)
+            response_bytes = bytearray()
+            sock.settimeout(timeout)
+            while True:
+                try:
+                    chunk = sock.recv(4096)
+                    if not chunk:
+                        break
+                    response_bytes.extend(chunk)
+                except ConnectionResetError:
+                    break
+            sock.close()
+
+            parts = bytes(response_bytes).split(b"\r\n\r\n", 1)
+            header_bytes = parts[0]
+            body_bytes = parts[1] if len(parts) > 1 else b""
+            header_str = header_bytes.decode("utf-8", errors="replace")
+            if "chunked" in header_str.lower():
+                body_bytes = dechunk_http_body(body_bytes)
+            raw_str = body_bytes.decode("utf-8", errors="replace")
+            status_code = 200
+            m_status = re.search(r'HTTP/\S+\s+(\d+)', header_str)
+            if m_status:
+                status_code = int(m_status.group(1))
+            return status_code, raw_str
+
+        else:
+            req = urllib.request.Request(url, data=payload_bytes, headers=headers, method="POST")
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+            try:
+                with urllib.request.urlopen(req, context=ctx, timeout=timeout) as resp:
+                    return resp.status, resp.read().decode("utf-8", errors="replace")
+            except urllib.error.HTTPError as he:
+                return he.code, he.read().decode("utf-8", errors="replace")
 
     def ping_model(self, model_name=None):
         api_key = self.get_config_val("api_key", "").strip()
@@ -357,27 +510,26 @@ class GeminiFamilyService(BaseService):
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         }
 
-        opener = self._get_opener()
         t0 = time.time()
         for attempt in range(2):
             try:
-                req = urllib.request.Request(url, data=data_bytes, headers=headers)
-                with opener.open(req, timeout=10.0) as resp:
-                    elapsed = round(time.time() - t0, 2)
-                    if resp.status == 200:
-                        logger.api_summary(self.name, target_model, elapsed, resp.status, note="Ping OK")
-                        return True, f"{elapsed}s", elapsed
-            except urllib.error.HTTPError as he:
+                status_code, raw_str = self._execute_request_raw(url, data_bytes, headers, timeout=12.0)
                 elapsed = round(time.time() - t0, 2)
-                logger.api_summary(self.name, target_model, elapsed, he.code, note=f"HTTP Error {he.code}")
-                if he.code == 429:
-                    return False, "HTTP 429 (Rate Limit)", 0
-                elif he.code == 404:
-                    return False, "HTTP 404 (Not Found)", 0
-                elif he.code == 401:
-                    return False, "HTTP 401 (Unauthorized)", 0
+                if status_code == 200:
+                    logger.api_summary(self.name, target_model, elapsed, status_code, note="Ping OK")
+                    return True, f"{elapsed}s", elapsed
                 else:
-                    return False, f"HTTP {he.code}", 0
+                    logger.api_summary(self.name, target_model, elapsed, status_code, note=f"HTTP {status_code}")
+                    if status_code == 429:
+                        return False, "HTTP 429 (Rate Limit)", 0
+                    elif status_code == 404:
+                        return False, "HTTP 404 (Not Found)", 0
+                    elif status_code == 401:
+                        return False, "HTTP 401 (Unauthorized)", 0
+                    elif status_code == 400:
+                        return False, f"HTTP 400: {raw_str[:120]}", 0
+                    else:
+                        return False, f"HTTP {status_code}", 0
             except Exception as e:
                 if attempt == 0:
                     time.sleep(0.5)
@@ -420,7 +572,6 @@ class GeminiFamilyService(BaseService):
         api_key = self.get_config_val("api_key", "").strip()
         cur_model = self.get_config_val("model", ALLOWED_MODELS[0])
 
-        opener = self._get_opener()
         headers = {
             "Content-Type": "application/json",
             "x-goog-api-key": api_key,
@@ -446,30 +597,23 @@ class GeminiFamilyService(BaseService):
             t_call = time.time()
 
             try:
-                req = urllib.request.Request(url, data=data_bytes, headers=headers)
-                with opener.open(req, timeout=35.0) as resp:
-                    raw_bytes = resp.read()
-                    elapsed = time.time() - t_call
-                    raw_str = raw_bytes.decode('utf-8')
-                    raw_data = json.loads(raw_str)
-
-                    logger.api_raw_response(self.name, resp.status, elapsed, raw_str)
-                    logger.api_summary(self.name, cur_model, elapsed, resp.status)
-
-            except urllib.error.HTTPError as he:
+                status_code, raw_str = self._execute_request_raw(url, data_bytes, headers, timeout=35.0)
                 elapsed = time.time() - t_call
-                err_body = he.read().decode('utf-8', errors='ignore')
-                logger.api_raw_response(self.name, he.code, elapsed, err_body)
-                logger.api_summary(self.name, cur_model, elapsed, he.code, note=f"HTTP Error {he.code}")
+                logger.api_raw_response(self.name, status_code, elapsed, raw_str)
+                logger.api_summary(self.name, cur_model, elapsed, status_code)
 
-                if he.code in (500, 502, 503, 504):
-                    return f"[{self.name} (HTTP {he.code})]: Server Error"
-                elif he.code == 429:
-                    return f"[{self.name} (HTTP 429)]: Rate Limit Exceeded"
-                elif he.code == 401:
-                    return f"[{self.name} (HTTP 401)]: Invalid API Key"
-                else:
-                    return f"[{self.name} ({cur_model}, HTTP {he.code})]: {err_body[:200]}"
+                if status_code >= 400:
+                    if status_code in (500, 502, 503, 504):
+                        return f"[{self.name} (HTTP {status_code})]: Server Error"
+                    elif status_code == 429:
+                        return f"[{self.name} (HTTP 429)]: Rate Limit Exceeded"
+                    elif status_code == 401:
+                        return f"[{self.name} (HTTP 401)]: Invalid API Key"
+                    else:
+                        return f"[{self.name} ({cur_model}, HTTP {status_code})]: {raw_str[:200]}"
+
+                raw_data = json.loads(raw_str)
+
             except Exception as e:
                 elapsed = time.time() - t_call
                 logger.api_summary(self.name, cur_model, elapsed, 0, note=f"Exception: {e}")
@@ -527,7 +671,6 @@ class GeminiFamilyService(BaseService):
         payload["generationConfig"]["maxOutputTokens"] = max_tokens
         payload["generationConfig"]["temperature"] = temperature
 
-        opener = self._get_opener()
         headers = {
             "Content-Type": "application/json",
             "x-goog-api-key": api_key,
@@ -538,22 +681,22 @@ class GeminiFamilyService(BaseService):
         t_call = time.time()
 
         try:
-            req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers)
-            with opener.open(req, timeout=20.0) as resp:
-                raw_bytes = resp.read()
-                elapsed = time.time() - t_call
-                raw_str = raw_bytes.decode('utf-8')
-                data = json.loads(raw_str)
+            data_bytes = json.dumps(payload).encode('utf-8')
+            status_code, raw_str = self._execute_request_raw(url, data_bytes, headers, timeout=20.0)
+            elapsed = time.time() - t_call
+            logger.api_raw_response(self.name, status_code, elapsed, raw_str)
+            logger.api_summary(self.name, cur_model, elapsed, status_code)
 
-                logger.api_raw_response(self.name, resp.status, elapsed, raw_str)
-                logger.api_summary(self.name, cur_model, elapsed, resp.status)
+            if status_code != 200:
+                return ""
 
-                res = ""
-                if data.get("candidates") and len(data["candidates"]) > 0:
-                    for p in data["candidates"][0].get("content", {}).get("parts", []):
-                        if p.get("text"):
-                            res += p["text"]
-                return str(res).strip()
+            data = json.loads(raw_str)
+            res = ""
+            if data.get("candidates") and len(data["candidates"]) > 0:
+                for p in data["candidates"][0].get("content", {}).get("parts", []):
+                    if p.get("text"):
+                        res += p["text"]
+            return str(res).strip()
         except Exception as e:
             elapsed = time.time() - t_call
             logger.api_summary(self.name, cur_model, elapsed, 0, note=f"Exception: {e}")

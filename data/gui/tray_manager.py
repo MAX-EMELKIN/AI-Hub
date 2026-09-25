@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 # data/gui/tray_manager.py
-
-import ctypes, os, threading
+import ctypes
+import os
+import threading
 from ctypes import wintypes
 from data.core.config_manager import config
 from data.core.hotkey_manager import hotkey_manager
@@ -18,10 +18,10 @@ else:
     LPARAM = ctypes.c_long
 
 WNDPROC = ctypes.WINFUNCTYPE(LRESULT, wintypes.HWND, wintypes.UINT, WPARAM, LPARAM)
-
 user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32
 shell32 = ctypes.windll.shell32
+
 
 class NOTIFYICONDATAW(ctypes.Structure):
     _fields_ = [
@@ -33,6 +33,7 @@ class NOTIFYICONDATAW(ctypes.Structure):
         ('hIcon', wintypes.HICON),
         ('szTip', wintypes.WCHAR * 128)
     ]
+
 
 class WNDCLASSEXW(ctypes.Structure):
     _fields_ = [
@@ -50,56 +51,43 @@ class WNDCLASSEXW(ctypes.Structure):
         ('hIconSm', wintypes.HICON)
     ]
 
+
 kernel32.GetModuleHandleW.argtypes = [wintypes.LPCWSTR]
 kernel32.GetModuleHandleW.restype = wintypes.HINSTANCE
-
 user32.RegisterClassExW.argtypes = [ctypes.POINTER(WNDCLASSEXW)]
 user32.RegisterClassExW.restype = wintypes.ATOM
-
 user32.CreateWindowExW.argtypes = [
     wintypes.DWORD, wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.DWORD,
     ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
     wintypes.HWND, wintypes.HMENU, wintypes.HINSTANCE, wintypes.LPVOID
 ]
 user32.CreateWindowExW.restype = wintypes.HWND
-
 user32.DefWindowProcW.argtypes = [wintypes.HWND, wintypes.UINT, WPARAM, LPARAM]
 user32.DefWindowProcW.restype = LRESULT
 user32.LoadIconW.argtypes = [wintypes.HINSTANCE, wintypes.LPCWSTR]
 user32.LoadIconW.restype = wintypes.HICON
 user32.LoadImageW.argtypes = [wintypes.HINSTANCE, wintypes.LPCWSTR, wintypes.UINT, ctypes.c_int, ctypes.c_int, wintypes.UINT]
 user32.LoadImageW.restype = wintypes.HANDLE
-
 shell32.Shell_NotifyIconW.argtypes = [wintypes.DWORD, ctypes.POINTER(NOTIFYICONDATAW)]
 shell32.Shell_NotifyIconW.restype = wintypes.BOOL
-
 user32.GetMessageW.argtypes = [ctypes.POINTER(wintypes.MSG), wintypes.HWND, wintypes.UINT, wintypes.UINT]
 user32.GetMessageW.restype = wintypes.BOOL
-
 user32.TranslateMessage.argtypes = [ctypes.POINTER(wintypes.MSG)]
 user32.TranslateMessage.restype = wintypes.BOOL
-
 user32.DispatchMessageW.argtypes = [ctypes.POINTER(wintypes.MSG)]
 user32.DispatchMessageW.restype = LRESULT
-
 user32.PostMessageW.argtypes = [wintypes.HWND, wintypes.UINT, WPARAM, LPARAM]
 user32.PostMessageW.restype = wintypes.BOOL
-
 user32.CreatePopupMenu.argtypes = []
 user32.CreatePopupMenu.restype = wintypes.HMENU
-
 user32.DestroyMenu.argtypes = [wintypes.HMENU]
 user32.DestroyMenu.restype = wintypes.BOOL
-
 user32.AppendMenuW.argtypes = [wintypes.HMENU, wintypes.UINT, wintypes.WPARAM, wintypes.LPCWSTR]
 user32.AppendMenuW.restype = wintypes.BOOL
-
 user32.GetCursorPos.argtypes = [ctypes.POINTER(wintypes.POINT)]
 user32.GetCursorPos.restype = wintypes.BOOL
-
 user32.SetForegroundWindow.argtypes = [wintypes.HWND]
 user32.SetForegroundWindow.restype = wintypes.BOOL
-
 user32.TrackPopupMenu.argtypes = [wintypes.HMENU, wintypes.UINT, ctypes.c_int, ctypes.c_int, ctypes.c_int, wintypes.HWND, ctypes.c_void_p]
 user32.TrackPopupMenu.restype = wintypes.UINT
 
@@ -107,18 +95,15 @@ WM_USER = 0x0400
 WM_TRAYICON = WM_USER + 20
 WM_DESTROY = 0x0002
 WM_NULL = 0x0000
-
 NIM_ADD = 0x00000000
 NIM_MODIFY = 0x0001
 NIM_DELETE = 0x0002
 NIF_MESSAGE = 0x0001
 NIF_ICON = 0x0002
 NIF_TIP = 0x0004
-
 WM_LBUTTONUP = 0x0202
 WM_RBUTTONUP = 0x0205
 WM_LBUTTONDBLCLK = 0x0203
-
 MF_STRING = 0x0000
 MF_SEPARATOR = 0x0800
 MF_CHECKED = 0x0008
@@ -126,6 +111,7 @@ MF_UNCHECKED = 0x0000
 MF_POPUP = 0x0010
 TPM_RIGHTBUTTON = 0x0002
 TPM_RETURNCMD = 0x0100
+
 
 class TrayManager:
     def __init__(self, main_window, on_exit_callback=None):
@@ -137,7 +123,6 @@ class TrayManager:
         self._is_alive = True
         self._wndproc_ref = WNDPROC(self._wnd_proc)
         self._tray_lang_map = {}
-
         self._start_tray_thread()
 
     def _find_icon(self):
@@ -174,22 +159,20 @@ class TrayManager:
         def _loop():
             hinst = kernel32.GetModuleHandleW(None)
             class_name = f"QTranslateAIHubTray_{os.getpid()}"
-
             wndclass = WNDCLASSEXW()
             wndclass.cbSize = ctypes.sizeof(WNDCLASSEXW)
             wndclass.style = 0
             wndclass.lpfnWndProc = self._wndproc_ref
             wndclass.hInstance = hinst
             wndclass.lpszClassName = class_name
-
             user32.RegisterClassExW(ctypes.byref(wndclass))
 
             self.hwnd = user32.CreateWindowExW(
                 0, class_name, "QTranslateAIHubTrayMsgWindow",
                 0, 0, 0, 0, 0, None, None, hinst, None
             )
-
             self.hicon = self._find_icon()
+
             nid = NOTIFYICONDATAW()
             nid.cbSize = ctypes.sizeof(NOTIFYICONDATAW)
             nid.hWnd = self.hwnd
@@ -239,23 +222,21 @@ class TrayManager:
 
     def _show_native_popup_menu(self):
         hmenu = user32.CreatePopupMenu()
-
         try:
             is_vis = (self.main_window.state() != "withdrawn" and self.main_window.winfo_viewable())
         except Exception:
             is_vis = False
 
-        show_str = t("tray_hide") if is_vis else t("tray_show")
+        show_str = t("tray_hide", "Скрыть главное окно") if is_vis else t("tray_show", "Показать главное окно")
         user32.AppendMenuW(hmenu, MF_STRING, 1, show_str)
         user32.AppendMenuW(hmenu, MF_SEPARATOR, 0, None)
-
-        user32.AppendMenuW(hmenu, MF_STRING, 5, t("chat.title"))
-        user32.AppendMenuW(hmenu, MF_STRING, 4, t("tray_browser"))
-        user32.AppendMenuW(hmenu, MF_STRING, 2, t("tray_ocr"))
-        user32.AppendMenuW(hmenu, MF_STRING, 3, t("tray_tts"))
+        user32.AppendMenuW(hmenu, MF_STRING, 5, t("chat.title", "ИИ Чат"))
+        user32.AppendMenuW(hmenu, MF_STRING, 4, t("tray_browser", "Браузер Supermium"))
+        user32.AppendMenuW(hmenu, MF_STRING, 2, t("tray_ocr", "Распознавание текста (OCR)"))
+        user32.AppendMenuW(hmenu, MF_STRING, 3, t("tray_tts", "Озвучить выделенный текст (TTS)"))
 
         is_con = logger.is_console_visible()
-        con_str = t("tray_hide") if is_con else t("tray_show")
+        con_str = "Скрыть консоль" if is_con else "Показать консоль"
         user32.AppendMenuW(hmenu, MF_STRING, 6, con_str)
 
         user32.AppendMenuW(hmenu, MF_SEPARATOR, 0, None)
@@ -263,29 +244,24 @@ class TrayManager:
         lang_sub = user32.CreatePopupMenu()
         cur_cfg_lang = config.get_str("GENERAL", "UILanguage", "auto").lower()
         available_langs = i18n.get_available_languages()
-
         self._tray_lang_map.clear()
         for idx, (l_code, l_name) in enumerate(available_langs):
             cmd_id = 100 + idx
             self._tray_lang_map[cmd_id] = l_code
-
             is_checked = (l_code == cur_cfg_lang) or (l_code == "auto" and cur_cfg_lang == "auto")
             flags = MF_STRING | (MF_CHECKED if is_checked else MF_UNCHECKED)
             user32.AppendMenuW(lang_sub, flags, cmd_id, str(l_name))
 
-        user32.AppendMenuW(hmenu, MF_POPUP, lang_sub, t("tray_lang"))
+        user32.AppendMenuW(hmenu, MF_POPUP, lang_sub, t("tray_lang", "Язык интерфейса"))
         user32.AppendMenuW(hmenu, MF_SEPARATOR, 0, None)
-
-        user32.AppendMenuW(hmenu, MF_STRING, 99, t("tray_exit"))
+        user32.AppendMenuW(hmenu, MF_STRING, 99, t("tray_exit", "Выход"))
 
         pt = wintypes.POINT()
         user32.GetCursorPos(ctypes.byref(pt))
-
         user32.SetForegroundWindow(self.hwnd)
         cmd = user32.TrackPopupMenu(hmenu, TPM_RIGHTBUTTON | TPM_RETURNCMD, pt.x, pt.y, 0, self.hwnd, None)
         user32.PostMessageW(self.hwnd, WM_NULL, 0, 0)
         user32.DestroyMenu(hmenu)
-
         self._handle_menu_action(cmd)
 
     def _handle_menu_action(self, cmd):
@@ -335,6 +311,7 @@ class TrayManager:
             self.main_window.after(0, _toggle_con)
         elif cmd in self._tray_lang_map:
             chosen_code = self._tray_lang_map[cmd]
+
             def _switch_lang():
                 i18n.set_language(chosen_code)
                 self.main_window.reload_entire_gui()
@@ -345,7 +322,6 @@ class TrayManager:
                     self.main_window._save_current_geometry()
             except Exception:
                 pass
-
             self.cleanup()
             if self.on_exit:
                 self.main_window.after(0, self.on_exit)
