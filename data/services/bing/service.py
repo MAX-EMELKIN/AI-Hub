@@ -1,18 +1,17 @@
-# -*- coding: utf-8 -*-
 # data/services/bing/service.py
+# -*- coding: utf-8 -*-
+import os
+import sys
 import json
-import time
 import re
-import urllib.request
 import urllib.parse
+import urllib.request
 import urllib.error
-import http.cookiejar
-from data.services.base_service import BaseService
+from data.services.base_service import BaseService, USER_AGENT
 from data.core.logger import logger
 
-BING_MAX_CHUNK = 850
 
-class BingTranslatorService(BaseService):
+class BingService(BaseService):
     def __init__(self):
         super().__init__(
             service_id="bing",
@@ -22,169 +21,63 @@ class BingTranslatorService(BaseService):
         )
         self.is_ai_service = False
         self.supports_hyperparameters = False
-        self._ig = ""
-        self._iid = "translator.5027"
-        self._key = ""
-        self._token = ""
-        self._cookie_jar = http.cookiejar.CookieJar()
-        self._opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self._cookie_jar))
-        self._last_auth_time = 0
+        self.supports_glossary = False
+
+    def get_config_fields(self):
+        return []
 
     def is_ready(self):
-        return True, "Text Text Text Text-Text Bing Translator (Text Text)"
-
-    def _refresh_session(self):
-        url = "https://www.bing.com/translator"
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7"
-        }
-        try:
-            req = urllib.request.Request(url, headers=headers)
-            with self._opener.open(req, timeout=10.0) as resp:
-                html = resp.read().decode("utf-8", errors="ignore")
-
-            m_ig = re.search(r'IG:"([A-Fa-f0-9]+)"', html) or re.search(r'\"ig\":\"(.*?)\"', html) or re.search(r'data-ig="([^"]+)"', html)
-            if m_ig:
-                self._ig = m_ig.group(1)
-
-            m_iid = re.findall(r'data-iid="([^"]+)"', html)
-            if m_iid:
-                self._iid = m_iid[-1]
-
-            m_helper = re.search(r'params_AbusePreventionHelper\s*=\s*\[\s*(\d+)\s*,\s*"([^"]+)"', html)
-            if not m_helper:
-                m_helper = re.search(r'\[\s*(\d{10,15})\s*,\s*"([A-Za-z0-9+/=_\-]+)"', html)
-
-            if m_helper:
-                self._key = m_helper.group(1)
-                self._token = m_helper.group(2)
-                self._last_auth_time = time.time()
-                logger.system("Bing Translator: Text Text Text Text")
-                return True
-        except Exception as e:
-            logger.system(f"Bing Translator: Text Text Text Text: {e}")
-        return False
-
-    def _split_into_bing_chunks(self, text, max_len=850):
-        if len(text) <= max_len:
-            return [text]
-
-        lines = text.split('\n')
-        chunks = []
-        cur_lines = []
-        cur_len = 0
-
-        for line in lines:
-            line_len = len(line) + 1
-            if cur_len + line_len > max_len and cur_lines:
-                chunks.append("\n".join(cur_lines))
-                cur_lines = [line]
-                cur_len = line_len
-            else:
-                cur_lines.append(line)
-                cur_len += line_len
-
-        if cur_lines:
-            chunks.append("\n".join(cur_lines))
-
-        final_chunks = []
-        for ch in chunks:
-            if len(ch) <= max_len:
-                final_chunks.append(ch)
-            else:
-                sentences = re.split(r'(?<=[.!?…])\s+', ch)
-                s_cur = []
-                s_len = 0
-                for s in sentences:
-                    if s_len + len(s) + 1 > max_len and s_cur:
-                        final_chunks.append(" ".join(s_cur))
-                        s_cur = [s]
-                        s_len = len(s)
-                    else:
-                        s_cur.append(s)
-                        s_len += len(s) + 1
-                if s_cur:
-                    final_chunks.append(" ".join(s_cur))
-
-        return final_chunks
-
-    def _translate_single_chunk(self, chunk_text, src, trg):
-        url = f"https://www.bing.com/ttranslatev3?isVertical=1&&IG={self._ig}&IID={self._iid}"
-
-        post_data = {
-            "text": chunk_text,
-            "fromLang": src,
-            "to": trg,
-            "token": self._token,
-            "key": self._key,
-            "tryFetchingGenderDebiasedTranslations": "true"
-        }
-        encoded_data = urllib.parse.urlencode(post_data).encode("utf-8")
-
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Referer": "https://www.bing.com/translator",
-            "Origin": "https://www.bing.com",
-            "Accept": "*/*"
-        }
-
-        logger.api_payload(self.name, "Bing v3", url, headers, post_data)
-        t_call = time.time()
-
-        for attempt in range(2):
-            try:
-                req = urllib.request.Request(url, data=encoded_data, headers=headers)
-                with self._opener.open(req, timeout=12.0) as resp:
-                    raw_bytes = resp.read()
-                    elapsed = time.time() - t_call
-                    raw_str = raw_bytes.decode("utf-8")
-                    raw_json = json.loads(raw_str)
-
-                    logger.api_raw_response(self.name, resp.status, elapsed, raw_str)
-
-                if isinstance(raw_json, list) and len(raw_json) > 0:
-                    translations = raw_json[0].get("translations", [])
-                    if translations:
-                        return "".join(t_item.get("text", "") for t_item in translations)
-            except Exception as e:
-                elapsed = time.time() - t_call
-                logger.api_summary(self.name, "Bing v3", elapsed, 0, note=f"Error Text: {e}")
-                self._refresh_session()
-                time.sleep(0.3)
-
-        return chunk_text
+        return True, "Сервис Bing Translator готов к работе"
 
     def translate(self, text, src_lang="auto", trg_lang="ru", preset=None):
-        if not text or not text.strip():
+        clean_input = text.strip() if text else ""
+        if not clean_input:
             return ""
 
-        t0 = time.time()
-        if (time.time() - self._last_auth_time > 500) or not self._token or not self._ig:
-            self._refresh_session()
+        from_lang = src_lang if src_lang and src_lang != "auto" else "auto-detect"
+        to_lang = trg_lang if trg_lang and trg_lang != "auto" else "ru"
 
-        src = src_lang if (src_lang and src_lang != "auto") else "auto-detect"
-        trg = trg_lang or "ru"
-        if trg == "zh-CN":
-            trg = "zh-Hans"
-        if trg == "zh-TW":
-            trg = "zh-Hant"
+        if to_lang == "zh-cn":
+            to_lang = "zh-Hans"
+        elif to_lang == "zh-tw":
+            to_lang = "zh-Hant"
 
-        sub_chunks = self._split_into_bing_chunks(text, max_len=BING_MAX_CHUNK)
-        translated_parts = []
+        url = "https://www.bing.com/ttranslatev3"
+        payload = {
+            "text": clean_input,
+            "fromLang": from_lang,
+            "to": to_lang
+        }
+        data_encoded = urllib.parse.urlencode(payload).encode("utf-8")
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": USER_AGENT,
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Referer": "https://www.bing.com/translator"
+        }
 
-        for ch in sub_chunks:
-            part_res = self._translate_single_chunk(ch, src, trg)
-            translated_parts.append(part_res)
+        try:
+            req = urllib.request.Request(url, data=data_encoded, headers=headers, method="POST")
+            with urllib.request.urlopen(req, timeout=10.0) as resp:
+                raw_bytes = resp.read()
+                raw_str = raw_bytes.decode("utf-8", errors="replace")
+                data = json.loads(raw_str)
 
-        final = "\n".join(translated_parts) if '\n' in text else " ".join(translated_parts)
-        final = self.clean_response(final)
+                if isinstance(data, list) and len(data) > 0:
+                    translations = data[0].get("translations", [])
+                    if translations and len(translations) > 0:
+                        res = translations[0].get("text", "")
+                        return str(res).strip()
 
-        elapsed = round(time.time() - t0, 2)
-        logger.api_summary(self.name, "Bing v3", elapsed, 200, note=f"{len(sub_chunks)} Text-Text")
-        print(f"[{self.name} Text Text {elapsed}Text ({len(sub_chunks)} Text-Text)]: {final[:70]}...")
-        return final if final else text
+                return clean_input
+        except urllib.error.HTTPError as he:
+            err_msg = f"[Bing Ошибка HTTP {he.code}]"
+            logger.system(f"{self.name}: {err_msg}")
+            return err_msg
+        except Exception as e:
+            err_msg = f"[Bing Ошибка соединения: {e}]"
+            logger.system(f"{self.name}: {err_msg}")
+            return err_msg
 
-service = BingTranslatorService()
+
+service = BingService()

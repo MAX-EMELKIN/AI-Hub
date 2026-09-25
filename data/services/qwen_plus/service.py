@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # data/services/qwen_plus/service.py
+# -*- coding: utf-8 -*-
 import json
 import time
 import re
@@ -7,6 +7,7 @@ import urllib.request
 import urllib.error
 from data.services.base_service import BaseService
 from data.core.logger import logger
+
 
 class QwenPlusService(BaseService):
     def __init__(self):
@@ -16,12 +17,14 @@ class QwenPlusService(BaseService):
             route_name="/qwen_plus",
             icon_name="Service.png"
         )
+        self.supports_hyperparameters = True
+        self.supports_glossary = True
 
     def get_config_fields(self):
         return [
             {"key": "api_key", "label": "DashScope API Key:", "required": True},
-            {"key": "model", "label": "Text:", "required": True},
-            {"key": "endpoint", "label": "Text (URL):", "required": True}
+            {"key": "model", "label": "Модель:", "required": True},
+            {"key": "endpoint", "label": "Эндпоинт (URL):", "required": True}
         ]
 
     def translate(self, text, src_lang="auto", trg_lang="ru", preset=None):
@@ -31,12 +34,8 @@ class QwenPlusService(BaseService):
 
         raw_api_key = self.get_config_val("api_key")
         api_key = re.sub(r'^(?:Key|Token|Bearer)\s+', '', str(raw_api_key), flags=re.IGNORECASE).strip()
-
         model = self.get_config_val("model", "qwen-plus")
-        endpoint = self.get_config_val(
-            "endpoint",
-            "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions"
-        )
+        endpoint = self.get_config_val("endpoint", "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions")
 
         clean_input = text.strip() if text else ""
         if not clean_input:
@@ -52,25 +51,29 @@ class QwenPlusService(BaseService):
             clean_input, src_lang=src_lang, trg_lang=trg_lang, preset=preset
         )
 
-        try: temp_val = float(self.get_config_val("temperature", "0.1"))
-        except Exception: temp_val = 0.1
-        try: top_p_val = float(self.get_config_val("top_p", "0.3"))
-        except Exception: top_p_val = 0.3
-        try: max_tokens_val = int(self.get_config_val("max_tokens", "4096"))
-        except Exception: max_tokens_val = 4096
+        try:
+            temp_val = float(self.get_config_val("temperature", "0.1"))
+        except Exception:
+            temp_val = 0.1
+        try:
+            top_p_val = float(self.get_config_val("top_p", "0.3"))
+        except Exception:
+            top_p_val = 0.3
+        try:
+            max_tokens_val = int(self.get_config_val("max_tokens", "4096"))
+        except Exception:
+            max_tokens_val = 4096
 
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": annotated_text}
         ]
-
         payload = {
             "model": model,
             "messages": messages,
             "max_tokens": max_tokens_val,
             "temperature": temp_val,
-            "top_p": top_p_val,
-            "enable_thinking": False
+            "top_p": top_p_val
         }
 
         headers = {
@@ -84,9 +87,8 @@ class QwenPlusService(BaseService):
         t_call = time.time()
 
         try:
-            data_bytes = json.dumps(payload).encode("utf-8")
-            req = urllib.request.Request(endpoint, data=data_bytes, headers=headers)
-            with urllib.request.urlopen(req, timeout=40.0) as resp:
+            req = urllib.request.Request(endpoint, data=json.dumps(payload).encode("utf-8"), headers=headers)
+            with urllib.request.urlopen(req, timeout=35.0) as resp:
                 raw_bytes = resp.read()
                 elapsed = time.time() - t_call
                 raw_str = raw_bytes.decode("utf-8")
@@ -97,19 +99,18 @@ class QwenPlusService(BaseService):
 
             if data.get("error"):
                 err_msg = data["error"].get("message", str(data["error"]))
-                return f"[DashScope Error: {err_msg}]"
+                return f"[API Ошибка: {err_msg}]"
 
             if not data.get("choices") or len(data["choices"]) == 0:
-                return f"[{self.name}: Text Text Text]"
+                return f"[{self.name}: Пустой ответ сервера]"
 
             msg = data["choices"][0].get("message", {})
             content = msg.get("content", "")
-
             content = re.sub(r'<think>[\s\S]*?</think>', '', str(content), flags=re.IGNORECASE)
             final = self.clean_response(content)
 
             elapsed_total = round(time.time() - t0, 2)
-            print(f"[{self.name} Text Text {elapsed_total}Text]: {final[:70]}...")
+            print(f"[{self.name} готов за {elapsed_total}с]: {final[:70]}...")
             return final if final else clean_input
 
         except urllib.error.HTTPError as he:
@@ -117,17 +118,11 @@ class QwenPlusService(BaseService):
             err_body = he.read().decode("utf-8", errors="ignore")
             logger.api_raw_response(self.name, he.code, elapsed, err_body)
             logger.api_summary(self.name, model, elapsed, he.code, note=f"HTTP Error {he.code}")
-            return f"Error DashScope (HTTP {he.code}): {err_body[:200]}"
+            return f"Ошибка {self.name} (HTTP {he.code}): {err_body[:200]}"
         except Exception as e:
             elapsed = time.time() - t_call
             logger.api_summary(self.name, model, elapsed, 0, note=f"Exception: {e}")
-            return f"Error Qwen Plus: {e}"
+            return f"Ошибка API: {e}"
+
 
 service = QwenPlusService()
-
-try:
-    from data.core.server import register_service_route
-    register_service_route("qwen_plus", service.translate)
-    register_service_route("/qwen_plus", service.translate)
-except Exception:
-    pass

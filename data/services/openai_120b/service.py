@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # data/services/openai_120b/service.py
+# -*- coding: utf-8 -*-
 import json
 import time
 import re
@@ -7,6 +7,7 @@ import urllib.request
 import urllib.error
 from data.services.base_service import BaseService
 from data.core.logger import logger
+
 
 class OpenAIService(BaseService):
     def __init__(self):
@@ -21,8 +22,8 @@ class OpenAIService(BaseService):
         return [
             {"key": "account_id", "label": "Account ID:", "required": True},
             {"key": "api_token", "label": "API Token:", "required": True},
-            {"key": "model", "label": "Text:", "required": True},
-            {"key": "endpoint", "label": "Text URL:", "required": True}
+            {"key": "model", "label": "Модель (@cf/...):", "required": True},
+            {"key": "endpoint", "label": "Эндпоинт (URL):", "required": True}
         ]
 
     def translate(self, text, src_lang="auto", trg_lang="ru", preset=None):
@@ -30,10 +31,10 @@ class OpenAIService(BaseService):
         if not ok:
             return f"[{self.name}]: {reason}"
 
-        account_id = self.get_config_val("account_id")
-        api_token = self.get_config_val("api_token")
-        model = self.get_config_val("model", "@cf/openai/gpt-oss-120b")
-        endpoint_template = self.get_config_val("endpoint", "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}")
+        account_id = self.get_config_val("account_id").strip()
+        api_token = self.get_config_val("api_token").strip()
+        model = self.get_config_val("model", "@cf/openai/gpt-oss-120b").strip()
+        endpoint_template = self.get_config_val("endpoint", "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}").strip()
 
         url = endpoint_template.replace("{account_id}", account_id).replace("{model}", model)
 
@@ -51,10 +52,14 @@ class OpenAIService(BaseService):
             clean_input, src_lang=src_lang, trg_lang=trg_lang, preset=preset
         )
 
-        try: temp = float(self.get_config_val("temperature", "0.2"))
-        except Exception: temp = 0.2
-        try: max_tokens = int(self.get_config_val("max_tokens", "3072"))
-        except Exception: max_tokens = 3072
+        try:
+            temp = float(self.get_config_val("temperature", "0.2"))
+        except Exception:
+            temp = 0.2
+        try:
+            max_tokens = int(self.get_config_val("max_tokens", "3072"))
+        except Exception:
+            max_tokens = 3072
         enable_thinking = self.get_config_val("enable_thinking", "0") in ("1", "true", "yes")
 
         payload = {
@@ -89,7 +94,7 @@ class OpenAIService(BaseService):
 
             if data.get("errors") and len(data["errors"]) > 0:
                 err_msg = data["errors"][0].get("message", str(data["errors"][0]))
-                return f"[Cloudflare Error: {err_msg}]"
+                return f"[Cloudflare Ошибка: {err_msg}]"
 
             res = ""
             if data.get("result"):
@@ -98,14 +103,14 @@ class OpenAIService(BaseService):
                     res = data["result"]["choices"][0].get("message", {}).get("content", "")
 
             if not res:
-                return f"[{self.name}: Text Text Text]"
+                return f"[{self.name}: Пустой ответ сервера]"
 
             res = re.sub(r'<think>[\s\S]*?</think>', '', str(res), flags=re.IGNORECASE)
-            res = re.sub(r'^(?:Here is the translation:?|Translation:?)\s*(\r?\n)+', '', res, flags=re.IGNORECASE)
+            res = re.sub(r'^(?:Вот перевод:|Here is the translation:|Перевод:|Translation:)\s*(\r?\n)+', '', res, flags=re.IGNORECASE)
 
             final = self.clean_response(res)
             elapsed_total = round(time.time() - t0, 2)
-            print(f"[{self.name} Text Text {elapsed_total}Text]: {final[:70]}...")
+            print(f"[{self.name} готов за {elapsed_total}с]: {final[:70]}...")
             return final if final else clean_input
 
         except urllib.error.HTTPError as he:
@@ -113,10 +118,11 @@ class OpenAIService(BaseService):
             err_body = he.read().decode("utf-8", errors="ignore")
             logger.api_raw_response(self.name, he.code, elapsed, err_body)
             logger.api_summary(self.name, model, elapsed, he.code, note=f"HTTP Error {he.code}")
-            return f"Error {self.name} (HTTP {he.code}): {err_body[:200]}"
+            return f"Ошибка {self.name} (HTTP {he.code}): {err_body[:200]}"
         except Exception as e:
             elapsed = time.time() - t_call
             logger.api_summary(self.name, model, elapsed, 0, note=f"Exception: {e}")
-            return f"Error {self.name}: {e}"
+            return f"Ошибка {self.name}: {e}"
+
 
 service = OpenAIService()

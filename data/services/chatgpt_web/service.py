@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # data/services/chatgpt_web/service.py
+# -*- coding: utf-8 -*-
 import time
 import json
 import re
@@ -8,14 +8,14 @@ from data.core.cdp_client import browser_cdp
 from data.core.logger import logger
 
 CHATGPT_UI_JUNK = [
-    "Text", "Text", "Edit", "Copy", "Bad response", "Good response",
-    "Read aloud", "Text", "Text", "Share", "Text", "Text",
-    "Text Text Text", "Message ChatGPT", "Text Text Text", "Ask anything"
+    "Копировать", "Редактировать", "Edit", "Copy", "Bad response", "Good response",
+    "Read aloud", "Голосовое чтение", "Поделиться", "Share", "Остановить", "Отправить",
+    "Message ChatGPT", "Сообщение ChatGPT", "Ask anything", "Спросить"
 ]
 
 JS_AUTO_DISMISS_POPUPS = """
 (() => {
-    const closeBtns = document.querySelectorAll('button[data-testid="close-button"], button[aria-label="Close"], button[aria-label="Text"], div[role="dialog"] button');
+    const closeBtns = document.querySelectorAll('button[data-testid="close-button"], button[aria-label="Close"], button[aria-label="Закрыть"], div[role="dialog"] button');
     closeBtns.forEach(b => {
         try {
             if (!b.getAttribute('data-testid') || !b.getAttribute('data-testid').includes('send')) {
@@ -28,13 +28,13 @@ JS_AUTO_DISMISS_POPUPS = """
     for (const btn of buttons) {
         const txt = (btn.innerText || "").trim().toLowerCase();
         if (
-            txt.includes("Text") ||
+            txt.includes("понятно") ||
             txt.includes("continue") ||
             txt.includes("stay logged out") ||
-            txt.includes("Text") ||
+            txt.includes("закрыть") ||
             txt.includes("got it") ||
             txt.includes("dismiss") ||
-            txt.includes("Text")
+            txt.includes("продолжить")
         ) {
             const testId = btn.getAttribute('data-testid') || '';
             if (!testId.includes('send') && !testId.includes('stop')) {
@@ -49,6 +49,7 @@ JS_AUTO_DISMISS_POPUPS = """
 })()
 """
 
+
 class ChatGPTWebService(BaseService):
     def __init__(self):
         super().__init__(
@@ -62,11 +63,11 @@ class ChatGPTWebService(BaseService):
 
     def get_config_fields(self):
         return [
-            {"key": "endpoint", "label": "Text-Text Text:", "required": True}
+            {"key": "endpoint", "label": "Веб-интерфейс ChatGPT:", "required": True}
         ]
 
     def is_ready(self):
-        return True, "Text Text Text-Text ChatGPT Text Supermium (Text API-Text)"
+        return True, "Прямое подключение к веб-версии ChatGPT через Supermium (без API-ключа)"
 
     def _extract_clean_translation(self, raw_text):
         if not raw_text:
@@ -92,11 +93,11 @@ class ChatGPTWebService(BaseService):
             fast_res = self.fetch_fast_word(clean_input, src=src_lang, trg=trg_lang)
             if fast_res:
                 elapsed = round(time.time() - t0, 3)
-                logger.api_summary(self.name, "ChatGPT QuickWord", elapsed, 200, note="Text-Text 1 Text")
-                print(f"[ChatGPT Web]: Text Text 1 Text ({elapsed}Text): {fast_res}")
+                logger.api_summary(self.name, "ChatGPT QuickWord", elapsed, 200, note="Быстрый перевод 1 слова")
+                print(f"[ChatGPT Web]: Быстрый перевод 1 слова ({elapsed}с): {fast_res}")
                 return fast_res
 
-        logger.browser_event(f"ChatGPT Web: Text Text ({src_lang} -> {trg_lang}, Text: {len(clean_input)} Text.)")
+        logger.browser_event(f"ChatGPT Web: Запуск перевода ({src_lang} -> {trg_lang}, Символов: {len(clean_input)} симв.)")
         query = self.build_prompt_query(clean_input, src_lang=src_lang, trg_lang=trg_lang, preset=preset)
 
         try:
@@ -130,11 +131,11 @@ class ChatGPTWebService(BaseService):
                 is_login = browser_cdp.evaluate_js_on_tab("chatgpt", "!!document.querySelector('button[data-testid=\"login-button\"], a[href*=\"login\"]')")
 
                 if is_cf:
-                    err = "[ChatGPT Web: Text Text Cloudflare Text Text Text]"
+                    err = "[ChatGPT Web: Обнаружена проверка Cloudflare. Откройте окно браузера и пройдите капчу]"
                 elif is_login:
-                    err = "[ChatGPT Web: Text Text Text ChatGPT Text Text Text]"
+                    err = "[ChatGPT Web: Требуется вход в аккаунт ChatGPT. Откройте браузер и авторизуйтесь]"
                 else:
-                    err = "[ChatGPT Web: Text Text Text Text Text. Text Text.]"
+                    err = "[ChatGPT Web: Поле ввода сообщения не найдено. Проверьте окно браузера.]"
 
                 logger.browser_event(f"ChatGPT Web: {err}")
                 return err
@@ -184,7 +185,7 @@ class ChatGPTWebService(BaseService):
             js_trigger_send = """
             (() => {
                 const sendBtn = document.querySelector('button[data-testid="send-button"]') ||
-                                document.querySelector('button[aria-label*="Text"]') ||
+                                document.querySelector('button[aria-label*="Отправить"]') ||
                                 document.querySelector('button[aria-label*="Send"]');
                 if (sendBtn && !sendBtn.disabled) {
                     sendBtn.click();
@@ -219,12 +220,12 @@ class ChatGPTWebService(BaseService):
 
                 check_status_js = """
                 (() => {
-                    const stopBtn = document.querySelector('button[data-testid="stop-button"], button[aria-label*="Stop"], button[aria-label*="Text"]');
+                    const stopBtn = document.querySelector('button[data-testid="stop-button"], button[aria-label*="Stop"], button[aria-label*="Остановить"]');
                     return !!stopBtn;
                 })()
                 """
                 if browser_cdp.evaluate_js_on_tab("chatgpt", check_status_js):
-                    logger.browser_event("ChatGPT Web: Text Text Text")
+                    logger.browser_event("ChatGPT Web: Генерация ответа запущена")
                     break
 
             final_translation = ""
@@ -244,7 +245,7 @@ class ChatGPTWebService(BaseService):
                 const currentText = (clone.innerText || "").trim();
                 const prevText = {prev_text_json};
 
-                const stopBtn = document.querySelector('button[data-testid="stop-button"], button[aria-label*="Stop"], button[aria-label*="Text"]');
+                const stopBtn = document.querySelector('button[data-testid="stop-button"], button[aria-label*="Stop"], button[aria-label*="Остановить"]');
                 const isGenerating = !!stopBtn;
                 const isNew = (currentText.length > 0 && currentText !== prevText);
 
@@ -275,29 +276,30 @@ class ChatGPTWebService(BaseService):
                     has_marker = any(m in resp_text for m in [self.end_marker, "### END ###", "###END"])
                     if has_marker:
                         final_translation = self._extract_clean_translation(resp_text)
-                        logger.browser_event(f"ChatGPT Web: Text Text Text Text Text {attempt}")
+                        logger.browser_event(f"ChatGPT Web: Маркер завершения обнаружен на шаге {attempt}")
                         break
 
                     if not is_generating and len(resp_text) > 5:
                         final_translation = self._extract_clean_translation(resp_text)
-                        logger.browser_event(f"ChatGPT Web: Text Text Text Text {attempt}")
+                        logger.browser_event(f"ChatGPT Web: Генерация завершена на шаге {attempt}")
                         break
 
             if not final_translation and 'resp_text' in locals() and resp_text and is_new:
                 final_translation = self._extract_clean_translation(resp_text)
 
             if not final_translation:
-                final_translation = "[ChatGPT Web: Text Text Text Text. Text Text Text.]"
-                logger.browser_event("ChatGPT Web: Text Text Text Text")
+                final_translation = "[ChatGPT Web: Не удалось получить ответ от страницы. Повторите запрос.]"
+                logger.browser_event("ChatGPT Web: Превышено время ожидания ответа")
 
             elapsed = round(time.time() - t0, 2)
             logger.api_summary(self.name, "ChatGPT 4o Web", elapsed, 200)
-            print(f"[{self.name} Text Text {elapsed}Text]: {final_translation[:70]}...")
+            print(f"[{self.name} готов за {elapsed}с]: {final_translation[:70]}...")
             return final_translation
 
         except Exception as e:
             elapsed = round(time.time() - t0, 2)
             logger.api_summary(self.name, "ChatGPT 4o Web", elapsed, 0, note=f"Error: {e}")
-            return f"Error ChatGPT Web: {e}"
+            return f"Ошибка ChatGPT Web: {e}"
+
 
 service = ChatGPTWebService()

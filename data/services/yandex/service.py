@@ -1,13 +1,13 @@
-# -*- coding: utf-8 -*-
 # data/services/yandex/service.py
+# -*- coding: utf-8 -*-
 import json
 import time
-import uuid
-import urllib.request
 import urllib.parse
+import urllib.request
 import urllib.error
-from data.services.base_service import BaseService
+from data.services.base_service import BaseService, USER_AGENT
 from data.core.logger import logger
+
 
 class YandexService(BaseService):
     def __init__(self):
@@ -19,68 +19,59 @@ class YandexService(BaseService):
         )
         self.is_ai_service = False
         self.supports_hyperparameters = False
+        self.supports_glossary = False
+
+    def get_config_fields(self):
+        return []
 
     def is_ready(self):
-        return True, "Text Text Text Text Android (Text Text)"
+        return True, "Сервис Yandex Translate готов к работе"
 
     def translate(self, text, src_lang="auto", trg_lang="ru", preset=None):
-        if not text or not text.strip():
+        clean_input = text.strip() if text else ""
+        if not clean_input:
             return ""
 
         t0 = time.time()
-        src = src_lang if (src_lang and src_lang != "auto") else ""
+        src = src_lang if src_lang and src_lang != "auto" else ""
         trg = trg_lang or "ru"
         lang_pair = f"{src}-{trg}" if src else trg
-        req_uuid = uuid.uuid4().hex
 
-        url = f"https://translate.yandex.net/api/v1/tr.json/translate?uuid={req_uuid}&srv=android&lang={lang_pair}&reason=auto&format=text&yu=2210680511641235828"
-
-        post_data = {"text": text}
-        data_payload = urllib.parse.urlencode(post_data).encode("utf-8")
-
+        params = {
+            "lang": lang_pair,
+            "text": clean_input,
+            "format": "plain"
+        }
+        url = "https://translate.yandex.net/api/v1/tr.json/translate?" + urllib.parse.urlencode(params)
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Referer": "https://translate.yandex.com/"
+            "User-Agent": USER_AGENT,
+            "Accept": "application/json, text/javascript, */*; q=0.01"
         }
 
-        logger.api_payload(self.name, "Yandex API (Android)", url, headers, post_data)
-
         try:
-            req = urllib.request.Request(url, data=data_payload, headers=headers)
+            req = urllib.request.Request(url, headers=headers)
             with urllib.request.urlopen(req, timeout=10.0) as resp:
                 raw_bytes = resp.read()
-                elapsed = time.time() - t0
-                raw_str = raw_bytes.decode("utf-8")
-                raw_json = json.loads(raw_str)
+                raw_str = raw_bytes.decode("utf-8", errors="replace")
+                data = json.loads(raw_str)
 
-                logger.api_raw_response(self.name, resp.status, elapsed, raw_str)
-                logger.api_summary(self.name, "Yandex API (Android)", elapsed, resp.status)
+                if isinstance(data, dict) and "text" in data and isinstance(data["text"], list) and len(data["text"]) > 0:
+                    res = "".join(data["text"]).strip()
+                    elapsed = round(time.time() - t0, 2)
+                    print(f"[{self.name} готов за {elapsed}с]: {res[:70]}...")
+                    return res
 
-            res = ""
-            if "text" in raw_json and isinstance(raw_json["text"], list):
-                res = "\n".join(raw_json["text"])
-
-            final = self.clean_response(res)
-            print(f"[{self.name} Text Text {elapsed:.2f}Text]: {final[:70]}...")
-            return final if final else text
-
+                return clean_input
         except urllib.error.HTTPError as he:
-            elapsed = time.time() - t0
-            err_body = he.read().decode("utf-8", errors="ignore")
-            logger.api_raw_response(self.name, he.code, elapsed, err_body)
-            logger.api_summary(self.name, "Yandex API (Android)", elapsed, he.code, note=f"HTTP Error {he.code}")
-
-            fast = self.fetch_fast_word(text, src=src_lang, trg=trg_lang)
-            if fast: return fast
-            return f"Error Yandex: HTTP {he.code}"
-
+            err_msg = f"[Yandex Ошибка HTTP {he.code}]"
+            logger.system(f"{self.name}: {err_msg}")
+            fast = self.fetch_fast_word(clean_input, src=src_lang, trg=trg_lang)
+            return fast or err_msg
         except Exception as e:
-            elapsed = time.time() - t0
-            logger.api_summary(self.name, "Yandex API (Android)", elapsed, 0, note=f"Error: {e}")
-            fast = self.fetch_fast_word(text, src=src_lang, trg=trg_lang)
-            if fast: return fast
-            print(f"[❌ Yandex Error]: {e}")
-            return f"Error Yandex: {e}"
+            err_msg = f"[Yandex Ошибка соединения: {e}]"
+            logger.system(f"{self.name}: {err_msg}")
+            fast = self.fetch_fast_word(clean_input, src=src_lang, trg=trg_lang)
+            return fast or err_msg
+
 
 service = YandexService()

@@ -1,11 +1,12 @@
-# -*- coding: utf-8 -*-
 # data/services/deepl_web/service.py
+# -*- coding: utf-8 -*-
 import time
 import json
 import re
 from data.services.base_service import BaseService
 from data.core.cdp_client import browser_cdp
 from data.core.logger import logger
+
 
 class DeepLWebService(BaseService):
     def __init__(self):
@@ -21,11 +22,11 @@ class DeepLWebService(BaseService):
 
     def get_config_fields(self):
         return [
-            {"key": "endpoint", "label": "Text-Text DeepL:", "required": True}
+            {"key": "endpoint", "label": "Веб-интерфейс DeepL:", "required": True}
         ]
 
     def is_ready(self):
-        return True, "Text Text Text-Text DeepL Text Supermium (Text API-Text)"
+        return True, "Прямое подключение к веб-версии DeepL через Supermium (без API-ключа)"
 
     def translate(self, text, src_lang="auto", trg_lang="ru", preset=None):
         clean_input = text.strip() if text else ""
@@ -39,8 +40,8 @@ class DeepLWebService(BaseService):
             fast_res = self.fetch_fast_word(clean_input, src=src_lang, trg=trg_lang)
             if fast_res:
                 elapsed = round(time.time() - t0, 3)
-                logger.api_summary(self.name, "DeepL QuickWord", elapsed, 200, note="Text-Text 1 Text")
-                print(f"[DeepL Web]: Text Text 1 Text ({elapsed}Text): {fast_res}")
+                logger.api_summary(self.name, "DeepL QuickWord", elapsed, 200, note="Быстрый перевод 1 слова")
+                print(f"[DeepL Web]: Быстрый перевод 1 слова ({elapsed}с): {fast_res}")
                 return fast_res
 
         src_code = (src_lang or "auto").lower()
@@ -50,7 +51,7 @@ class DeepLWebService(BaseService):
         if trg_code in ("zh-cn", "zh-tw"):
             trg_code = "zh"
 
-        logger.browser_event(f"DeepL Web: Text Text ({src_code} -> {trg_code}, Text: {len(clean_input)} Text.)")
+        logger.browser_event(f"DeepL Web: Запуск перевода ({src_code} -> {trg_code}, Длина: {len(clean_input)} симв.)")
 
         try:
             browser_cdp.ensure_browser_running()
@@ -75,7 +76,7 @@ class DeepLWebService(BaseService):
 
             did_navigate = browser_cdp.evaluate_js_on_tab("deepl", js_force_lang)
             if did_navigate:
-                logger.browser_event(f"DeepL Web: Text Text Text Text {target_hash}")
+                logger.browser_event(f"DeepL Web: Переход на языковую пару {target_hash}")
                 time.sleep(0.5)
 
             has_input = False
@@ -90,7 +91,7 @@ class DeepLWebService(BaseService):
                     break
 
             if not has_input:
-                err = "[DeepL Web: Text Text Text Text Text. Text Text.]"
+                err = "[DeepL Web: Поле ввода текста не найдено. Проверьте окно браузера.]"
                 logger.browser_event(f"DeepL Web: {err}")
                 return err
 
@@ -179,7 +180,7 @@ class DeepLWebService(BaseService):
                             stable_count += 1
                             if stable_count >= 2:
                                 final_translation = resp_text
-                                logger.browser_event(f"DeepL Web: Text Text Text Text {attempt}")
+                                logger.browser_event(f"DeepL Web: Перевод успешно получен на шаге {attempt}")
                                 break
                         else:
                             stable_count = 0
@@ -189,20 +190,21 @@ class DeepLWebService(BaseService):
                 if 'resp_text' in locals() and resp_text:
                     final_translation = resp_text
                 else:
-                    err = "[DeepL Web: Text Text Text Text. Text Text Text.]"
+                    err = "[DeepL Web: Не удалось получить перевод от страницы. Повторите запрос.]"
                     logger.browser_event(f"DeepL Web: {err}")
                     return err
 
             final_clean = self.clean_response(final_translation)
             elapsed = round(time.time() - t0, 2)
             logger.api_summary(self.name, "DeepL Web", elapsed, 200)
-            print(f"[{self.name} Text Text {elapsed}Text]: {final_clean[:70]}...")
+            print(f"[{self.name} готов за {elapsed}с]: {final_clean[:70]}...")
             return final_clean
 
         except Exception as e:
             elapsed = round(time.time() - t0, 2)
             logger.api_summary(self.name, "DeepL Web", elapsed, 0, note=f"Error: {e}")
             print(f"[DeepL Web Error]: {e}")
-            return f"Error DeepL Web: {e}"
+            return f"Ошибка DeepL Web: {e}"
+
 
 service = DeepLWebService()

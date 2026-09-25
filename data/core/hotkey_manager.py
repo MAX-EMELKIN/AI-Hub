@@ -1,8 +1,10 @@
-# -*- coding: utf-8 -*-
 # data/core/hotkey_manager.py
-
-import ctypes, re, threading, time
+import ctypes
+import re
+import threading
+import time
 from ctypes import wintypes
+
 user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32
 
@@ -21,31 +23,22 @@ HOOKPROC = ctypes.WINFUNCTYPE(LRESULT, ctypes.c_int, WPARAM, LPARAM)
 
 kernel32.GetModuleHandleW.argtypes = [wintypes.LPCWSTR]
 kernel32.GetModuleHandleW.restype = wintypes.HINSTANCE
-
 user32.SetWindowsHookExW.argtypes = [ctypes.c_int, HOOKPROC, wintypes.HINSTANCE, wintypes.DWORD]
 user32.SetWindowsHookExW.restype = wintypes.HHOOK
-
 user32.CallNextHookEx.argtypes = [wintypes.HHOOK, ctypes.c_int, WPARAM, LPARAM]
 user32.CallNextHookEx.restype = LRESULT
-
 user32.UnhookWindowsHookEx.argtypes = [wintypes.HHOOK]
 user32.UnhookWindowsHookEx.restype = wintypes.BOOL
-
 user32.GetAsyncKeyState.argtypes = [ctypes.c_int]
 user32.GetAsyncKeyState.restype = ctypes.c_short
-
 user32.GetForegroundWindow.argtypes = []
 user32.GetForegroundWindow.restype = wintypes.HWND
-
 user32.GetWindowTextLengthW.argtypes = [wintypes.HWND]
 user32.GetWindowTextLengthW.restype = ctypes.c_int
-
 user32.GetClassNameW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
 user32.GetClassNameW.restype = ctypes.c_int
-
 user32.GetWindowRect.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.RECT)]
 user32.GetWindowRect.restype = wintypes.BOOL
-
 user32.SendMessageW.argtypes = [wintypes.HWND, wintypes.UINT, WPARAM, LPARAM]
 user32.SendMessageW.restype = LRESULT
 
@@ -58,6 +51,7 @@ WM_NCHITTEST = 0x0084
 HTCLOSE = 20
 SW_HIDE = 0
 
+
 class KBDLLHOOKSTRUCT(ctypes.Structure):
     _fields_ = [
         ('vkCode', wintypes.DWORD),
@@ -67,8 +61,10 @@ class KBDLLHOOKSTRUCT(ctypes.Structure):
         ('dwExtraInfo', ULONG_PTR)
     ]
 
+
 class POINT(ctypes.Structure):
     _fields_ = [('x', wintypes.LONG), ('y', wintypes.LONG)]
+
 
 class MSLLHOOKSTRUCT(ctypes.Structure):
     _fields_ = [
@@ -79,21 +75,23 @@ class MSLLHOOKSTRUCT(ctypes.Structure):
         ('dwExtraInfo', ULONG_PTR)
     ]
 
+
 VK_MAP = {
-    "f1":0x70, "f2":0x71, "f3":0x72, "f4":0x73, "f5":0x74, "f6":0x75,
-    "f7":0x76, "f8":0x77, "f9":0x78, "f10":0x79, "f11":0x7A, "f12":0x7B,
-    "q":0x51, "w":0x57, "e":0x45, "r":0x52, "t":0x54, "y":0x59, "u":0x55,
-    "i":0x49, "o":0x4F, "p":0x50, "a":0x41, "s":0x53, "d":0x44, "f":0x46,
-    "g":0x47, "h":0x48, "j":0x4A, "k":0x4B, "l":0x4C, "z":0x5A, "x":0x58,
-    "c":0x43, "v":0x56, "b":0x42, "n":0x4E, "m":0x4D, "space":0x20, "tab":0x09,
-    "esc":0x1B, "escape":0x1B, "enter":0x0D, "return":0x0D,
-    "1":0x31, "2":0x32, "3":0x33, "4":0x34, "5":0x35, "6":0x36, "7":0x37, "8":0x38, "9":0x39, "0":0x30
+    "f1": 0x70, "f2": 0x71, "f3": 0x72, "f4": 0x73, "f5": 0x74, "f6": 0x75,
+    "f7": 0x76, "f8": 0x77, "f9": 0x78, "f10": 0x79, "f11": 0x7A, "f12": 0x7B,
+    "q": 0x51, "w": 0x57, "e": 0x45, "r": 0x52, "t": 0x54, "y": 0x59, "u": 0x55,
+    "i": 0x49, "o": 0x4F, "p": 0x50, "a": 0x41, "s": 0x53, "d": 0x44, "f": 0x46,
+    "g": 0x47, "h": 0x48, "j": 0x4A, "k": 0x4B, "l": 0x4C, "z": 0x5A, "x": 0x58,
+    "c": 0x43, "v": 0x56, "b": 0x42, "n": 0x4E, "m": 0x4D, "space": 0x20, "tab": 0x09,
+    "esc": 0x1B, "escape": 0x1B, "enter": 0x0D, "return": 0x0D,
+    "1": 0x31, "2": 0x32, "3": 0x33, "4": 0x34, "5": 0x35, "6": 0x36, "7": 0x37, "8": 0x38, "9": 0x39, "0": 0x30
 }
 
 SYSTEM_IGNORE_CLASSES = [
     "shell_traywnd", "progman", "workerw", "qtranslateaihubtray",
     "shell_secondarytraywnd", "cortana", "windows.ui.core.corewindow"
 ]
+
 
 class ActiveWindowTracker:
     def __init__(self):
@@ -110,7 +108,6 @@ class ActiveWindowTracker:
                     buf = (ctypes.c_wchar * 256)()
                     user32.GetClassNameW(h, buf, 256)
                     c_name = buf.value.lower()
-
                     if not any(bad in c_name for bad in SYSTEM_IGNORE_CLASSES):
                         if user32.GetWindowTextLengthW(h) > 0:
                             self.last_user_hwnd = h
@@ -118,7 +115,9 @@ class ActiveWindowTracker:
                 pass
             time.sleep(0.05)
 
+
 window_tracker = ActiveWindowTracker()
+
 
 class GlobalHotkeyManager:
     def __init__(self):
@@ -127,22 +126,19 @@ class GlobalHotkeyManager:
         self.main_window = None
         self._hook_ref = HOOKPROC(self._hook_callback)
         self._mouse_hook_ref = HOOKPROC(self._mouse_hook_callback)
-
         self.ocr_hotkey_parsed = None
         self.toggle_hotkey_parsed = None
         self.tts_hotkey_parsed = None
-
         self._last_ctrl_time = 0
         self._last_alt_time = 0
 
     def parse_hotkey(self, hotkey_str):
         h = str(hotkey_str).strip().lower()
-        if not h or h in ("none", "Text", "Text", "[ Text Text ]", ""):
+        if not h or h in ("none", "нет", "[ нет ]", "disable", "отключено", ""):
             return None
-
-        if h in ("double_ctrl", "ctrl+ctrl", "ctrl ctrl", "2xctrl", "Text ctrl"):
+        if h in ("double_ctrl", "ctrl+ctrl", "ctrl ctrl", "2xctrl", "двойной ctrl"):
             return ("double_ctrl", None, None, None, None)
-        if h in ("double_alt", "alt+alt", "alt alt", "Text alt"):
+        if h in ("double_alt", "alt+alt", "alt alt", "2xalt", "двойной alt"):
             return ("double_alt", None, None, None, None)
 
         tokens = [k.strip() for k in re.split(r'[\+\s\-]+', h) if k.strip()]
@@ -150,11 +146,10 @@ class GlobalHotkeyManager:
         need_alt = any(x in ("alt", "menu") for x in tokens)
         need_shift = any(x == "shift" for x in tokens)
         need_win = any(x in ("win", "windows") for x in tokens)
-
         vk = None
-        for t in tokens:
-            if t not in ("ctrl", "control", "alt", "menu", "shift", "win", "windows") and t in VK_MAP:
-                vk = VK_MAP[t]
+        for t_item in tokens:
+            if t_item not in ("ctrl", "control", "alt", "menu", "shift", "win", "windows") and t_item in VK_MAP:
+                vk = VK_MAP[t_item]
                 break
 
         if not vk:
@@ -255,7 +250,6 @@ class GlobalHotkeyManager:
                 kbd = ctypes.cast(lParam, ctypes.POINTER(KBDLLHOOKSTRUCT)).contents
                 vk = kbd.vkCode
                 now = time.time()
-
                 ctrl_down = bool((user32.GetAsyncKeyState(0x11) & 0x8000) or (user32.GetAsyncKeyState(0xA2) & 0x8000) or (user32.GetAsyncKeyState(0xA3) & 0x8000))
                 shift_down = bool((user32.GetAsyncKeyState(0x10) & 0x8000) or (user32.GetAsyncKeyState(0xA0) & 0x8000) or (user32.GetAsyncKeyState(0xA1) & 0x8000))
                 alt_down = bool((user32.GetAsyncKeyState(0x12) & 0x8000) or (user32.GetAsyncKeyState(0xA4) & 0x8000) or (user32.GetAsyncKeyState(0xA5) & 0x8000))
@@ -279,7 +273,6 @@ class GlobalHotkeyManager:
                             self._last_ctrl_time = 0
                             return 1
                     self._last_ctrl_time = now
-
                 elif vk in (0x12, 0xA4, 0xA5):
                     if now - self._last_alt_time < 0.35:
                         if self.ocr_hotkey_parsed and self.ocr_hotkey_parsed[0] == "double_alt":
@@ -291,18 +284,14 @@ class GlobalHotkeyManager:
                 if self._matches_combo(self.ocr_hotkey_parsed, vk, ctrl_down, alt_down, shift_down, win_down):
                     self._trigger_ocr()
                     return 1
-
                 if self._matches_combo(self.toggle_hotkey_parsed, vk, ctrl_down, alt_down, shift_down, win_down):
                     self._trigger_toggle_win()
                     return 1
-
                 if self._matches_combo(self.tts_hotkey_parsed, vk, ctrl_down, alt_down, shift_down, win_down):
                     self._trigger_tts()
                     return 1
-
             except Exception:
                 pass
-
         return user32.CallNextHookEx(self.hook_handle, nCode, wParam, lParam)
 
     def _trigger_ocr(self):
@@ -337,13 +326,13 @@ class GlobalHotkeyManager:
                     if tts_engine.is_playing():
                         tts_engine.stop_speech()
                         return
-
                     text = grab_selection_from_target_hwnd(window_tracker.last_user_hwnd)
                     if text:
-                        print(f"[TTS]: Text Text -> \"{text[:60]}...\"")
+                        print(f"[TTS]: Захвачен текст -> \"{text[:60]}...\"")
                         tts_engine.speak_text(text)
                 except Exception as e:
-                    print(f"[TTS Error]: {e}")
+                    print(f"[TTS Ошибка]: {e}")
             self.main_window.after(0, _run)
+
 
 hotkey_manager = GlobalHotkeyManager()
