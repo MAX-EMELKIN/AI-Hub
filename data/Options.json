@@ -2,7 +2,7 @@
    "Application": {
       "SaveHistoryPath": "",
       "HistoryFilterFavorites": false,
-      "OptionsPageIndex": 2,
+      "OptionsPageIndex": 1,
       "HistoryFilter": ""
    },
    "Exceptions": {
@@ -101,7 +101,7 @@
       "WindowPopupPlacement": "2C0000001000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF2B00000031000000830200005D010000",
       "ClearHistoryOnExit": false,
       "EnableHistory": false,
-      "WindowKeyboardPlacement": "",
+      "WindowKeyboardPlacement": "2C0000001000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFD1020000A7010000AF04000074020000",
       "ShowServicesPane": true,
       "MinimizeToTrayOnMinimize": false,
       "WindowMainPlacement": "2C0000000000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF44000000B10000002D070000BC030000",
@@ -112,7 +112,7 @@
       "UseSmartDetection": true,
       "ShowMiddlePane": true,
       "LanguageTo": 46,
-      "WindowDictionaryPlacement": "2C0000000000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFC9000000D90000001F07000063030000",
+      "WindowDictionaryPlacement": "2C000000000000000100000000000000FE030000FFFFFFFFFFFFFFFFF3000000BC0000004907000046030000",
       "ShowTopPane": true,
       "MidSplitterPos": 162,
       "LanguageFrom": 1,
@@ -120,7 +120,7 @@
       "ReadPhonetically": false,
       "FontName": "",
       "MainWindowStartupAction": 0,
-      "ActiveDictionaryServices": [17],
+      "ActiveDictionaryServices": [24],
       "AlwaysDetectLanguage": true,
       "MainWindowShowOnLoad": false,
       "MinimizeToTrayOnClose": true,
