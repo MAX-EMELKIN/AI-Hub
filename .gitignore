@@ -7,8 +7,10 @@ dist/
 *.spec
 
 # Личные файлы конфигурации и API-ключи (Защита от утечки)
-data\providers.ini
-data\api_keys.ini
+providers.ini
+api_keys.ini
+data/providers.ini
+data/api_keys.ini
 *.local.ini
 
 # Файлы клиента QTranslate
