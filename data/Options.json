@@ -2,7 +2,7 @@
    "Application": {
       "SaveHistoryPath": "",
       "HistoryFilterFavorites": false,
-      "OptionsPageIndex": 1,
+      "OptionsPageIndex": 2,
       "HistoryFilter": ""
    },
    "Exceptions": {
@@ -13,8 +13,8 @@
    "Contents": {
       "EditBackTranslation": "",
       "SaveOnExit": true,
-      "EditTranslation": "Определение местоположения пользователя не поддерживается для использования API.",
-      "EditSource": "User location is not supported for the API use"
+      "EditTranslation": "Сделай профессиональный перевод на русский язык с точной передачей оригинального стиля.\rПРАВИЛА:\r\rСтиль и мимикрия: воспроизводят стиль, регистр и точный источник тональность.\r\rТерминология: устоявшиеся официальные термины пиши на целевом языке, уникальные бренды без перевода — в оригинале (без скобок с дублированием).\r\rОБЯЗАТЕЛЬНЫЕ ПРАВИЛА:\r\rВыполните подлинность и качественный перевод на русский язык с сохранением исходного стиля и смысла.\r\rСохраняй структуру абзацев, отступы и оригинальную пунктуацию.\r\rВыводы ИСКЛЮЧИТЕЛЬНО готовый перевод! Запрещено добавлять приветствия, пояснения, сноски и комментарии.\r\rНе повторяйте оригинальный текст, если он не является собственным именем или кодом.\r\rОбязательно завершите перевод маркером",
+      "EditSource": "This plugin is not a reverse engineered modification of Dynamic Animation Replacer. It does not include any of Dynamic Animation Replacer's code, aside from the parts that interact with the game code itself and can only be done in one way. It is my own work, based mostly on my own research into the game."
    },
    "Advanced": {
       "EnableSlowerListening": true,
@@ -44,7 +44,7 @@
       "ColorBack": 15790320
    },
    "Internet": {
-      "Timeout": 10000
+      "Timeout": 15000
    },
    "HotKeys": {
       "EnableHotKeys": true,
@@ -104,17 +104,17 @@
       "WindowKeyboardPlacement": "2C0000001000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFD1020000A7010000AF04000074020000",
       "ShowServicesPane": true,
       "MinimizeToTrayOnMinimize": false,
-      "WindowMainPlacement": "2C0000000000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF44000000B10000002D070000BC030000",
+      "WindowMainPlacement": "2C0000000000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF180300003200000034060000F8010000",
       "BackTranslation": false,
       "WindowHistoryPlacement": "",
       "WindowOptionsPlacement": "2C0000000000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7004000066000000FA060000ED010000",
-      "ActiveServices": [119],
+      "ActiveServices": [766],
       "UseSmartDetection": true,
       "ShowMiddlePane": true,
       "LanguageTo": 46,
       "WindowDictionaryPlacement": "2C000000000000000100000000000000FE030000FFFFFFFFFFFFFFFFF3000000BC0000004907000046030000",
       "ShowTopPane": true,
-      "MidSplitterPos": 162,
+      "MidSplitterPos": 154,
       "LanguageFrom": 1,
       "LocaleFoderName": "Russian",
       "ReadPhonetically": false,
@@ -122,7 +122,7 @@
       "MainWindowStartupAction": 0,
       "ActiveDictionaryServices": [24],
       "AlwaysDetectLanguage": true,
-      "MainWindowShowOnLoad": false,
+      "MainWindowShowOnLoad": true,
       "MinimizeToTrayOnClose": true,
       "ExpandHistoryItems": false,
       "BackTranslationSplitterPos": -1,
@@ -131,7 +131,7 @@
       "ClearOnDragDrop": true,
       "TextSize": 9
    },
-   "ServicesOrder": [1, 103, 107, 42, 112, 12, 114, 31, 118, 113, 105, 88, 106, 400, 98, 115, 117, 119, 111, 95, 11, 96, 116, 99, 685, 681, 699, 694, 677, 676, 675, 686, 700, 696, 705, 706, 707, 708, 711, 712, 713, 714, 715, 719],
+   "ServicesOrder": [1, 103, 107, 42, 112, 12, 114, 31, 118, 113, 105, 88, 106, 400, 98, 115, 117, 119, 111, 95, 11, 96, 116, 99, 685, 681, 699, 694, 677, 676, 675, 686, 700, 696, 705, 706, 707, 708, 711, 712, 713, 714, 715, 719, 1499, 766],
    "AutoDetection": {
       "LanguageFirst": 46,
       "LanguageSecond": 17,

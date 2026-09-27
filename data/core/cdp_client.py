@@ -396,7 +396,8 @@ class CDPBrowserManager:
         url_map = {
             "google": ("google.com", "https://www.google.com/"),
             "chatgpt": ("chatgpt.com", "https://chatgpt.com/"),
-            "deepl": ("deepl.com", "https://www.deepl.com/translator")
+            "deepl": ("deepl.com", "https://www.deepl.com/translator"),
+            "aistudio": ("aistudio.google.com", "https://aistudio.google.com/prompts/new_chat?model=gemini-3.8-flash")
         }
         kw, default_url = url_map.get(service_type, ("google.com", "https://www.google.com/"))
 
@@ -477,7 +478,14 @@ class CDPBrowserManager:
     def open_browser_window(self, url=None):
         self.show_browser_window()
         if url:
-            srv = "chatgpt" if "chatgpt.com" in url else ("deepl" if "deepl.com" in url else "google")
+            if "chatgpt.com" in url:
+                srv = "chatgpt"
+            elif "deepl.com" in url:
+                srv = "deepl"
+            elif "aistudio.google.com" in url:
+                srv = "aistudio"
+            else:
+                srv = "google"
             self.navigate_tab(srv, url)
 
     def send_tab_cdp_command(self, service_type, method, params=None, await_response=True):
