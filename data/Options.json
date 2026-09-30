@@ -13,8 +13,8 @@
    "Contents": {
       "EditBackTranslation": "",
       "SaveOnExit": true,
-      "EditTranslation": "Сделай профессиональный перевод на русский язык с точной передачей оригинального стиля.\rПРАВИЛА:\r\rСтиль и мимикрия: воспроизводят стиль, регистр и точный источник тональность.\r\rТерминология: устоявшиеся официальные термины пиши на целевом языке, уникальные бренды без перевода — в оригинале (без скобок с дублированием).\r\rОБЯЗАТЕЛЬНЫЕ ПРАВИЛА:\r\rВыполните подлинность и качественный перевод на русский язык с сохранением исходного стиля и смысла.\r\rСохраняй структуру абзацев, отступы и оригинальную пунктуацию.\r\rВыводы ИСКЛЮЧИТЕЛЬНО готовый перевод! Запрещено добавлять приветствия, пояснения, сноски и комментарии.\r\rНе повторяйте оригинальный текст, если он не является собственным именем или кодом.\r\rОбязательно завершите перевод маркером",
-      "EditSource": "This plugin is not a reverse engineered modification of Dynamic Animation Replacer. It does not include any of Dynamic Animation Replacer's code, aside from the parts that interact with the game code itself and can only be done in one way. It is my own work, based mostly on my own research into the game."
+      "EditTranslation": "Ваш вклад позволит мне полностью посвятить своё рабочее время этому проекту:\r\r- возвращение «невиртуального» метода установки\r- исправление и оптимизация текущего виртуального метода (больше контроля над\rфайловыми ссылками, разрешение конфликтов на уровне отдельных файлов, обработка\r«неучтённых» файлов)\r\r- бесшовное сканирование игр\r- масштабная переработка пользовательского интерфейса (графически и функционально)\r- управление ENB\r- добавление новых игровых режимов\r\r...и множество других функций, при этом сообщество всегда сможет голосовать за определение приоритетов!",
+      "EditSource": "Your contribution will allow me to dedicate my full time working on it:\r- bringing back the \"virtual-less\" installation method\r- fixing and streamlining the current virtual method (more control over\rfile links, manage file conflicts on a file by file basis, handle\r\"rogue\" files)\r- seamless game scan\r- overhauling the user interface (graphically and functionally)\r- ENB management\r- adding new game modes\r\r...and many more features for which the community will always be able to vote on what to prioritize!"
    },
    "Advanced": {
       "EnableSlowerListening": true,
@@ -104,7 +104,7 @@
       "WindowKeyboardPlacement": "2C0000001000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFD1020000A7010000AF04000074020000",
       "ShowServicesPane": true,
       "MinimizeToTrayOnMinimize": false,
-      "WindowMainPlacement": "2C0000000000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF180300003200000034060000F8010000",
+      "WindowMainPlacement": "2C00000000000000010000000083FFFF0083FFFFFFFFFFFFFFFFFFFF2B04000032000000040700001D020000",
       "BackTranslation": false,
       "WindowHistoryPlacement": "",
       "WindowOptionsPlacement": "2C0000000000000001000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7004000066000000FA060000ED010000",
@@ -114,7 +114,7 @@
       "LanguageTo": 46,
       "WindowDictionaryPlacement": "2C000000000000000100000000000000FE030000FFFFFFFFFFFFFFFFF3000000BC0000004907000046030000",
       "ShowTopPane": true,
-      "MidSplitterPos": 154,
+      "MidSplitterPos": 170,
       "LanguageFrom": 1,
       "LocaleFoderName": "Russian",
       "ReadPhonetically": false,
@@ -122,7 +122,7 @@
       "MainWindowStartupAction": 0,
       "ActiveDictionaryServices": [24],
       "AlwaysDetectLanguage": true,
-      "MainWindowShowOnLoad": true,
+      "MainWindowShowOnLoad": false,
       "MinimizeToTrayOnClose": true,
       "ExpandHistoryItems": false,
       "BackTranslationSplitterPos": -1,
