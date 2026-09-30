@@ -11,6 +11,9 @@ providers.ini
 api_keys.ini
 data/providers.ini
 data/api_keys.ini
+data/config.ini
+data/models.ini
+data/Options.json
 *.local.ini
 
 # Файлы клиента QTranslate
@@ -18,7 +21,7 @@ QTranslate.exe
 QTranslate.ini
 bass.dll
 *.dll
-Services/
+/Services/
 Resources/
 Locales/
 Plugins/
