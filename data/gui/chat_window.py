@@ -1,4 +1,5 @@
 # data/gui/chat_window.py
+# -*- coding: utf-8 -*-
 import json
 import re
 import threading
@@ -14,6 +15,47 @@ from data.core.web_search import OPENAI_WEB_TOOLS, GEMINI_WEB_TOOLS, execute_too
 from data.gui.dialogs import attach_text_context_menu, ToolTip
 from data.gui.theme_manager import theme
 from data.services.base_service import LOADED_SERVICES
+
+TCL_POPDOWN_ADAPTIVE_HOOK = """
+proc ttk::combobox::PlacePopdown {cb popdown} {
+    set x [winfo rootx $cb]
+    set y [winfo rooty $cb]
+    set w [winfo width $cb]
+    set h [winfo height $cb]
+    set postoffset [ttk::style lookup TCombobox -postoffset {} {0 0 0 0}]
+    foreach var {x y w h} delta $postoffset {
+        incr $var $delta
+    }
+    set lbw [$popdown.f.l cget -width]
+    if {$lbw > 0} {
+        set font [$popdown.f.l cget -font]
+        if {$font eq ""} { set font [$cb cget -font] }
+        if {$font eq ""} { set font TkDefaultFont }
+        set charw [font measure $font "0"]
+        set calcw [expr {$lbw * $charw + 35}]
+        if {$calcw > $w} {
+            set w $calcw
+        }
+    }
+    set sw [winfo screenwidth $popdown]
+    if {$x + $w > $sw - 10} {
+        set maxw [expr {$sw - $x - 10}]
+        if {$maxw < [winfo width $cb]} {
+            set x [expr {$sw - $w - 10}]
+            if {$x < 10} { set x 10 }
+        } else {
+            set w $maxw
+        }
+    }
+    set H [winfo reqheight $popdown]
+    if {$y + $h + $H > [winfo screenheight $popdown]} {
+        set Y [expr {$y - $H}]
+    } else {
+        set Y [expr {$y + $h}]
+    }
+    wm geometry $popdown ${w}x${H}+${x}+${Y}
+}
+"""
 
 
 class UniversalChatClient:
@@ -47,7 +89,6 @@ class UniversalChatClient:
         srv = LOADED_SERVICES.get(self.service_id)
         if srv and hasattr(srv, "_execute_request_raw"):
             return srv._execute_request_raw(url, payload_bytes, headers, timeout=timeout)
-
         opener = self._get_opener()
         req = urllib.request.Request(url, data=payload_bytes, headers=headers)
         try:
@@ -69,7 +110,6 @@ class UniversalChatClient:
                 "Тебе доступны функции поиска в сети (search_web) и чтения веб-страниц (fetch_webpage).\n"
                 "Если в вопросе требуются актуальные факты, новости, документация или проверка данных — вызови инструмент."
             )
-
         if self.is_gemini:
             return self._send_gemini(history, sys_prompt, enable_search)
         elif self.is_orca:
@@ -97,7 +137,6 @@ class UniversalChatClient:
                 payload["include_reasoning"] = False
             if enable_search and step < (max_steps - 1):
                 payload["tools"] = OPENAI_WEB_TOOLS
-
             logger.api_payload(f"Chat: {self.service_id}", self.model, self.endpoint, headers, payload)
             t_call = time.time()
             data_bytes = json.dumps(payload).encode('utf-8')
@@ -106,19 +145,15 @@ class UniversalChatClient:
                 elapsed = time.time() - t_call
                 logger.api_raw_response(f"Chat: {self.service_id}", status_code, elapsed, raw_str)
                 logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, status_code)
-
                 if status_code >= 400:
                     if status_code in (500, 502, 503, 504):
                         return f"Ошибка сервера провайдера (HTTP {status_code}). Попробуйте позже."
                     if status_code == 429:
                         return "Превышен лимит запросов (HTTP 429). Сделайте паузу перед следующим сообщением."
                     return f"Ошибка API (HTTP {status_code}): {raw_str[:250]}"
-
                 data = json.loads(raw_str)
-
                 if "choices" not in data or not data["choices"]:
                     return "Сервер вернул пустой ответ (нет блока choices)."
-
                 msg = data["choices"][0]["message"]
                 if msg.get("tool_calls") and enable_search and step < (max_steps - 1):
                     messages.append({
@@ -142,16 +177,13 @@ class UniversalChatClient:
                             "content": tool_res
                         })
                     continue
-
                 ans = msg.get("content") or msg.get("reasoning_content") or ""
                 ans = re.sub(r'<think>[\s\S]*?</think>', '', ans, flags=re.IGNORECASE).strip()
                 return ans
-
             except Exception as e:
                 elapsed = time.time() - t_call
                 logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, 0, note=f"Exception: {e}")
                 return f"Исключение при вызове модели: {e}"
-
         return "Не удалось сформировать ответ после завершения цепочки инструментов."
 
     def _send_gemini(self, history, sys_prompt, enable_search):
@@ -162,7 +194,6 @@ class UniversalChatClient:
                 contents[-1]["parts"].append({"text": h["content"]})
             else:
                 contents.append({"role": role, "parts": [{"text": h["content"]}]})
-
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
         headers = {
             "Content-Type": "application/json",
@@ -178,7 +209,6 @@ class UniversalChatClient:
             }
             if enable_search and step < (max_steps - 1):
                 payload["tools"] = GEMINI_WEB_TOOLS
-
             logger.api_payload(f"Chat: {self.service_id}", self.model, url, headers, payload)
             t_call = time.time()
             data_bytes = json.dumps(payload).encode('utf-8')
@@ -187,21 +217,17 @@ class UniversalChatClient:
                 elapsed = time.time() - t_call
                 logger.api_raw_response(f"Chat: {self.service_id}", status_code, elapsed, raw_str)
                 logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, status_code)
-
                 if status_code >= 400:
                     if status_code in (500, 502, 503, 504):
                         return f"Ошибка сервера Google (HTTP {status_code})."
                     if status_code == 429:
                         return "Превышен лимит запросов Google API (HTTP 429)."
                     return f"Ошибка Gemini API (HTTP {status_code}): {raw_str[:250]}"
-
                 data = json.loads(raw_str)
-
             except Exception as e:
                 elapsed = time.time() - t_call
                 logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, 0, note=f"Exception: {e}")
                 return f"Исключение при вызове Gemini: {e}"
-
             cand = data.get("candidates", [{}])[0]
             parts = cand.get("content", {}).get("parts", [])
             fn_call = None
@@ -211,30 +237,24 @@ class UniversalChatClient:
                     fn_call = p["functionCall"]
                 if "text" in p:
                     text_res += p["text"]
-
             if fn_call and enable_search and step < (max_steps - 1):
                 fn_name = fn_call.get("name")
                 args = fn_call.get("args", {})
                 contents.append({"role": "model", "parts": parts})
-
                 tool_res = execute_tool_call(fn_name, args)
                 logger.tool_call(f"Chat: {self.service_id}", step + 1, fn_name, args, tool_res)
-
                 resp_part = {
                     "name": fn_name,
                     "response": {"result": tool_res}
                 }
                 if fn_call.get("id"):
                     resp_part["id"] = fn_call["id"]
-
                 contents.append({
                     "role": "user",
                     "parts": [{"functionResponse": resp_part}]
                 })
                 continue
-
             return text_res.strip()
-
         return "Не удалось сформировать ответ Gemini после цепочки инструментов."
 
     def _send_cloudflare(self, history, sys_prompt):
@@ -255,18 +275,15 @@ class UniversalChatClient:
             elapsed = time.time() - t_call
             logger.api_raw_response(f"Chat: {self.service_id}", status_code, elapsed, raw_str)
             logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, status_code)
-
             if status_code >= 400:
                 if status_code in (500, 502, 503, 504):
                     return f"Ошибка сервера Cloudflare (HTTP {status_code})."
                 return f"Ошибка Cloudflare API (HTTP {status_code}): {raw_str[:250]}"
-
             data = json.loads(raw_str)
             res = data.get("result", {}).get("response", "")
             if not res and data.get("result", {}).get("choices"):
                 res = data.get("result")["choices"][0].get("message", {}).get("content", "")
             return res.strip()
-
         except Exception as e:
             elapsed = time.time() - t_call
             logger.api_summary(f"Chat: {self.service_id}", self.model, elapsed, 0, note=f"Exception: {e}")
@@ -279,6 +296,12 @@ class ChatWindow(tk.Toplevel):
         self.parent = parent
         self.history = []
         self._is_generating = False
+
+        try:
+            self.tk.eval(TCL_POPDOWN_ADAPTIVE_HOOK)
+        except Exception:
+            pass
+
         bg_main = theme.get_color("bg_main")
         self.title("ИИ Чат — QTranslate AI Hub")
         self.configure(bg=bg_main)
@@ -332,17 +355,27 @@ class ChatWindow(tk.Toplevel):
             valid_models[f"{s_obj.name} ({s_id})"] = s_id
         return valid_models
 
+    def _adjust_combobox_width(self):
+        try:
+            vals = self.combo_model.cget("values")
+            if vals:
+                max_chars = max(len(str(v)) for v in vals)
+                popdown = self.combo_model.tk.eval(f"ttk::combobox::PopdownWindow {self.combo_model}")
+                font_spec = theme.font(0)
+                self.combo_model.tk.call(f"{popdown}.f.l", "configure", "-font", font_spec)
+                self.combo_model.tk.call(f"{popdown}.f.l", "configure", "-width", max_chars + 1)
+        except Exception:
+            pass
+
     def _build_ui(self):
         for widget in self.winfo_children():
             widget.destroy()
-
         bg_main = theme.get_color("bg_main")
         bg_card = theme.get_color("bg_card")
         fg_pri = theme.get_color("fg_primary")
         in_bg = theme.get_color("input_bg")
         in_fg = theme.get_color("input_fg")
         border = theme.get_color("bg_card_border")
-
         pad = tk.Frame(self, bg=bg_main, padx=12, pady=10)
         pad.pack(fill=tk.BOTH, expand=True)
 
@@ -351,14 +384,25 @@ class ChatWindow(tk.Toplevel):
             highlightbackground=border, highlightthickness=1
         )
         top_bar.pack(side=tk.TOP, fill=tk.X, pady=(0, 8))
-
         tk.Label(top_bar, text="Модель:", font=theme.font(0, "bold"), fg=fg_pri, bg=bg_card).pack(side=tk.LEFT, padx=(0, 4))
         self.model_map = self._get_api_models()
         model_names = list(self.model_map.keys())
-        self.combo_model = ttk.Combobox(top_bar, values=model_names, state="readonly", width=28, font=theme.font(0))
+
+        max_model_len = max([len(m) for m in model_names] or [28])
+        calc_width = max(26, min(max_model_len + 2, 34))
+
+        self.combo_model = ttk.Combobox(
+            top_bar,
+            values=model_names,
+            state="readonly",
+            width=calc_width,
+            postcommand=self._adjust_combobox_width,
+            font=theme.font(0)
+        )
         if model_names:
             self.combo_model.set(model_names[0])
         self.combo_model.pack(side=tk.LEFT, padx=(0, 10))
+        self._adjust_combobox_width()
 
         self.var_search = tk.BooleanVar(value=True)
         chk_search = tk.Checkbutton(
@@ -439,21 +483,17 @@ class ChatWindow(tk.Toplevel):
         user_text = self.t_input.get("1.0", tk.END).strip()
         if not user_text:
             return
-
         selected_display = self.combo_model.get()
         service_id = self.model_map.get(selected_display)
         if not service_id:
             return
-
         self.t_input.delete("1.0", tk.END)
         self._append_to_chat("user_name", "Вы:", is_name=True)
         self._append_to_chat("user_text", user_text)
         self.history.append({"role": "user", "content": user_text})
-
         self._is_generating = True
         self.btn_send.config(state="disabled", text="Генерация...")
         self.combo_model.config(state="readonly")
-
         threading.Thread(
             target=self._bg_worker,
             args=(service_id, self.var_search.get()),

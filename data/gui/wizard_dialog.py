@@ -1,10 +1,11 @@
-# -*- coding: utf-8 -*-
 # data/gui/wizard_dialog.py
-
-import os, sys, threading, re
+# -*- coding: utf-8 -*-
+import os
+import sys
+import threading
+import re
 import tkinter as tk
 from tkinter import ttk, messagebox
-
 from data.core.config_manager import config
 from data.core.api_config import api_config
 from data.core.service_generator import service_generator
@@ -14,6 +15,47 @@ from data.gui.theme_manager import theme
 from data.gui.dialog_helpers import ToolTip, HelpPopup, attach_entry_context_menu
 from data.gui.code_editor_dialog import CodeEditorDialog, open_file_in_smart_editor
 from data.gui.model_selector_dialog import ModelSelectorDialog
+
+TCL_POPDOWN_ADAPTIVE_HOOK = """
+proc ttk::combobox::PlacePopdown {cb popdown} {
+    set x [winfo rootx $cb]
+    set y [winfo rooty $cb]
+    set w [winfo width $cb]
+    set h [winfo height $cb]
+    set postoffset [ttk::style lookup TCombobox -postoffset {} {0 0 0 0}]
+    foreach var {x y w h} delta $postoffset {
+        incr $var $delta
+    }
+    set lbw [$popdown.f.l cget -width]
+    if {$lbw > 0} {
+        set font [$popdown.f.l cget -font]
+        if {$font eq ""} { set font [$cb cget -font] }
+        if {$font eq ""} { set font TkDefaultFont }
+        set charw [font measure $font "0"]
+        set calcw [expr {$lbw * $charw + 35}]
+        if {$calcw > $w} {
+            set w $calcw
+        }
+    }
+    set sw [winfo screenwidth $popdown]
+    if {$x + $w > $sw - 10} {
+        set maxw [expr {$sw - $x - 10}]
+        if {$maxw < [winfo width $cb]} {
+            set x [expr {$sw - $w - 10}]
+            if {$x < 10} { set x 10 }
+        } else {
+            set w $maxw
+        }
+    }
+    set H [winfo reqheight $popdown]
+    if {$y + $h + $H > [winfo screenheight $popdown]} {
+        set Y [expr {$y - $H}]
+    } else {
+        set Y [expr {$y + $h}]
+    }
+    wm geometry $popdown ${w}x${H}+${x}+${Y}
+}
+"""
 
 WIZARD_HELP_FALLBACK = {
     "openrouter": "OpenRouter: доступ к сотням моделей. Для бесплатных моделей используйте тег :free (например, google/gemma-4-31b-it:free). В РФ требует SOCKS5-прокси.",
@@ -43,6 +85,7 @@ FIELD_HELP = {
     "btn_id": "Числовой ID кнопки в клиенте QTranslate."
 }
 
+
 class AddServiceWizardDialog(tk.Toplevel):
     def __init__(self, parent, on_created_callback=None):
         super().__init__(parent)
@@ -52,8 +95,12 @@ class AddServiceWizardDialog(tk.Toplevel):
         self.created_folder_name = None
         self._manual_id_edit = False
 
-        theme.apply_ttk_theme(self)
+        try:
+            self.tk.eval(TCL_POPDOWN_ADAPTIVE_HOOK)
+        except Exception:
+            pass
 
+        theme.apply_ttk_theme(self)
         self.title("Студия подключения сервисов — QTranslate AI Hub")
         self.geometry("740x800")
         self.minsize(660, 680)
@@ -98,6 +145,18 @@ class AddServiceWizardDialog(tk.Toplevel):
         self.available_templates = service_generator.get_available_templates()
         self.templates_map = {t["id"]: t for t in self.available_templates}
 
+    def _adjust_templates_popdown_width(self):
+        try:
+            vals = self.cb_templates.cget("values")
+            if vals:
+                max_chars = max(len(str(v)) for v in vals)
+                popdown = self.cb_templates.tk.eval(f"ttk::combobox::PopdownWindow {self.cb_templates}")
+                font_spec = theme.font(0)
+                self.cb_templates.tk.call(f"{popdown}.f.l", "configure", "-font", font_spec)
+                self.cb_templates.tk.call(f"{popdown}.f.l", "configure", "-width", max_chars + 1)
+        except Exception:
+            pass
+
     def _make_field_row(self, parent, label_text, help_key):
         row = tk.Frame(parent, bg=theme.get_color("bg_card"))
         row.pack(fill=tk.X, pady=2)
@@ -106,7 +165,6 @@ class AddServiceWizardDialog(tk.Toplevel):
             bg=theme.get_color("bg_card"), fg=theme.get_color("fg_primary"),
             width=22, anchor="w"
         ).pack(side=tk.LEFT)
-
         h_text = FIELD_HELP.get(help_key, "")
         btn_h = tk.Button(
             row, text="?", font=theme.font(-2, "bold"), relief=tk.FLAT,
@@ -137,12 +195,17 @@ class AddServiceWizardDialog(tk.Toplevel):
         form_box = tk.Frame(pad, bg=bg_card, padx=12, pady=8, relief=tk.SOLID, bd=1)
         form_box.pack(fill=tk.X, pady=(0, 6))
 
-        # 1. Шаблон
         r_tmpl = self._make_field_row(form_box, "Провайдер / Шаблон:", "tmpl")
         tmpl_titles = [f"{t['name']} ({t['id']})" for t in self.available_templates]
-        self.cb_templates = ttk.Combobox(r_tmpl, values=tmpl_titles, state="readonly", width=26)
+
+        self.cb_templates = ttk.Combobox(
+            r_tmpl, values=tmpl_titles, state="readonly",
+            postcommand=self._adjust_templates_popdown_width,
+            font=theme.font(0)
+        )
         self.cb_templates.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 6))
         self.cb_templates.bind("<<ComboboxSelected>>", self._on_template_selected)
+        self._adjust_templates_popdown_width()
 
         btn_docs = tk.Button(
             r_tmpl, text="Документация API", font=theme.font(-2, "bold"), relief=tk.FLAT,
@@ -158,21 +221,18 @@ class AddServiceWizardDialog(tk.Toplevel):
         btn_ai_help.pack(side=tk.LEFT)
         ToolTip(btn_ai_help, "Найти документацию через встроенный поиск ИИ и показать выжимку")
 
-        # 2. Название сервиса
         r_name = self._make_field_row(form_box, "Название сервиса:", "name")
         self.ent_name = tk.Entry(r_name, textvariable=self.var_display_name, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_name.pack(side=tk.LEFT, fill=tk.X, expand=True)
         self.ent_name.bind("<KeyRelease>", self._on_display_name_typed)
         attach_entry_context_menu(self.ent_name)
 
-        # 3. ID папки
         r_id = self._make_field_row(form_box, "ID папки / сервиса:", "id")
         self.ent_id = tk.Entry(r_id, textvariable=self.var_service_id, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_id.pack(side=tk.LEFT, fill=tk.X, expand=True)
         self.ent_id.bind("<Key>", lambda e: setattr(self, "_manual_id_edit", True))
         attach_entry_context_menu(self.ent_id)
 
-        # 4. Модель + Запрос
         r_model = self._make_field_row(form_box, "Идентификатор модели:", "model")
         self.ent_model = tk.Entry(r_model, textvariable=self.var_model, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_model.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 6))
@@ -186,51 +246,41 @@ class AddServiceWizardDialog(tk.Toplevel):
         btn_select_model.pack(side=tk.RIGHT)
         ToolTip(btn_select_model, "Запросить список моделей с сервера через API, посмотреть лимиты контекста и цены")
 
-        # 5. Эндпоинт
         r_end = self._make_field_row(form_box, "Эндпоинт (URL):", "endpoint")
         self.ent_endpoint = tk.Entry(r_end, textvariable=self.var_endpoint, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_endpoint.pack(side=tk.LEFT, fill=tk.X, expand=True)
         attach_entry_context_menu(self.ent_endpoint)
 
-        # 6. Account ID
         r_acc = self._make_field_row(form_box, "ID аккаунта (Account ID):", "account_id")
         self.ent_acc = tk.Entry(r_acc, textvariable=self.var_account_id, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_acc.pack(side=tk.LEFT, fill=tk.X, expand=True)
         attach_entry_context_menu(self.ent_acc)
 
-        # 7. API Ключ (открытый ввод)
         r_key = self._make_field_row(form_box, "API Ключ провайдера:", "key")
         self.ent_key = tk.Entry(r_key, textvariable=self.var_api_key, font=theme.font(0), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1)
         self.ent_key.pack(side=tk.LEFT, fill=tk.X, expand=True)
         attach_entry_context_menu(self.ent_key)
 
-        # 8. Режим сети
         r_net = self._make_field_row(form_box, "Режим сети:", "net")
         self.cb_net = ttk.Combobox(r_net, textvariable=self.var_connection_mode, values=("direct", "socks5", "doh"), state="readonly", width=16)
         self.cb_net.pack(side=tk.LEFT, padx=(0, 8))
-
         tk.Label(r_net, text="SOCKS5:", font=theme.font(-1), bg=bg_card, fg=fg_pri).pack(side=tk.LEFT)
         self.ent_proxy = tk.Entry(r_net, textvariable=self.var_proxy, font=theme.font(-1), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1, width=22)
         self.ent_proxy.pack(side=tk.LEFT, padx=(4, 0))
 
-        # 9. Размышления (Thinking)
         r_th = self._make_field_row(form_box, "Размышления (Thinking):", "thinking")
         self.cb_th = ttk.Combobox(r_th, textvariable=self.var_thinking_policy, values=("strip", "keep", "disable"), state="readonly")
         self.cb_th.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
-        # 10. Путь ответа и ID кнопки
         r_meta = tk.Frame(form_box, bg=bg_card)
         r_meta.pack(fill=tk.X, pady=(4, 2))
-
         tk.Label(r_meta, text="Путь ответа (JSON Path):", font=theme.font(-1), bg=bg_card, fg=fg_pri).pack(side=tk.LEFT)
         self.ent_json_path = tk.Entry(r_meta, textvariable=self.var_json_path, font=theme.font(-1), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1, width=24)
         self.ent_json_path.pack(side=tk.LEFT, padx=(4, 10))
-
         tk.Label(r_meta, text="ID кнопки:", font=theme.font(-1), bg=bg_card, fg=fg_pri).pack(side=tk.LEFT)
         self.ent_btn_id = tk.Entry(r_meta, textvariable=self.var_btn_id, font=theme.font(-1, "bold"), bg=in_bg, fg=in_fg, relief=tk.SOLID, bd=1, width=8, justify="center")
         self.ent_btn_id.pack(side=tk.LEFT, padx=(4, 0))
 
-        # Блок тестирования
         box_stand = tk.LabelFrame(pad, text=" Тестирование и проверка созданного сервиса ", font=theme.font(0, "bold"), bg=bg_card, fg=fg_pri, padx=10, pady=6)
         box_stand.pack(fill=tk.BOTH, expand=True, pady=(0, 6))
 
@@ -450,6 +500,7 @@ class AddServiceWizardDialog(tk.Toplevel):
                 try:
                     from data.core.web_search import search_web
                     res_text = search_web(query_text, engine=chosen_eng, max_results=4)
+
                     def _show():
                         lbl_status.config(text=f"Результаты поиска ({cb_eng.get()}):", fg=theme.get_color("status_ready"))
                         txt.delete("1.0", tk.END)
@@ -466,7 +517,6 @@ class AddServiceWizardDialog(tk.Toplevel):
             bg=theme.get_color("accent"), fg=theme.get_color("accent_text"), padx=8, command=_do_search
         )
         btn_search.pack(side=tk.RIGHT)
-
         _do_search()
 
     def _open_model_selector(self):
@@ -510,6 +560,7 @@ class AddServiceWizardDialog(tk.Toplevel):
             try:
                 from data.core.templates.unified_engine import execute_test_ping
                 success, msg = execute_test_ping(self.var_service_id.get().strip(), test_data, quick_mode=quick)
+
                 def _update_ui():
                     self.txt_result.delete("1.0", tk.END)
                     self.txt_result.insert("1.0", msg)
@@ -566,11 +617,10 @@ class AddServiceWizardDialog(tk.Toplevel):
 
             self.created_service_id = sec_id
             self.created_folder_name = service_generator.sanitize_folder_name(display_name)
-
             btn_id_val = self.var_btn_id.get().strip()
+
             self.var_status_msg.set(f"Сервис '{display_name}' успешно создан! QTranslate перезапущен (ID: {btn_id_val}).")
             self.lbl_status_test.config(fg=theme.get_color("status_ready"))
-
             self.btn_open_py.config(state=tk.NORMAL)
             self.btn_open_js.config(state=tk.NORMAL)
             self.btn_create.config(text="Обновить сервис")
@@ -580,7 +630,6 @@ class AddServiceWizardDialog(tk.Toplevel):
                     self.on_created_callback()
                 except Exception:
                     pass
-
         except Exception as e:
             logger.error(f"Ошибка при создании сервиса: {e}")
             self.var_status_msg.set(f"Ошибка создания: {e}")
@@ -600,5 +649,6 @@ class AddServiceWizardDialog(tk.Toplevel):
         base_dir = service_generator.base_dir
         js_path = os.path.join(base_dir, "Services", self.created_folder_name, "service.js")
         open_file_in_smart_editor(js_path, self)
+
 
 WizardDialog = AddServiceWizardDialog

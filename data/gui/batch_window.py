@@ -1,4 +1,5 @@
 # data/gui/batch_window.py
+# -*- coding: utf-8 -*-
 import os
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
@@ -9,11 +10,58 @@ from data.gui.dialogs import attach_entry_context_menu
 from data.gui.theme_manager import theme
 from data.services.base_service import LOADED_SERVICES
 
+TCL_POPDOWN_ADAPTIVE_HOOK = """
+proc ttk::combobox::PlacePopdown {cb popdown} {
+    set x [winfo rootx $cb]
+    set y [winfo rooty $cb]
+    set w [winfo width $cb]
+    set h [winfo height $cb]
+    set postoffset [ttk::style lookup TCombobox -postoffset {} {0 0 0 0}]
+    foreach var {x y w h} delta $postoffset {
+        incr $var $delta
+    }
+    set lbw [$popdown.f.l cget -width]
+    if {$lbw > 0} {
+        set font [$popdown.f.l cget -font]
+        if {$font eq ""} { set font [$cb cget -font] }
+        if {$font eq ""} { set font TkDefaultFont }
+        set charw [font measure $font "0"]
+        set calcw [expr {$lbw * $charw + 35}]
+        if {$calcw > $w} {
+            set w $calcw
+        }
+    }
+    set sw [winfo screenwidth $popdown]
+    if {$x + $w > $sw - 10} {
+        set maxw [expr {$sw - $x - 10}]
+        if {$maxw < [winfo width $cb]} {
+            set x [expr {$sw - $w - 10}]
+            if {$x < 10} { set x 10 }
+        } else {
+            set w $maxw
+        }
+    }
+    set H [winfo reqheight $popdown]
+    if {$y + $h + $H > [winfo screenheight $popdown]} {
+        set Y [expr {$y - $H}]
+    } else {
+        set Y [expr {$y + $h}]
+    }
+    wm geometry $popdown ${w}x${H}+${x}+${Y}
+}
+"""
+
 
 class BatchWindow(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
+
+        try:
+            self.tk.eval(TCL_POPDOWN_ADAPTIVE_HOOK)
+        except Exception:
+            pass
+
         theme.apply_ttk_theme(self)
         bg_main = theme.get_color("bg_main")
         self.title(t("batch_title", "Пакетный перевод файлов"))
@@ -22,6 +70,18 @@ class BatchWindow(tk.Toplevel):
         self.configure(bg=bg_main)
         self.transient(parent)
         self._build_ui()
+
+    def _adjust_combobox_width(self):
+        try:
+            vals = self.srv_combo.cget("values")
+            if vals:
+                max_chars = max(len(str(v)) for v in vals)
+                popdown = self.srv_combo.tk.eval(f"ttk::combobox::PopdownWindow {self.srv_combo}")
+                font_spec = theme.font(0)
+                self.srv_combo.tk.call(f"{popdown}.f.l", "configure", "-font", font_spec)
+                self.srv_combo.tk.call(f"{popdown}.f.l", "configure", "-width", max_chars + 1)
+        except Exception:
+            pass
 
     def _build_ui(self):
         bg_main = theme.get_color("bg_main")
@@ -65,7 +125,12 @@ class BatchWindow(tk.Toplevel):
         self.srv_keys = list(LOADED_SERVICES.keys())
         self.srv_display_map = {f"{LOADED_SERVICES[k].name} ({k})": k for k in self.srv_keys}
         display_values = list(self.srv_display_map.keys()) or ["Bing Translator (bing)"]
-        self.srv_combo = ttk.Combobox(r3, values=display_values, width=28, state="readonly")
+
+        self.srv_combo = ttk.Combobox(
+            r3, values=display_values, width=28,
+            state="readonly", postcommand=self._adjust_combobox_width,
+            font=theme.font(0)
+        )
         default_sel = display_values[0]
         for name, k in self.srv_display_map.items():
             if k == "bing":
@@ -73,9 +138,10 @@ class BatchWindow(tk.Toplevel):
                 break
         self.srv_combo.set(default_sel)
         self.srv_combo.pack(side=tk.LEFT, padx=(4, 12))
+        self._adjust_combobox_width()
 
         tk.Label(r3, text=t("batch_lang", "Язык:"), bg=bg_card, fg=fg_pri, font=theme.font(0)).pack(side=tk.LEFT)
-        self.lang_combo = ttk.Combobox(r3, values=["ru", "en", "de", "es", "fr", "zh-CN", "ja", "it", "pl", "cs", "tr"], width=8, state="readonly")
+        self.lang_combo = ttk.Combobox(r3, values=["ru", "en", "de", "es", "fr", "zh-CN", "ja", "it", "pl", "cs", "tr"], width=8, state="readonly", font=theme.font(0))
         self.lang_combo.set("ru")
         self.lang_combo.pack(side=tk.LEFT, padx=(4, 12))
 
@@ -93,19 +159,16 @@ class BatchWindow(tk.Toplevel):
 
         self.pbar = ttk.Progressbar(prog_box, orient="horizontal", mode="determinate")
         self.pbar.pack(fill=tk.X, pady=4)
-
         self.lbl_status = tk.Label(
             prog_box, text=t("batch_status_ready", "Готов к запуску перевода"),
             font=theme.font(-1), fg=theme.get_color("fg_muted"), bg=bg_card, anchor="w"
         )
         self.lbl_status.pack(fill=tk.X)
-
         self.preview_lbl = tk.Label(prog_box, text="", font=theme.font(-1, "italic"), fg=fg_pri, bg=bg_card, anchor="w")
         self.preview_lbl.pack(fill=tk.X, pady=(2, 0))
 
         btn_bar = tk.Frame(pad, bg=bg_main)
         btn_bar.pack(fill=tk.X)
-
         self.btn_start = tk.Button(
             btn_bar, text=t("batch_btn_start", "Начать перевод"), font=theme.font(0, "bold"),
             bg=theme.get_color("accent"), fg=theme.get_color("accent_text"), relief=tk.FLAT,
@@ -156,13 +219,12 @@ class BatchWindow(tk.Toplevel):
                 parent=self
             )
             return
-
         self.btn_start.config(state="disabled")
         self.btn_pause.config(state="normal", text=t("batch_btn_pause", "Пауза"))
         self.btn_cancel.config(state="normal")
         self.pbar["value"] = 0
-
         config.set_value("BATCH", "ProtectCode", "1" if self.prot_var.get() else "0")
+
         selected_display = self.srv_combo.get()
         actual_service_id = self.srv_display_map.get(selected_display, "bing")
 
